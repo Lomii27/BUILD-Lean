@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BUILD - Chantiers Modernes Construction</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <style>
+        .pic-container {
+            position: relative;
+            cursor: crosshair;
+            overflow: auto;
+            max-height: 70vh;
+            border: 2px dashed #cbd5e1;
+            background: #f8fafc;
+            user-select: none;
+            min-height: 450px;
+        }
+        .task-zone {
+            position: absolute;
+            border: 2px solid;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: bold;
+            color: white;
+            z-index: 10;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+            text-align: center;
+            padding: 2px;
+        }
+        .selection-rect {
+            position: absolute;
+            border: 2px dashed #004587;
+            background: rgba(0, 69, 135, 0.2);
+            pointer-events: none;
+            z-index: 20;
+        }
+        
+        .status-none { opacity: 0.8; }
+        .status-ongoing { border-style: solid; box-shadow: 0 0 12px rgba(59, 130, 246, 0.6); }
+        .status-done { background-image: linear-gradient(45deg, rgba(34, 197, 94, 0.3) 25%, transparent 25%); background-size: 8px 8px; border-color: #16a34a !important; }
+        .status-delayed { border-color: #ef4444 !important; animation: pulse-red 2s infinite; }
+
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+
+        .task-zone:hover {
+            transform: scale(1.03);
+            z-index: 30;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+        }
+
+        #pdf-canvas { display: none; }
+
+        .status-menu {
+            position: absolute;
+            z-index: 100;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 180px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .tab-active {
+            border-bottom: 3px solid #004587;
+            color: #004587;
+            font-weight: 800;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen font-sans">
+
+    <div class="max-w-7xl mx-auto p-4">
+        <header class="flex flex-wrap justify-between items-center mb-6 bg-white p-4 rounded-xl shadow-sm border-b-4 border-blue-800 gap-4">
+            <div class="flex items-center gap-6">
+                <img src="image_9c09d9.png" class="h-10 w-auto" alt="CMC" onerror="this.style.display='none'">
+                <img src="image_9c0a1a.png" class="h-10 w-auto" alt="VINCI" onerror="this.style.display='none'">
+                <div class="hidden md:block pl-4 border-l border-slate-100">
+                    <span class="text-2xl font-black tracking-tighter text-[#004587]">BUILD <span class="text-slate-300 font-light">LPS</span></span>
+                </div>
+            </div>
+
+            <div class="flex gap-3 items-center">
+                <div id="authStatus" class="text-[10px] font-bold text-slate-400 mr-2 uppercase">Connexion...</div>
+                <input type="file" id="picUpload" accept="image/*,application/pdf" class="hidden">
+                <button onclick="document.getElementById('picUpload').click()" class="bg-slate-100 text-slate-700 px-4 py-2 rounded-lg hover:bg-slate-200 transition text-sm font-bold border border-slate-200">Charger Plan</button>
+                <button onclick="exportData()" class="bg-[#004587] text-white px-5 py-2 rounded-lg hover:opacity-90 transition text-sm font-bold shadow-md shadow-blue-900/20">Export CSV</button>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <div class="lg:col-span-3 space-y-4">
+                <!-- Plan Section -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 relative">
+                    <div id="canvasWrapper" class="pic-container rounded-lg border border-slate-200" onclick="hideStatusMenu()">
+                        <canvas id="pdf-canvas"></canvas>
+                        <img id="picImage" src="" alt="" class="max-w-none hidden" draggable="false">
+                        <div id="markersLayer"></div>
+                        <div id="selectionRect" class="selection-rect hidden"></div>
+                        <div id="emptyState" class="flex flex-col items-center justify-center py-40 text-slate-400">
+                            <p class="text-lg font-medium">Glissez un plan ici pour commencer</p>
+                        </div>
+                    </div>
+
+                    <div id="statusMenu" class="status-menu hidden">
+                        <p class="text-[10px] font-black text-slate-400 uppercase px-2 py-1 border-b mb-1">Actions</p>
+                        <button onclick="setStatus('done')" class="flex items-center gap-3 px-3 py-2 hover:bg-green-50 text-green-700 font-bold text-xs rounded-lg transition text-left">
+                            <span class="w-3 h-3 bg-green-500 rounded-full"></span> Tâche réalisée
+                        </button>
+                        <button onclick="setStatus('ongoing')" class="flex items-center gap-3 px-3 py-2 hover:bg-blue-50 text-blue-700 font-bold text-xs rounded-lg transition text-left">
+                            <span class="w-3 h-3 bg-blue-500 rounded-full"></span> Tâche en cours
+                        </button>
+                        <button onclick="setStatus('none')" class="flex items-center gap-3 px-3 py-2 hover:bg-slate-50 text-slate-700 font-bold text-xs rounded-lg transition text-left">
+                            <span class="w-3 h-3 bg-slate-400 rounded-full"></span> Tâche non réalisée
+                        </button>
+                        <button onclick="setStatus('delayed')" class="flex items-center gap-3 px-3 py-2 hover:bg-red-50 text-red-700 font-bold text-xs rounded-lg transition text-left">
+                            <span class="w-3 h-3 bg-red-500 rounded-full"></span> Tâche reportée
+                        </button>
+                        <hr class="my-1">
+                        <button onclick="deleteActiveTask()" class="flex items-center gap-3 px-3 py-2 hover:bg-red-50 text-red-400 font-bold text-xs rounded-lg transition text-left">Supprimer</button>
+                    </div>
+                </div>
+
+                <!-- Onglets et Tableau -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+                    <div class="flex border-b bg-slate-50 px-4 pt-2 gap-6 overflow-x-auto whitespace-nowrap">
+                        <button onclick="switchTab('all')" id="tab-all" class="pb-3 px-2 text-xs font-bold uppercase tracking-wider tab-active">Toutes (<span id="count-all">0</span>)</button>
+                        <button onclick="switchTab('done')" id="tab-done" class="pb-3 px-2 text-xs font-bold uppercase tracking-wider text-slate-400">Réalisées (<span id="count-done">0</span>)</button>
+                        <button onclick="switchTab('ongoing')" id="tab-ongoing" class="pb-3 px-2 text-xs font-bold uppercase tracking-wider text-slate-400">En cours (<span id="count-ongoing">0</span>)</button>
+                        <button onclick="switchTab('none')" id="tab-none" class="pb-3 px-2 text-xs font-bold uppercase tracking-wider text-slate-400">Non réalisées (<span id="count-none">0</span>)</button>
+                        <button onclick="switchTab('delayed')" id="tab-delayed" class="pb-3 px-2 text-xs font-bold uppercase tracking-wider text-slate-400">Reportées (<span id="count-delayed">0</span>)</button>
+                    </div>
+                    
+                    <div class="p-4">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm">
+                                <thead class="text-slate-400 font-black uppercase text-[10px] border-b">
+                                    <tr>
+                                        <th class="p-3">Zone / Tâche</th>
+                                        <th class="p-3">Conducteur</th>
+                                        <th class="p-3">Échéance</th>
+                                        <th class="p-3">Statut</th>
+                                        <th class="p-3">Motifs / Observations</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="taskTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard -->
+            <div class="space-y-6">
+                <div class="bg-white p-6 rounded-xl shadow-md border border-slate-100 text-center">
+                    <h2 class="font-bold text-slate-800 mb-4 uppercase text-xs tracking-wider">PPC Hebdomadaire</h2>
+                    <div class="relative h-48">
+                        <canvas id="kpiChart"></canvas>
+                    </div>
+                    <div id="ppcDisplay" class="mt-4">
+                        <span class="text-4xl font-black text-green-600">0%</span>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase mt-1">Planifié Complété</p>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100">
+                    <h3 class="text-xs font-black text-slate-400 uppercase mb-4 tracking-widest">Performance par état</h3>
+                    <div class="space-y-4" id="statBars">
+                        <div>
+                            <div class="flex justify-between text-[10px] font-bold mb-1"><span>RÉALISÉES</span><span id="perc-done">0%</span></div>
+                            <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden"><div id="bar-done" class="bg-green-500 h-full transition-all duration-500" style="width: 0%"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-[10px] font-bold mb-1"><span>EN COURS</span><span id="perc-ongoing">0%</span></div>
+                            <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden"><div id="bar-ongoing" class="bg-blue-500 h-full transition-all duration-500" style="width: 0%"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-[10px] font-bold mb-1"><span>NON RÉALISÉES</span><span id="perc-none">0%</span></div>
+                            <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden"><div id="bar-none" class="bg-slate-400 h-full transition-all duration-500" style="width: 0%"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-[10px] font-bold mb-1"><span>REPORTÉES</span><span id="perc-delayed">0%</span></div>
+                            <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden"><div id="bar-delayed" class="bg-red-500 h-full transition-all duration-500" style="width: 0%"></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="taskModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl border-t-8 border-blue-800">
+            <h3 class="text-xl font-bold mb-4 text-slate-800 uppercase tracking-tight font-black">1. Détails de la zone</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-[10px] font-black text-slate-400 uppercase">Nom de la zone / Tâche</label>
+                    <input type="text" id="modalTaskName" class="w-full border rounded-xl p-3 mt-1 outline-none border-slate-200 focus:ring-2 focus:ring-blue-500 font-bold">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase">Responsable</label>
+                        <input type="text" id="modalTaskOwner" class="w-full border rounded-xl p-3 mt-1 border-slate-200">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase">Date limite</label>
+                        <input type="date" id="modalTaskDeadline" class="w-full border rounded-xl p-3 mt-1 border-slate-200">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-black text-slate-400 uppercase mb-2">Couleur métier</label>
+                    <div class="flex gap-2 flex-wrap" id="colorPicker">
+                        <button onclick="selectColor('#3b82f6')" class="w-8 h-8 rounded-full bg-blue-500 border-2 border-black"></button>
+                        <button onclick="selectColor('#ef4444')" class="w-8 h-8 rounded-full bg-red-500 border-2 border-transparent"></button>
+                        <button onclick="selectColor('#f59e0b')" class="w-8 h-8 rounded-full bg-amber-500 border-2 border-transparent"></button>
+                        <button onclick="selectColor('#8b5cf6')" class="w-8 h-8 rounded-full bg-violet-500 border-2 border-transparent"></button>
+                        <button onclick="selectColor('#004587')" class="w-8 h-8 rounded-full bg-[#004587] border-2 border-transparent"></button>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-3 pt-4">
+                    <button onclick="closeModal()" class="px-4 py-2 font-bold text-slate-400">Annuler</button>
+                    <button onclick="confirmTask()" class="px-8 py-3 bg-[#004587] text-white rounded-xl font-bold">Créer la tâche</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Motifs Non Réalisé / Reporté -->
+    <div id="delayModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-[60]">
+        <div class="bg-white rounded-2xl p-6 w-full max-w-2xl border-t-8 border-red-600 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <h3 id="delayModalTitle" class="text-xl font-black mb-1 text-red-600 uppercase tracking-tighter">Pourquoi la tâche n'est pas terminée ?</h3>
+            <p class="text-[10px] text-slate-400 font-bold uppercase mb-6">Sélectionnez une ou plusieurs causes parmi les catégories ci-dessous</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Group 1: Organisation -->
+                <div class="space-y-3">
+                    <h4 class="text-[11px] font-black text-slate-800 bg-slate-100 p-2 rounded">ORGANISATION / MÉTHODES</h4>
+                    <div class="space-y-2 text-xs font-semibold text-slate-600">
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-red-600"><input type="checkbox" name="cause" value="Planning irréaliste"> Planning initial irréaliste</label>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-red-600"><input type="checkbox" name="cause" value="Tâche non planifiée"> Tâche non planifiée</label>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-red-600"><input type="checkbox" name="cause" value="Séquencement incohérent"> Séquencement incohérent</label>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-red-600"><input type="checkbox" name="cause" value="Priorités mal définies"> Priorités mal définies</label>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-red-600"><input type="checkbox" name="cause" value="Coordination insuffisante"> Coordination insuffisante</label>
+                    </div>
+                </div>
+
+                <!-- Group 2: Technique -->
+                <div class="space-y-3">
+                    <h4 class="text-[11px] font-black text-slate-800 bg-slate-100 p-2 rounded">TECHNIQUE / ÉTUDES</h4>
+                    <div class="space-y-2 text-xs font-semibold text-slate-600">
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-red-600"><input type="checkbox" name="cause" value="Plans non dispos"> Plans non disponibles</label>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-red-600"><input type="checkbox" name="cause" value="Plans erronés"> Plans erronés ou incomplets</label>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-red-600"><input type="checkbox" name="cause" value="Attente validation technique"> Attente validation technique</label>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-red-600"><input type="checkbox" name="cause" value="Problème conception chantier"> Problème de conception sur chantier</label>
+                    </div>
+                </div>
+
+                <!-- Group 3: Ressources -->
+                <div class="space-y-3">
+                    <h4 class="text-[11px] font-black text-slate-800 bg-slate-100 p-2 rounded">RESSOURCES HUMAINES</h4>
+                    <div class="space-y-2 text-xs font-semibold text-slate-600">
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-red-600"><input type="checkbox" name="cause" value="Manque main-d’œuvre"> Manque de main-d’œuvre</label>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-red-600"><input type="checkbox" name="cause" value="Compétences non adaptées"> Compétences non adaptées</label>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-red-600"><input type="checkbox" name="cause" value="Sous-traitant absent"> Sous-traitant absent</label>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-red-600"><input type="checkbox" name="cause" value="Consignes mal comprises"> Consignes mal comprises</label>
+                    </div>
+                </div>
+
+                <!-- Group 4: Logistique -->
+                <div class="space-y-3">
+                    <h4 class="text-[11px] font-black text-slate-800 bg-slate-100 p-2 rounded">LOGISTIQUE / MATÉRIEL</h4>
+                    <div class="space-y-2 text-xs font-semibold text-slate-600">
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-red-600"><input type="checkbox" name="cause" value="Matériaux non livrés"> Matériaux non livrés</label>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-red-600"><input type="checkbox" name="cause" value="Matériaux non conformes"> Matériaux non conformes</label>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-red-600"><input type="checkbox" name="cause" value="Matériel en panne/manquant"> Matériel en panne ou manquant</label>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-red-600"><input type="checkbox" name="cause" value="Matériel affecté ailleurs"> Matériel affecté à un autre chantier</label>
+                    </div>
+                </div>
+
+                <!-- Group 5: Autres -->
+                <div class="md:col-span-2 space-y-3">
+                    <h4 class="text-[11px] font-black text-slate-800 bg-slate-100 p-2 rounded">AUTRES CAUSES</h4>
+                    <div class="grid grid-cols-2 gap-2 text-xs font-semibold text-slate-600">
+                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" name="cause" value="Intempéries"> Intempéries</label>
+                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" name="cause" value="Sécurité"> Sécurité / Environnement</label>
+                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" name="cause" value="Client/MOA"> Retard Client / MOA</label>
+                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" name="cause" value="Financier"> Finance / Trésorerie</label>
+                    </div>
+                    <div class="mt-2">
+                        <label class="block text-[10px] font-black text-slate-400 uppercase mb-1">Motif Divers (Préciser)</label>
+                        <textarea id="delayComment" class="w-full border rounded-xl p-3 h-20 border-slate-200 text-sm outline-none focus:ring-2 focus:ring-red-500" placeholder="Décrivez le problème spécifiquement..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-3 mt-8 pt-4 border-t">
+                <button onclick="closeDelayModal()" class="px-6 py-2 text-slate-400 font-bold uppercase text-xs">Annuler</button>
+                <button onclick="saveDelayCause()" class="px-10 py-3 bg-red-600 text-white rounded-xl font-black uppercase text-sm shadow-lg shadow-red-900/20 active:scale-95 transition">Enregistrer les causes</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Setup ---
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'build-lps-v1';
+        const pdfjsLib = window['pdfjs-dist/build/pdf'];
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+
+        let tasks = [];
+        let currentTab = 'all';
+        let kpiChart = null;
+        let isDrawing = false;
+        let startX, startY;
+        let currentRect = { x: 0, y: 0, w: 0, h: 0 };
+        let activeTaskId = null;
+        let selectedColor = '#3b82f6';
+        let currentUser = null;
+
+        // --- Auth & Sync ---
+        async function initAuth() {
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) await auth.signInWithCustomToken(__initial_auth_token);
+            else await auth.signInAnonymously();
+        }
+
+        auth.onAuthStateChanged(user => {
+            currentUser = user;
+            if (user) {
+                db.collection('artifacts').doc(appId).collection('public').doc('data').collection('tasks')
+                  .onSnapshot(snap => {
+                    tasks = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    renderUI();
+                  });
+            }
+            document.getElementById('authStatus').innerText = user ? "Connecté" : "Erreur";
+        });
+
+        // --- Core Logic ---
+        function switchTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('[id^="tab-"]').forEach(btn => {
+                btn.classList.remove('tab-active');
+                btn.classList.add('text-slate-400');
+            });
+            document.getElementById(`tab-${tab}`).classList.add('tab-active');
+            document.getElementById(`tab-${tab}`).classList.remove('text-slate-400');
+            renderUI();
+        }
+
+        function renderUI() {
+            renderTasks();
+            updateKPIs();
+        }
+
+        function renderTasks() {
+            const markersLayer = document.getElementById('markersLayer');
+            const tableBody = document.getElementById('taskTableBody');
+            markersLayer.innerHTML = '';
+            tableBody.innerHTML = '';
+
+            // Filtrer les tâches pour le tableau selon l'onglet
+            const filteredTasks = tasks.filter(t => currentTab === 'all' || t.status === currentTab);
+            
+            // Mise à jour des compteurs d'onglets
+            const counts = {
+                all: tasks.length,
+                done: tasks.filter(t => t.status === 'done').length,
+                ongoing: tasks.filter(t => t.status === 'ongoing').length,
+                none: tasks.filter(t => t.status === 'none').length,
+                delayed: tasks.filter(t => t.status === 'delayed').length
+            };
+            Object.keys(counts).forEach(key => document.getElementById(`count-${key}`).innerText = counts[key]);
+
+            tasks.forEach(task => {
+                // Zone Plan
+                const zone = document.createElement('div');
+                zone.className = `task-zone status-${task.status} rounded`;
+                zone.style.left = `${task.rect.x}px`;
+                zone.style.top = `${task.rect.y}px`;
+                zone.style.width = `${task.rect.w}px`;
+                zone.style.height = `${task.rect.h}px`;
+                zone.style.backgroundColor = task.color + '44';
+                zone.style.borderColor = task.color;
+                zone.innerHTML = `<span>${task.name}</span>`;
+                zone.onclick = (e) => showStatusMenu(e, task.id);
+                markersLayer.appendChild(zone);
+            });
+
+            filteredTasks.forEach(task => {
+                // Ligne Tableau
+                const row = document.createElement('tr');
+                row.className = "border-b border-slate-50 hover:bg-slate-50 transition cursor-pointer";
+                row.onclick = (e) => showStatusMenu(e, task.id);
+                row.innerHTML = `
+                    <td class="p-3"><div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full" style="background:${task.color}"></span><span class="font-bold text-slate-700">${task.name}</span></div></td>
+                    <td class="p-3 text-slate-500 font-medium">${task.owner}</td>
+                    <td class="p-3 text-slate-400 font-mono text-[10px]">${task.deadline}</td>
+                    <td class="p-3"><span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase text-white" style="background:${getStatusColor(task.status)}">${formatStatus(task.status)}</span></td>
+                    <td class="p-3 text-[10px] font-bold text-red-500/80 max-w-[200px] break-words">${task.cause || '-'}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        function updateKPIs() {
+            const counts = { done: 0, ongoing: 0, delayed: 0, none: 0 };
+            tasks.forEach(t => counts[t.status]++);
+            const total = tasks.length;
+            
+            const ppc = total > 0 ? Math.round((counts.done / total) * 100) : 0;
+            document.getElementById('ppcDisplay').querySelector('span').innerText = `${ppc}%`;
+            
+            // Update Mini bars
+            ['done', 'ongoing', 'none', 'delayed'].forEach(s => {
+                const perc = total > 0 ? Math.round((counts[s] / total) * 100) : 0;
+                document.getElementById(`perc-${s}`).innerText = `${perc}%`;
+                document.getElementById(`bar-${s}`).style.width = `${perc}%`;
+            });
+
+            if (kpiChart) {
+                kpiChart.data.datasets[0].data = [counts.done, counts.ongoing, counts.delayed, counts.none];
+                kpiChart.update();
+            }
+        }
+
+        // --- UI Interactions ---
+        function showStatusMenu(e, id) {
+            e.stopPropagation();
+            activeTaskId = id;
+            const menu = document.getElementById('statusMenu');
+            const rect = wrapper.getBoundingClientRect();
+            menu.style.left = (e.clientX - rect.left + wrapper.scrollLeft) + 'px';
+            menu.style.top = (e.clientY - rect.top + wrapper.scrollTop) + 'px';
+            menu.classList.remove('hidden');
+        }
+
+        function hideStatusMenu() { document.getElementById('statusMenu').classList.add('hidden'); }
+
+        async function setStatus(newStatus) {
+            const task = tasks.find(t => t.id === activeTaskId);
+            if (!task) return;
+
+            if (newStatus === 'delayed' || newStatus === 'none') {
+                document.getElementById('delayModalTitle').innerText = newStatus === 'delayed' ? "Tâche Reportée : Motifs" : "Tâche Non Réalisée : Motifs";
+                // Reset checkbox state
+                document.querySelectorAll('input[name="cause"]').forEach(c => c.checked = false);
+                document.getElementById('delayComment').value = '';
+                document.getElementById('delayModal').classList.remove('hidden');
+            } else {
+                await saveToFirebase({ ...task, status: newStatus, cause: '' });
+                hideStatusMenu();
+            }
+        }
+
+        async function saveDelayCause() {
+            const task = tasks.find(t => t.id === activeTaskId);
+            const selectedCauses = Array.from(document.querySelectorAll('input[name="cause"]:checked')).map(c => c.value);
+            const custom = document.getElementById('delayComment').value;
+            
+            let finalCause = selectedCauses.join(', ');
+            if (custom) finalCause += (finalCause ? ' | ' : '') + custom;
+
+            if (task) {
+                // Si on ouvre le modal via 'delayed' ou 'none', on préserve cet état
+                const isDelayed = document.getElementById('delayModalTitle').innerText.includes('Reportée');
+                await saveToFirebase({ ...task, status: isDelayed ? 'delayed' : 'none', cause: finalCause });
+            }
+            closeDelayModal();
+            hideStatusMenu();
+        }
+
+        function closeDelayModal() { document.getElementById('delayModal').classList.add('hidden'); }
+
+        // --- Helpers ---
+        async function saveToFirebase(data) {
+            if (!currentUser) return;
+            const ref = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('tasks');
+            if (data.id) await ref.doc(data.id).set(data, { merge: true });
+            else await ref.add(data);
+        }
+
+        async function deleteActiveTask() {
+            if (!currentUser || !activeTaskId) return;
+            await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('tasks').doc(activeTaskId).delete();
+            hideStatusMenu();
+        }
+
+        function getStatusColor(s) { return { 'none': '#94a3b8', 'ongoing': '#3b82f6', 'done': '#22c55e', 'delayed': '#ef4444' }[s]; }
+        function formatStatus(s) { return { 'none': 'Non réalisée', 'ongoing': 'En cours', 'done': 'Réalisée', 'delayed': 'Reportée' }[s]; }
+        function selectColor(c) { selectedColor = c; }
+        function closeModal() { document.getElementById('taskModal').classList.add('hidden'); }
+
+        async function confirmTask() {
+            const name = document.getElementById('modalTaskName').value;
+            const owner = document.getElementById('modalTaskOwner').value;
+            const deadline = document.getElementById('modalTaskDeadline').value;
+            if (!name) return;
+            await saveToFirebase({ name, owner: owner || 'N/C', deadline: deadline || 'N/A', rect: currentRect, color: selectedColor, status: 'none', cause: '', createdAt: Date.now() });
+            document.getElementById('modalTaskName').value = '';
+            closeModal();
+        }
+
+        // --- Drawing & Plan Logic ---
+        const wrapper = document.getElementById('canvasWrapper');
+        const selectionRect = document.getElementById('selectionRect');
+
+        wrapper.addEventListener('mousedown', e => {
+            if (!document.getElementById('picImage').src || e.button !== 0 || e.target.closest('.task-zone')) return;
+            isDrawing = true;
+            const rect = wrapper.getBoundingClientRect();
+            startX = e.clientX - rect.left + wrapper.scrollLeft;
+            startY = e.clientY - rect.top + wrapper.scrollTop;
+            selectionRect.style.left = startX + 'px'; selectionRect.style.top = startY + 'px'; selectionRect.style.width = '0px'; selectionRect.style.height = '0px';
+            selectionRect.classList.remove('hidden'); hideStatusMenu();
+        });
+
+        window.addEventListener('mousemove', e => {
+            if (!isDrawing) return;
+            const rect = wrapper.getBoundingClientRect();
+            const curX = e.clientX - rect.left + wrapper.scrollLeft;
+            const curY = e.clientY - rect.top + wrapper.scrollTop;
+            const w = curX - startX; const h = curY - startY;
+            currentRect = { x: w < 0 ? curX : startX, y: h < 0 ? curY : startY, w: Math.abs(w), h: Math.abs(h) };
+            selectionRect.style.left = currentRect.x + 'px'; selectionRect.style.top = currentRect.y + 'px'; selectionRect.style.width = currentRect.w + 'px'; selectionRect.style.height = currentRect.h + 'px';
+        });
+
+        window.addEventListener('mouseup', () => {
+            if (!isDrawing) return;
+            isDrawing = false; selectionRect.classList.add('hidden');
+            if (currentRect.w > 10 && currentRect.h > 10) document.getElementById('taskModal').classList.remove('hidden');
+        });
+
+        // Plan upload
+        document.getElementById('picUpload').addEventListener('change', async function(e) {
+            const file = e.target.files[0]; if (!file) return;
+            const img = document.getElementById('picImage');
+            const empty = document.getElementById('emptyState');
+            if (file.type === 'application/pdf') {
+                const reader = new FileReader();
+                reader.onload = async function() {
+                    const typedarray = new Uint8Array(this.result);
+                    const pdf = await pdfjsLib.getDocument(typedarray).promise;
+                    const page = await pdf.getPage(1);
+                    const viewport = page.getViewport({ scale: 2.0 });
+                    const canvas = document.getElementById('pdf-canvas');
+                    const context = canvas.getContext('2d');
+                    canvas.height = viewport.height; canvas.width = viewport.width;
+                    await page.render({ canvasContext: context, viewport: viewport }).promise;
+                    img.src = canvas.toDataURL('image/png'); img.classList.remove('hidden'); empty.classList.add('hidden');
+                };
+                reader.readAsArrayBuffer(file);
+            } else {
+                const reader = new FileReader();
+                reader.onload = ev => { img.src = ev.target.result; img.classList.remove('hidden'); empty.classList.add('hidden'); };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        window.onload = function() {
+            initAuth();
+            const ctx = document.getElementById('kpiChart').getContext('2d');
+            kpiChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: { labels: ['Réalisée', 'En cours', 'Reportée', 'Non réalisée'], datasets: [{ data: [0, 0, 0, 0], backgroundColor: ['#22c55e', '#3b82f6', '#ef4444', '#94a3b8'], borderWidth: 0 }] },
+                options: { responsive: true, maintainAspectRatio: false, cutout: '80%', plugins: { legend: { display: false } } }
+            });
+        };
+    </script>
+</body>
+</html>
