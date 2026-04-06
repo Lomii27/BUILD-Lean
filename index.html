@@ -3,22 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BUILD-Lean | Full Mobile & motifs</title>
+    <title>BUILD-Lean | Rapport Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
     <style>
         body { touch-action: manipulation; }
-        .pic-container { position: relative; overflow: auto; max-height: 65vh; border: 2px solid #e2e8f0; background: #f8fafc; min-height: 400px; touch-action: none; }
+        .pic-container { position: relative; overflow: auto; max-height: 60vh; border: 2px solid #e2e8f0; background: #f8fafc; min-height: 400px; touch-action: none; }
         #markersLayer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; }
         .task-zone { position: absolute; border: 2px solid; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: white; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); pointer-events: auto; }
         .selection-rect { position: absolute; border: 2px dashed #004587; background: rgba(0, 69, 135, 0.1); pointer-events: none; z-index: 20; }
         .status-menu { position: absolute; z-index: 100; background: white; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); border: 1px solid #e2e8f0; min-width: 180px; }
-        .tab-btn { border-bottom: 3px solid transparent; transition: all 0.2s; padding: 12px 10px; font-size: 10px; font-weight: 800; color: #64748b; white-space: nowrap; }
+        .tab-btn { border-bottom: 3px solid transparent; transition: all 0.2s; padding: 12px 10px; font-size: 10px; font-weight: 800; color: #64748b; }
         .tab-btn.active { border-bottom-color: #004587; color: #004587; }
-        .color-dot { width: 38px; height: 38px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; transition: 0.2s; }
+        .color-dot { width: 35px; height: 35px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; }
         .color-dot.selected { border-color: #000; transform: scale(1.1); }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
+
+        /* Styles cachés pour le rapport PDF */
+        #reportTemplate { position: absolute; left: -9999px; top: 0; width: 800px; background: white; padding: 40px; }
+        .report-header { border-bottom: 4px solid #004587; padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; }
     </style>
 </head>
 <body class="bg-slate-50 font-sans text-slate-900">
@@ -30,8 +36,8 @@
             </div>
             <div class="flex gap-2 w-full md:w-auto">
                 <input type="file" id="picUpload" accept="image/*,application/pdf" class="hidden">
-                <button onclick="document.getElementById('picUpload').click()" class="flex-1 bg-slate-800 text-white px-3 py-3 rounded-lg text-xs font-bold">Charger Plan</button>
-                <button onclick="downloadPIC()" class="flex-1 bg-green-600 text-white px-3 py-3 rounded-lg text-xs font-bold">Export JPG</button>
+                <button onclick="document.getElementById('picUpload').click()" class="flex-1 bg-slate-800 text-white px-3 py-3 rounded-lg text-xs font-bold uppercase">Plan</button>
+                <button onclick="generateFullReport()" class="flex-1 bg-blue-700 text-white px-3 py-3 rounded-lg text-xs font-bold uppercase shadow-lg">Exporter Rapport PDF</button>
             </div>
         </header>
 
@@ -55,7 +61,7 @@
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                     <div class="flex overflow-x-auto border-b bg-slate-50 no-scrollbar">
                         <button onclick="switchTab('all')" class="tab-btn active shrink-0" id="tab-all">TOUTES</button>
-                        <button onclick="switchTab('done')" class="tab-btn shrink-0" id="tab-done">FAIT (0%)</button>
+                        <button onclick="switchTab('done')" class="tab-btn shrink-0" id="tab-done">FAIT</button>
                         <button onclick="switchTab('ongoing')" class="tab-btn shrink-0" id="tab-ongoing">COURS</button>
                         <button onclick="switchTab('delayed')" class="tab-btn shrink-0" id="tab-delayed">REPORT</button>
                     </div>
@@ -82,16 +88,14 @@
     <div id="createModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center z-[200] p-4">
         <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl">
             <h3 class="text-lg font-black mb-4 uppercase italic">Nouvelle Zone</h3>
-            <input type="text" id="newTaskName" placeholder="Tâche (ex: Voile V01)" class="w-full border-2 border-slate-100 rounded-xl p-4 mb-4 text-sm outline-none focus:border-blue-500">
-            <input type="text" id="newTaskOwner" placeholder="Sous-traitant / Équipe" class="w-full border-2 border-slate-100 rounded-xl p-4 mb-4 text-sm outline-none">
-            
+            <input type="text" id="newTaskName" placeholder="Tâche (ex: Voile V01)" class="w-full border-2 border-slate-100 rounded-xl p-4 mb-4 text-sm">
+            <input type="text" id="newTaskOwner" placeholder="Sous-traitant / Équipe" class="w-full border-2 border-slate-100 rounded-xl p-4 mb-4 text-sm">
             <div class="flex justify-around mb-8">
                 <div onclick="selectColor('#3b82f6', this)" class="color-dot bg-blue-500 selected"></div>
                 <div onclick="selectColor('#ef4444', this)" class="color-dot bg-red-500"></div>
                 <div onclick="selectColor('#f59e0b', this)" class="color-dot bg-amber-500"></div>
                 <div onclick="selectColor('#10b981', this)" class="color-dot bg-emerald-500"></div>
             </div>
-
             <div class="flex gap-3">
                 <button onclick="closeModals()" class="flex-1 py-4 font-bold text-slate-400">ANNULER</button>
                 <button onclick="confirmTask()" class="flex-1 py-4 bg-[#004587] text-white rounded-xl font-bold shadow-lg">CRÉER</button>
@@ -99,50 +103,59 @@
         </div>
     </div>
 
-    <div id="delayModal" class="fixed inset-0 bg-slate-900/90 backdrop-blur-md hidden z-[300] p-2 md:p-10 overflow-y-auto">
-        <div class="bg-white rounded-2xl w-full max-w-4xl mx-auto shadow-2xl overflow-hidden">
+    <div id="delayModal" class="fixed inset-0 bg-slate-900/90 backdrop-blur-md hidden z-[300] p-2 overflow-y-auto">
+        <div class="bg-white rounded-2xl w-full max-w-4xl mx-auto mt-10 shadow-2xl overflow-hidden">
             <div class="bg-red-600 p-5 text-white flex justify-between items-center">
                 <h3 class="text-xl font-black uppercase italic">Causes du Report</h3>
-                <button onclick="closeModals()" class="text-2xl font-bold">&times;</button>
             </div>
             <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="space-y-4">
-                    <section>
-                        <h4 class="text-[11px] font-black bg-slate-100 p-2 mb-3 uppercase text-slate-500">Méthodes & Planning</h4>
-                        <div class="flex flex-col gap-3 text-sm font-bold text-slate-700">
-                            <label class="flex items-center gap-3"><input type="checkbox" class="cause-check w-5 h-5" value="Planning irréaliste"> Planning irréaliste</label>
-                            <label class="flex items-center gap-3"><input type="checkbox" class="cause-check w-5 h-5" value="Séquencement incohérent"> Séquencement incohérent</label>
-                            <label class="flex items-center gap-3"><input type="checkbox" class="cause-check w-5 h-5" value="Coordination insuffisante"> Coordination</label>
-                        </div>
-                    </section>
-                    <section>
-                        <h4 class="text-[11px] font-black bg-slate-100 p-2 mb-3 uppercase text-slate-500">Ressources Humaines</h4>
-                        <div class="flex flex-col gap-3 text-sm font-bold text-slate-700">
-                            <label class="flex items-center gap-3"><input type="checkbox" class="cause-check w-5 h-5" value="Manque main-d'œuvre"> Manque main-d'œuvre</label>
-                            <label class="flex items-center gap-3"><input type="checkbox" class="cause-check w-5 h-5" value="Sous-traitant absent"> Sous-traitant absent</label>
-                        </div>
-                    </section>
+                <div>
+                    <h4 class="text-[11px] font-black bg-slate-100 p-2 mb-3 uppercase">Méthodes / Planning</h4>
+                    <div class="flex flex-col gap-2 text-xs font-bold text-slate-600">
+                        <label class="flex items-center gap-3"><input type="checkbox" class="cause-check w-5 h-5" value="Planning irréaliste"> Planning irréaliste</label>
+                        <label class="flex items-center gap-3"><input type="checkbox" class="cause-check w-5 h-5" value="Séquencement incohérent"> Séquencement incohérent</label>
+                        <label class="flex items-center gap-3"><input type="checkbox" class="cause-check w-5 h-5" value="Coordination insuffisante"> Coordination insuffisante</label>
+                    </div>
                 </div>
-                <div class="space-y-4">
-                    <section>
-                        <h4 class="text-[11px] font-black bg-slate-100 p-2 mb-3 uppercase text-slate-500">Logistique & Matériel</h4>
-                        <div class="flex flex-col gap-3 text-sm font-bold text-slate-700">
-                            <label class="flex items-center gap-3"><input type="checkbox" class="cause-check w-5 h-5" value="Matériaux non livrés"> Matériaux non livrés</label>
-                            <label class="flex items-center gap-3"><input type="checkbox" class="cause-check w-5 h-5" value="Matériel en panne"> Matériel en panne</label>
-                            <label class="flex items-center gap-3"><input type="checkbox" class="cause-check w-5 h-5" value="Plans manquants"> Plans manquants</label>
-                        </div>
-                    </section>
-                    <section>
-                        <h4 class="text-[11px] font-black bg-slate-100 p-2 mb-3 uppercase text-slate-500">Observations</h4>
-                        <textarea id="delayComment" placeholder="Détails supplémentaires..." class="w-full border-2 rounded-xl p-3 h-24 text-sm outline-none focus:border-red-500"></textarea>
-                    </section>
+                <div>
+                    <h4 class="text-[11px] font-black bg-slate-100 p-2 mb-3 uppercase">Logistique / Matériel</h4>
+                    <div class="flex flex-col gap-2 text-xs font-bold text-slate-600">
+                        <label class="flex items-center gap-3"><input type="checkbox" class="cause-check w-5 h-5" value="Matériaux non livrés"> Matériaux non livrés</label>
+                        <label class="flex items-center gap-3"><input type="checkbox" class="cause-check w-5 h-5" value="Matériel en panne"> Matériel en panne</label>
+                        <label class="flex items-center gap-3"><input type="checkbox" class="cause-check w-5 h-5" value="Plans manquants"> Plans manquants</label>
+                    </div>
                 </div>
             </div>
             <div class="p-5 bg-slate-50 flex gap-3">
                 <button onclick="closeModals()" class="flex-1 py-4 font-bold text-slate-400">ANNULER</button>
-                <button onclick="saveDelayReasons()" class="flex-1 py-4 bg-red-600 text-white rounded-xl font-black shadow-lg">VALIDER LE REPORT</button>
+                <button onclick="saveDelayReasons()" class="flex-1 py-4 bg-red-600 text-white rounded-xl font-black">VALIDER</button>
             </div>
         </div>
+    </div>
+
+    <div id="reportTemplate">
+        <div class="report-header">
+            <div>
+                <h1 style="font-size: 28px; font-weight: 900; color: #004587;">RAPPORT DE PRODUCTION SEMAINE</h1>
+                <p id="reportDate" style="color: #64748b; font-weight: bold;"></p>
+            </div>
+            <div style="text-align: right;">
+                <span style="font-size: 20px; font-weight: 900;">BUILD-Lean</span>
+            </div>
+        </div>
+
+        <div id="reportMapContainer" style="width: 100%; border: 1px solid #e2e8f0; margin-bottom: 30px;">
+            </div>
+
+        <div style="display: grid; grid-template-cols: 1fr 1fr; gap: 40px; margin-bottom: 40px;">
+            <div style="background: #f8fafc; padding: 20px; border-radius: 15px; text-align: center;">
+                <h2 style="font-size: 12px; color: #64748b; font-weight: 900; margin-bottom: 10px;">SCORE PPC GLOBAL</h2>
+                <div id="reportPpcValue" style="font-size: 48px; font-weight: 900; color: #004587;">0%</div>
+            </div>
+        </div>
+
+        <div id="reportTables">
+            </div>
     </div>
 
     <script>
@@ -162,6 +175,7 @@
         const selectionRect = document.getElementById('selectionRect');
         const picImage = document.getElementById('picImage');
 
+        // GESTION COORDONNÉES DESSIN
         function getCoords(e) {
             const r = wrapper.getBoundingClientRect();
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -218,8 +232,8 @@
                     markers.appendChild(zone);
 
                     const row = document.createElement('tr');
-                    const causeTxt = task.causes && task.causes.length > 0 ? ` [${task.causes.join(', ')}]` : '';
-                    row.innerHTML = `<td class="p-3 font-bold">${task.name}</td><td class="p-3 text-slate-400">${task.owner}</td><td class="p-3 text-right font-black uppercase text-[8px] ${task.status === 'delayed' ? 'text-red-600' : ''}">${task.status}${causeTxt}</td>`;
+                    const causeTxt = task.status === 'delayed' ? `<br><span class="text-[8px] text-red-500">${task.causes.join(', ')}</span>` : '';
+                    row.innerHTML = `<td class="p-3 font-bold">${task.name}${causeTxt}</td><td class="p-3 text-slate-400">${task.owner}</td><td class="p-3 text-right font-black uppercase text-[8px]">${task.status}</td>`;
                     table.appendChild(row);
                 }
             });
@@ -229,7 +243,6 @@
         function updateStats(c) {
             const ppc = c.total > 0 ? Math.round((c.done / c.total) * 100) : 0;
             document.getElementById('ppcPercentage').innerText = ppc + '%';
-            document.getElementById('tab-done').innerText = `FAIT (${ppc}%)`;
             if (ppcChart) { ppcChart.data.datasets[0].data = [c.done, c.ongoing, c.delayed]; ppcChart.update(); }
         }
 
@@ -253,14 +266,12 @@
             const checks = document.querySelectorAll('.cause-check:checked');
             t.status = 'delayed';
             t.causes = Array.from(checks).map(c => c.value);
-            t.comment = document.getElementById('delayComment').value;
-            closeModals();
-            save();
+            closeModals(); save();
         }
 
         function setStatus(s) {
             const t = tasks.find(x => x.id === activeTaskId);
-            if(t) { t.status = s; t.causes = []; t.comment = ''; }
+            if(t) { t.status = s; t.causes = []; }
             document.getElementById('statusMenu').classList.add('hidden');
             save();
         }
@@ -296,18 +307,67 @@
             file.type === 'application/pdf' ? reader.readAsArrayBuffer(file) : reader.readAsDataURL(file);
         };
 
-        function downloadPIC() {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = picImage.naturalWidth; canvas.height = picImage.naturalHeight;
-            ctx.drawImage(picImage, 0, 0);
+        // --- FONCTION RAPPORT COMPLET ---
+        async function generateFullReport() {
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const reportDate = new Date().toLocaleDateString('fr-FR');
+            
+            document.getElementById('reportDate').innerText = "Édité le " + reportDate;
+            document.getElementById('reportPpcValue').innerText = document.getElementById('ppcPercentage').innerText;
+
+            // 1. Capturer le plan avec zones
+            const mapCanvas = document.createElement('canvas');
+            const mapCtx = mapCanvas.getContext('2d');
+            mapCanvas.width = picImage.naturalWidth;
+            mapCanvas.height = picImage.naturalHeight;
+            mapCtx.drawImage(picImage, 0, 0);
+            
             tasks.forEach(t => {
-                ctx.globalAlpha = 0.4; ctx.fillStyle = t.color; ctx.fillRect(t.rect.x, t.rect.y, t.rect.w, t.rect.h);
-                ctx.globalAlpha = 1; ctx.strokeStyle = t.color; ctx.lineWidth = 4; ctx.strokeRect(t.rect.x, t.rect.y, t.rect.w, t.rect.h);
-                ctx.fillStyle = "black"; ctx.font = "bold 20px Arial"; ctx.fillText(t.name, t.rect.x + 5, t.rect.y + 25);
+                mapCtx.globalAlpha = 0.4; mapCtx.fillStyle = t.color;
+                mapCtx.fillRect(t.rect.x, t.rect.y, t.rect.w, t.rect.h);
+                mapCtx.globalAlpha = 1; mapCtx.strokeStyle = t.color; mapCtx.lineWidth = 4;
+                mapCtx.strokeRect(t.rect.x, t.rect.y, t.rect.w, t.rect.h);
             });
-            const link = document.createElement('a');
-            link.download = 'LPS_Export.jpg'; link.href = canvas.toDataURL('image/jpeg'); link.click();
+
+            // Injection du plan dans le template HTML
+            const reportMapContainer = document.getElementById('reportMapContainer');
+            reportMapContainer.innerHTML = '';
+            const reportImg = new Image();
+            reportImg.src = mapCanvas.toDataURL('image/jpeg');
+            reportImg.style.width = '100%';
+            reportMapContainer.appendChild(reportImg);
+
+            // 2. Générer les tableaux détaillés
+            const tablesContainer = document.getElementById('reportTables');
+            tablesContainer.innerHTML = '';
+
+            const createTable = (title, items, color) => {
+                if(items.length === 0) return '';
+                let html = `<h3 style="color:${color}; font-weight:900; margin-top:20px; border-bottom:1px solid #eee;">${title}</h3>`;
+                html += `<table style="width:100%; border-collapse:collapse; margin-bottom:20px; font-size:11px;">`;
+                html += `<tr style="text-align:left; color:#64748b;"><th>Tâche</th><th>Équipe</th><th>Observations</th></tr>`;
+                items.forEach(i => {
+                    html += `<tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:8px; font-weight:bold;">${i.name}</td><td style="padding:8px;">${i.owner}</td><td style="padding:8px; color:red;">${i.causes ? i.causes.join(', ') : ''}</td></tr>`;
+                });
+                html += `</table>`;
+                return html;
+            };
+
+            tablesContainer.innerHTML += createTable("TÂCHES RÉUSSIES ✅", tasks.filter(t => t.status === 'done'), "#10b981");
+            tablesContainer.innerHTML += createTable("TÂCHES EN COURS 🏗️", tasks.filter(t => t.status === 'ongoing'), "#3b82f6");
+            tablesContainer.innerHTML += createTable("TÂCHES REPORTÉES ⚠️", tasks.filter(t => t.status === 'delayed'), "#ef4444");
+
+            // 3. Transformation du HTML en PDF
+            const reportElement = document.getElementById('reportTemplate');
+            const canvas = await html2canvas(reportElement, { scale: 2 });
+            const imgData = canvas.toDataURL('image/png');
+            
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+            
+            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+            pdf.save(`Rapport_LPS_${reportDate.replace(/\//g, '-')}.pdf`);
         }
 
         window.onload = () => {
