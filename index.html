@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BUILD-Lean | Rapport Pro</title>
+    <title>BUILD-Lean | Rapport Pro & Causes Complètes</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -21,10 +21,9 @@
         .tab-btn.active { border-bottom-color: #004587; color: #004587; }
         .color-dot { width: 35px; height: 35px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; }
         .color-dot.selected { border-color: #000; transform: scale(1.1); }
-
-        /* Styles cachés pour le rapport PDF */
         #reportTemplate { position: absolute; left: -9999px; top: 0; width: 800px; background: white; padding: 40px; }
         .report-header { border-bottom: 4px solid #004587; padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; }
+        .custom-checkbox { width: 18px; height: 18px; cursor: pointer; accent-color: #dc2626; }
     </style>
 </head>
 <body class="bg-slate-50 font-sans text-slate-900">
@@ -103,32 +102,84 @@
         </div>
     </div>
 
-    <div id="delayModal" class="fixed inset-0 bg-slate-900/90 backdrop-blur-md hidden z-[300] p-2 overflow-y-auto">
-        <div class="bg-white rounded-2xl w-full max-w-4xl mx-auto mt-10 shadow-2xl overflow-hidden">
-            <div class="bg-red-600 p-5 text-white flex justify-between items-center">
-                <h3 class="text-xl font-black uppercase italic">Causes du Report</h3>
+    <div id="delayModal" class="fixed inset-0 bg-slate-900/90 backdrop-blur-md hidden z-[300] p-2 md:p-6 overflow-y-auto">
+        <div class="bg-white rounded-2xl w-full max-w-5xl mx-auto mt-4 mb-4 shadow-2xl overflow-hidden">
+            <div class="bg-red-600 p-4 text-white flex justify-between items-center sticky top-0 z-10">
+                <h3 class="text-lg font-black uppercase italic">Causes du Report</h3>
+                <button onclick="closeModals()" class="text-2xl font-bold hover:text-red-200">&times;</button>
             </div>
-            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <h4 class="text-[11px] font-black bg-slate-100 p-2 mb-3 uppercase">Méthodes / Planning</h4>
-                    <div class="flex flex-col gap-2 text-xs font-bold text-slate-600">
-                        <label class="flex items-center gap-3"><input type="checkbox" class="cause-check w-5 h-5" value="Planning irréaliste"> Planning irréaliste</label>
-                        <label class="flex items-center gap-3"><input type="checkbox" class="cause-check w-5 h-5" value="Séquencement incohérent"> Séquencement incohérent</label>
-                        <label class="flex items-center gap-3"><input type="checkbox" class="cause-check w-5 h-5" value="Coordination insuffisante"> Coordination insuffisante</label>
+            
+            <div class="p-4 md:p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="space-y-4">
+                    <div>
+                        <h4 class="text-[11px] font-black bg-slate-100 p-2 mb-2 uppercase text-slate-700">Planning & Management</h4>
+                        <div class="flex flex-col gap-2 text-xs font-bold text-slate-600">
+                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Planning initial irréaliste"> Planning initial irréaliste</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Tâche non planifiée"> Tâche non planifiée</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Séquencement des tâches incohérent"> Séquencement des tâches incohérent</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Priorités mal définies"> Priorités mal définies</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Coordination insuffisante entre intervenants"> Coordination insuffisante entre intervenants</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Absence de responsable clairement désigné"> Absence de responsable clairement désigné</label>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="text-[11px] font-black bg-slate-100 p-2 mb-2 uppercase text-slate-700">Plans & Technique</h4>
+                        <div class="flex flex-col gap-2 text-xs font-bold text-slate-600">
+                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Plans non disponibles"> Plans non disponibles</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Plans erronés ou incomplets"> Plans erronés ou incomplets</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Attente de validation technique"> Attente de validation technique</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Problème de conception détecté sur chantier"> Problème de conception détecté sur chantier</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Non-conformité détectée sur tâche précédente"> Non-conformité détectée sur la tâche précédente</label>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="text-[11px] font-black bg-slate-100 p-2 mb-2 uppercase text-slate-700">Ressources Humaines</h4>
+                        <div class="flex flex-col gap-2 text-xs font-bold text-slate-600">
+                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Manque de main-d’œuvre"> Manque de main-d’œuvre</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Compétences non adaptées"> Compétences non adaptées</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Sous-traitant absent"> Sous-traitant absent</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Conflit ou désaccord entre équipes"> Conflit ou désaccord entre équipes</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Consignes mal comprises"> Consignes mal comprises</label>
+                        </div>
                     </div>
                 </div>
-                <div>
-                    <h4 class="text-[11px] font-black bg-slate-100 p-2 mb-3 uppercase">Logistique / Matériel</h4>
-                    <div class="flex flex-col gap-2 text-xs font-bold text-slate-600">
-                        <label class="flex items-center gap-3"><input type="checkbox" class="cause-check w-5 h-5" value="Matériaux non livrés"> Matériaux non livrés</label>
-                        <label class="flex items-center gap-3"><input type="checkbox" class="cause-check w-5 h-5" value="Matériel en panne"> Matériel en panne</label>
-                        <label class="flex items-center gap-3"><input type="checkbox" class="cause-check w-5 h-5" value="Plans manquants"> Plans manquants</label>
+                
+                <div class="space-y-4">
+                    <div>
+                        <h4 class="text-[11px] font-black bg-slate-100 p-2 mb-2 uppercase text-slate-700">Logistique & Matériel</h4>
+                        <div class="flex flex-col gap-2 text-xs font-bold text-slate-600">
+                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Matériaux non livrés"> Matériaux non livrés</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Matériaux non conformes"> Matériaux non conformes</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Matériel manquant"> Matériel manquant</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Matériel en panne"> Matériel en panne</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Matériel affecté à un autre chantier"> Matériel affecté à un autre chantier</label>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="text-[11px] font-black bg-slate-100 p-2 mb-2 uppercase text-slate-700">Administratif & Client</h4>
+                        <div class="flex flex-col gap-2 text-xs font-bold text-slate-600">
+                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Autorisations administratives manquantes"> Autorisations administratives manquantes</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Retard de validation du client / MOA"> Retard de validation du client / MOA</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Modification client non arbitré"> Modification client non arbitré (variation)</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Litige en cours sur le lot concerné"> Litige en cours sur le lot concerné</label>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="text-[11px] font-black bg-slate-100 p-2 mb-2 uppercase text-slate-700">Autres</h4>
+                        <div class="flex flex-col gap-2 text-xs font-bold text-slate-600">
+                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Environnement / sécurité"> Causes « environnement / sécurité »</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Finance / trésorerie"> Causes « finance / trésorerie »</label>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="text-[11px] font-black bg-slate-100 p-2 mb-2 uppercase text-slate-700">Divers / Commentaires</h4>
+                        <textarea id="delayComment" placeholder="Précisez la cause diverse ou ajoutez une observation..." class="w-full border-2 border-slate-200 rounded-xl p-3 h-20 text-xs outline-none focus:border-red-500"></textarea>
                     </div>
                 </div>
             </div>
-            <div class="p-5 bg-slate-50 flex gap-3">
-                <button onclick="closeModals()" class="flex-1 py-4 font-bold text-slate-400">ANNULER</button>
-                <button onclick="saveDelayReasons()" class="flex-1 py-4 bg-red-600 text-white rounded-xl font-black">VALIDER</button>
+            <div class="p-4 bg-slate-50 flex gap-3 sticky bottom-0 border-t border-slate-200">
+                <button onclick="closeModals()" class="flex-1 py-3 font-bold text-slate-400">ANNULER</button>
+                <button onclick="saveDelayReasons()" class="flex-1 py-3 bg-red-600 text-white rounded-xl font-black shadow-md hover:bg-red-700">VALIDER</button>
             </div>
         </div>
     </div>
@@ -144,18 +195,16 @@
             </div>
         </div>
 
-        <div id="reportMapContainer" style="width: 100%; border: 1px solid #e2e8f0; margin-bottom: 30px;">
-            </div>
+        <div id="reportMapContainer" style="width: 100%; border: 1px solid #e2e8f0; margin-bottom: 30px;"></div>
 
-        <div style="display: grid; grid-template-cols: 1fr 1fr; gap: 40px; margin-bottom: 40px;">
+        <div style="display: grid; grid-template-cols: 1fr; gap: 40px; margin-bottom: 20px;">
             <div style="background: #f8fafc; padding: 20px; border-radius: 15px; text-align: center;">
-                <h2 style="font-size: 12px; color: #64748b; font-weight: 900; margin-bottom: 10px;">SCORE PPC GLOBAL</h2>
+                <h2 style="font-size: 14px; color: #64748b; font-weight: 900; margin-bottom: 10px;">SCORE PPC GLOBAL (Taux de Réussite)</h2>
                 <div id="reportPpcValue" style="font-size: 48px; font-weight: 900; color: #004587;">0%</div>
             </div>
         </div>
 
-        <div id="reportTables">
-            </div>
+        <div id="reportTables"></div>
     </div>
 
     <script>
@@ -175,7 +224,6 @@
         const selectionRect = document.getElementById('selectionRect');
         const picImage = document.getElementById('picImage');
 
-        // GESTION COORDONNÉES DESSIN
         function getCoords(e) {
             const r = wrapper.getBoundingClientRect();
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -232,8 +280,18 @@
                     markers.appendChild(zone);
 
                     const row = document.createElement('tr');
-                    const causeTxt = task.status === 'delayed' ? `<br><span class="text-[8px] text-red-500">${task.causes.join(', ')}</span>` : '';
-                    row.innerHTML = `<td class="p-3 font-bold">${task.name}${causeTxt}</td><td class="p-3 text-slate-400">${task.owner}</td><td class="p-3 text-right font-black uppercase text-[8px]">${task.status}</td>`;
+                    
+                    // Préparation des commentaires/causes pour le tableau UI
+                    let causesText = "";
+                    if (task.status === 'delayed') {
+                        let combined = [];
+                        if(task.causes && task.causes.length > 0) combined.push(...task.causes);
+                        if(task.comment) combined.push(`<i>${task.comment}</i>`);
+                        causesText = `<br><span class="text-[9px] text-red-500 leading-tight block mt-1">${combined.join('<br>• ')}</span>`;
+                        if(combined.length > 0 && !causesText.includes('•')) causesText = causesText.replace('mt-1">', 'mt-1">• ');
+                    }
+
+                    row.innerHTML = `<td class="p-3 font-bold align-top">${task.name}${causesText}</td><td class="p-3 text-slate-400 align-top">${task.owner}</td><td class="p-3 text-right font-black uppercase text-[8px] align-top">${task.status}</td>`;
                     table.appendChild(row);
                 }
             });
@@ -259,6 +317,10 @@
         function openDelayModal() {
             document.getElementById('statusMenu').classList.add('hidden');
             document.getElementById('delayModal').classList.remove('hidden');
+            
+            // Réinitialiser les checkboxes au cas où
+            document.querySelectorAll('.cause-check').forEach(c => c.checked = false);
+            document.getElementById('delayComment').value = "";
         }
 
         function saveDelayReasons() {
@@ -266,12 +328,13 @@
             const checks = document.querySelectorAll('.cause-check:checked');
             t.status = 'delayed';
             t.causes = Array.from(checks).map(c => c.value);
+            t.comment = document.getElementById('delayComment').value; // Sauvegarde du commentaire
             closeModals(); save();
         }
 
         function setStatus(s) {
             const t = tasks.find(x => x.id === activeTaskId);
-            if(t) { t.status = s; t.causes = []; }
+            if(t) { t.status = s; t.causes = []; t.comment = ''; }
             document.getElementById('statusMenu').classList.add('hidden');
             save();
         }
@@ -279,7 +342,7 @@
         function confirmTask() {
             const name = document.getElementById('newTaskName').value;
             if(!name) return;
-            tasks.push({ id: Date.now(), name, owner: document.getElementById('newTaskOwner').value, color: selectedColor, rect: {...currentRect}, status: 'ongoing', causes: [] });
+            tasks.push({ id: Date.now(), name, owner: document.getElementById('newTaskOwner').value, color: selectedColor, rect: {...currentRect}, status: 'ongoing', causes: [], comment: '' });
             save(); closeModals();
             document.getElementById('newTaskName').value = '';
         }
@@ -316,7 +379,7 @@
             document.getElementById('reportDate').innerText = "Édité le " + reportDate;
             document.getElementById('reportPpcValue').innerText = document.getElementById('ppcPercentage').innerText;
 
-            // 1. Capturer le plan avec zones
+            // 1. Capturer le plan
             const mapCanvas = document.createElement('canvas');
             const mapCtx = mapCanvas.getContext('2d');
             mapCanvas.width = picImage.naturalWidth;
@@ -330,7 +393,6 @@
                 mapCtx.strokeRect(t.rect.x, t.rect.y, t.rect.w, t.rect.h);
             });
 
-            // Injection du plan dans le template HTML
             const reportMapContainer = document.getElementById('reportMapContainer');
             reportMapContainer.innerHTML = '';
             const reportImg = new Image();
@@ -338,17 +400,26 @@
             reportImg.style.width = '100%';
             reportMapContainer.appendChild(reportImg);
 
-            // 2. Générer les tableaux détaillés
+            // 2. Générer les tableaux
             const tablesContainer = document.getElementById('reportTables');
             tablesContainer.innerHTML = '';
 
             const createTable = (title, items, color) => {
                 if(items.length === 0) return '';
-                let html = `<h3 style="color:${color}; font-weight:900; margin-top:20px; border-bottom:1px solid #eee;">${title}</h3>`;
-                html += `<table style="width:100%; border-collapse:collapse; margin-bottom:20px; font-size:11px;">`;
-                html += `<tr style="text-align:left; color:#64748b;"><th>Tâche</th><th>Équipe</th><th>Observations</th></tr>`;
+                let html = `<h3 style="color:${color}; font-weight:900; margin-top:20px; border-bottom:1px solid #eee; padding-bottom:5px;">${title}</h3>`;
+                html += `<table style="width:100%; border-collapse:collapse; margin-bottom:20px; font-size:11px; text-align:left;">`;
+                html += `<tr style="color:#64748b; background:#f8fafc;"><th style="padding:8px; width:30%;">Tâche</th><th style="padding:8px; width:20%;">Équipe</th><th style="padding:8px; width:50%;">Observations & Causes</th></tr>`;
+                
                 items.forEach(i => {
-                    html += `<tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:8px; font-weight:bold;">${i.name}</td><td style="padding:8px;">${i.owner}</td><td style="padding:8px; color:red;">${i.causes ? i.causes.join(', ') : ''}</td></tr>`;
+                    let causeText = "";
+                    if(i.status === 'delayed') {
+                        let allCauses = [];
+                        if (i.causes && i.causes.length > 0) allCauses.push(...i.causes);
+                        if (i.comment) allCauses.push(`Observation: ${i.comment}`);
+                        causeText = allCauses.join(' <br>• ');
+                        if(causeText !== "") causeText = "• " + causeText;
+                    }
+                    html += `<tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:8px; font-weight:bold; vertical-align:top;">${i.name}</td><td style="padding:8px; vertical-align:top;">${i.owner}</td><td style="padding:8px; color:red; vertical-align:top; font-size:10px;">${causeText}</td></tr>`;
                 });
                 html += `</table>`;
                 return html;
@@ -358,7 +429,7 @@
             tablesContainer.innerHTML += createTable("TÂCHES EN COURS 🏗️", tasks.filter(t => t.status === 'ongoing'), "#3b82f6");
             tablesContainer.innerHTML += createTable("TÂCHES REPORTÉES ⚠️", tasks.filter(t => t.status === 'delayed'), "#ef4444");
 
-            // 3. Transformation du HTML en PDF
+            // 3. Export PDF
             const reportElement = document.getElementById('reportTemplate');
             const canvas = await html2canvas(reportElement, { scale: 2 });
             const imgData = canvas.toDataURL('image/png');
