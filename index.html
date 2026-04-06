@@ -3,93 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BUILD - LPS Chantier</title>
+    <title>BUILD-Lean | LPS Pilotage</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <style>
-        .pic-container {
-            position: relative;
-            cursor: crosshair;
-            overflow: auto;
-            max-height: 75vh;
-            border: 2px dashed #cbd5e1;
-            background: #f8fafc;
-            min-height: 500px;
-            user-select: none;
-        }
-        #picImage { display: block; max-width: none; z-index: 1; }
+        .pic-container { position: relative; cursor: crosshair; overflow: auto; max-height: 70vh; border: 2px solid #e2e8f0; background: #f8fafc; min-height: 500px; }
         #markersLayer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; }
-        .task-zone {
-            position: absolute; border: 2px solid; cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 11px; font-weight: bold; color: white;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.8); text-align: center;
-            padding: 2px; pointer-events: auto;
-        }
-        .selection-rect { position: absolute; border: 2px dashed #004587; background: rgba(0, 69, 135, 0.2); pointer-events: none; z-index: 20; }
-        .status-done { background-image: linear-gradient(45deg, rgba(34, 197, 94, 0.3) 25%, transparent 25%); background-size: 8px 8px; border-color: #16a34a !important; }
-        .status-delayed { border-color: #ef4444 !important; animation: pulse-red 2s infinite; }
-        @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
-        .status-menu { position: absolute; z-index: 100; background: white; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); padding: 8px; display: flex; flex-direction: column; gap: 4px; min-width: 180px; border: 1px solid #e2e8f0; }
-        .tab-active { border-bottom: 3px solid #004587; color: #004587; font-weight: 800; }
+        .task-zone { position: absolute; border: 2px solid; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; color: white; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); pointer-events: auto; }
+        .selection-rect { position: absolute; border: 2px dashed #004587; background: rgba(0, 69, 135, 0.1); pointer-events: none; z-index: 20; }
+        .status-menu { position: absolute; z-index: 100; background: white; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); padding: 8px; border: 1px solid #e2e8f0; }
+        .tab-btn { border-bottom: 3px solid transparent; transition: all 0.3s; padding: 10px 15px; font-size: 12px; font-weight: 700; color: #64748b; uppercase; }
+        .tab-btn.active { border-bottom-color: #004587; color: #004587; }
+        .color-dot { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
+        .color-dot.selected { border-color: #000; transform: scale(1.1); }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen font-sans">
+<body class="bg-slate-50 font-sans text-slate-900">
 
-    <div class="max-w-7xl mx-auto p-4">
-        <header class="flex flex-wrap justify-between items-center mb-6 bg-white p-4 rounded-xl shadow-sm border-b-4 border-blue-800 gap-4">
-            <div class="flex items-center gap-6">
-                <div class="pl-4">
-                    <span class="text-2xl font-black tracking-tighter text-[#004587]">BUILD <span class="text-slate-300 font-light">LPS</span></span>
-                </div>
+    <div class="max-w-[1600px] mx-auto p-4">
+        <header class="flex justify-between items-center mb-4 bg-white p-4 rounded-xl shadow-sm border-b-4 border-[#004587]">
+            <div class="flex items-center gap-2">
+                <span class="text-2xl font-black text-[#004587]">BUILD <span class="text-slate-300 font-light italic">Lean</span></span>
             </div>
-
-            <div class="flex gap-3 items-center">
+            <div class="flex gap-3">
                 <input type="file" id="picUpload" accept="image/*,application/pdf" class="hidden">
-                <button onclick="document.getElementById('picUpload').click()" class="bg-slate-800 text-white px-5 py-2 rounded-lg hover:bg-slate-900 transition text-sm font-bold shadow-lg">1. Charger Plan</button>
-                <button onclick="downloadPIC()" class="bg-green-600 text-white px-5 py-2 rounded-lg hover:bg-green-700 transition text-sm font-bold shadow-lg">2. Télécharger JPG</button>
+                <button onclick="document.getElementById('picUpload').click()" class="bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-md hover:bg-black transition">Charger Plan (PDF / Image)</button>
+                <button onclick="downloadPIC()" class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-md hover:bg-green-700 transition">Télécharger JPG</button>
             </div>
         </header>
 
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
             <div class="lg:col-span-3 space-y-4">
-                <div class="bg-white p-2 rounded-xl shadow-sm border border-slate-200 relative overflow-hidden">
+                <div class="bg-white p-2 rounded-xl shadow-sm border border-slate-200 relative">
                     <div id="canvasWrapper" class="pic-container rounded-lg">
                         <img id="picImage" src="" alt="" class="hidden" draggable="false">
                         <div id="markersLayer"></div>
                         <div id="selectionRect" class="selection-rect hidden"></div>
-                        <div id="emptyState" class="absolute inset-0 flex flex-col items-center justify-center text-slate-400 bg-slate-50/50">
-                            <p class="text-sm font-bold uppercase tracking-widest">Aucun plan chargé - Cliquez sur "Charger Plan"</p>
-                        </div>
                     </div>
-
+                    
                     <div id="statusMenu" class="status-menu hidden">
-                        <button onclick="setStatus('done')" class="flex items-center gap-3 px-3 py-2 hover:bg-green-50 text-green-700 font-bold text-xs rounded-lg transition text-left">Réalisée (Vert)</button>
-                        <button onclick="setStatus('ongoing')" class="flex items-center gap-3 px-3 py-2 hover:bg-blue-50 text-blue-700 font-bold text-xs rounded-lg transition text-left">En cours (Bleu)</button>
-                        <button onclick="setStatus('delayed')" class="flex items-center gap-3 px-3 py-2 hover:bg-red-50 text-red-700 font-bold text-xs rounded-lg transition text-left">Reportée (Rouge)</button>
-                        <hr>
-                        <button onclick="deleteActiveTask()" class="px-3 py-2 hover:bg-red-50 text-red-400 font-bold text-xs rounded-lg transition text-left">Supprimer</button>
+                        <button onclick="setStatus('done')" class="block w-full text-left px-4 py-2 hover:bg-green-50 text-green-700 font-bold text-xs">Réalisée</button>
+                        <button onclick="setStatus('ongoing')" class="block w-full text-left px-4 py-2 hover:bg-blue-50 text-blue-700 font-bold text-xs">En cours</button>
+                        <button onclick="openDelayModal()" class="block w-full text-left px-4 py-2 hover:bg-red-50 text-red-700 font-bold text-xs">Reportée (Motifs)</button>
+                        <hr class="my-1">
+                        <button onclick="deleteActiveTask()" class="block w-full text-left px-4 py-2 text-slate-400 text-[10px]">Supprimer</button>
                     </div>
                 </div>
 
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                    <table class="w-full text-left text-xs">
-                        <thead class="bg-slate-100 text-slate-400 font-black uppercase text-[9px]">
-                            <tr><th class="p-3">Tâche</th><th class="p-3">Resp.</th><th class="p-3">Statut</th><th class="p-3">Commentaire</th></tr>
-                        </thead>
-                        <tbody id="taskTableBody" class="divide-y divide-slate-100"></tbody>
-                    </table>
+                    <div class="flex border-b bg-slate-50" id="tabsHeader">
+                        <button onclick="switchTab('all')" class="tab-btn active" id="tab-all">TOUTES (100%)</button>
+                        <button onclick="switchTab('done')" class="tab-btn" id="tab-done">TERMINÉES (0%)</button>
+                        <button onclick="switchTab('ongoing')" class="tab-btn" id="tab-ongoing">EN COURS (0%)</button>
+                        <button onclick="switchTab('delayed')" class="tab-btn" id="tab-delayed">REPORTÉES (0%)</button>
+                    </div>
+                    <div class="max-height-[300px] overflow-auto">
+                        <table class="w-full text-left text-[11px]">
+                            <thead class="bg-white sticky top-0 border-b">
+                                <tr>
+                                    <th class="p-3 uppercase text-slate-400 font-black">Tâche</th>
+                                    <th class="p-3 uppercase text-slate-400 font-black">Resp.</th>
+                                    <th class="p-3 uppercase text-slate-400 font-black">Statut</th>
+                                    <th class="p-3 uppercase text-slate-400 font-black">Causes de retard / Obs.</th>
+                                </tr>
+                            </thead>
+                            <tbody id="taskTableBody" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
             <div class="space-y-4">
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 text-center">
-                    <h2 class="font-black text-slate-400 mb-4 uppercase text-[10px]">PPC Semaine</h2>
-                    <div class="relative h-40">
-                        <canvas id="kpiChart"></canvas>
-                        <div class="absolute inset-0 flex items-center justify-center">
-                            <span id="ppcValue" class="text-3xl font-black text-slate-800">0%</span>
+                    <h2 class="font-black text-slate-400 mb-4 uppercase text-[10px] tracking-widest">PPC SEMAINE</h2>
+                    <div class="relative h-48 flex items-center justify-center">
+                        <canvas id="ppcChart"></canvas>
+                        <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                            <span id="ppcPercentage" class="text-4xl font-black text-slate-800">0%</span>
+                            <span class="text-[9px] font-bold text-slate-400 uppercase">Réussite</span>
                         </div>
                     </div>
                 </div>
@@ -97,14 +89,63 @@
         </div>
     </div>
 
-    <div id="taskModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-[200]">
-        <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl">
-            <h3 class="text-lg font-black mb-4 uppercase italic">Nouvelle Tâche</h3>
-            <input type="text" id="modalTaskName" placeholder="Nom (ex: Voile V12)" class="w-full border rounded-xl p-3 mb-3 text-sm">
-            <input type="text" id="modalTaskOwner" placeholder="Sous-traitant" class="w-full border rounded-xl p-3 mb-3 text-sm">
-            <div class="flex gap-2">
-                <button onclick="closeModal()" class="flex-1 py-3 font-bold text-xs">Annuler</button>
-                <button onclick="confirmTask()" class="flex-1 py-3 bg-blue-800 text-white rounded-xl font-bold text-xs">Valider</button>
+    <div id="createModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center z-[200] p-4">
+        <div class="bg-white rounded-2xl p-8 w-full max-w-md shadow-2xl">
+            <h3 class="text-xl font-black mb-6 uppercase italic text-slate-800 tracking-tighter">Nouvelle Zone Identifiée</h3>
+            <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Désignation</label>
+            <input type="text" id="newTaskName" placeholder="Nom de la tâche (ex: Voile V12)" class="w-full border-2 border-slate-100 rounded-xl p-3 mb-4 focus:border-blue-500 outline-none transition font-medium">
+            
+            <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Responsable</label>
+            <input type="text" id="newTaskOwner" placeholder="Équipe / Sous-traitant" class="w-full border-2 border-slate-100 rounded-xl p-3 mb-4 focus:border-blue-500 outline-none transition font-medium">
+            
+            <label class="text-[10px] font-bold text-slate-400 uppercase mb-2 block">Couleur de zone</label>
+            <div class="flex gap-4 mb-8">
+                <div onclick="selectColor('#3b82f6', this)" class="color-dot bg-blue-500 selected"></div>
+                <div onclick="selectColor('#ef4444', this)" class="color-dot bg-red-500"></div>
+                <div onclick="selectColor('#f59e0b', this)" class="color-dot bg-amber-500"></div>
+                <div onclick="selectColor('#10b981', this)" class="color-dot bg-emerald-500"></div>
+            </div>
+
+            <div class="flex gap-3">
+                <button onclick="closeModals()" class="flex-1 py-3 font-bold text-slate-400 hover:text-slate-600 transition">ANNULER</button>
+                <button onclick="confirmTask()" class="flex-1 py-3 bg-[#004587] text-white rounded-xl font-bold shadow-lg hover:bg-blue-900 transition">VALIDER</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="delayModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center z-[200] p-4">
+        <div class="bg-white rounded-2xl w-full max-w-4xl shadow-2xl overflow-hidden">
+            <div class="bg-red-600 p-4 text-white">
+                <h3 class="text-xl font-black uppercase italic">Tâche Reportée</h3>
+            </div>
+            <div class="p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <h4 class="text-[11px] font-black bg-slate-100 p-2 mb-3 uppercase tracking-widest">Méthodes / Planning</h4>
+                    <div class="space-y-2 text-xs font-bold text-slate-600">
+                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="cause-check" value="Planning initial irréaliste"> Planning initial irréaliste</label>
+                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="cause-check" value="Séquencement incohérent"> Séquencement incohérent</label>
+                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="cause-check" value="Coordination insuffisante"> Coordination insuffisante</label>
+                    </div>
+                    <h4 class="text-[11px] font-black bg-slate-100 p-2 my-3 uppercase tracking-widest">Ressources Humaines</h4>
+                    <div class="space-y-2 text-xs font-bold text-slate-600">
+                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="cause-check" value="Manque de main-d'œuvre"> Manque de main-d'œuvre</label>
+                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="cause-check" value="Sous-traitant absent"> Sous-traitant absent</label>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="text-[11px] font-black bg-slate-100 p-2 mb-3 uppercase tracking-widest">Logistique / Matériel</h4>
+                    <div class="space-y-2 text-xs font-bold text-slate-600">
+                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="cause-check" value="Matériaux non livrés"> Matériaux non livrés</label>
+                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="cause-check" value="Matériel en panne"> Matériel en panne</label>
+                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="cause-check" value="Plans non disponibles"> Plans non disponibles</label>
+                    </div>
+                    <h4 class="text-[11px] font-black bg-slate-100 p-2 my-3 uppercase tracking-widest">Observations / Divers</h4>
+                    <textarea id="delayComment" placeholder="Commentaire libre..." class="w-full border rounded-lg p-2 text-xs h-20 outline-none focus:border-red-500"></textarea>
+                </div>
+            </div>
+            <div class="p-4 bg-slate-50 border-t flex justify-end gap-4">
+                <button onclick="closeModals()" class="px-6 py-2 font-bold text-slate-400">ANNULER</button>
+                <button onclick="saveDelayReasons()" class="px-8 py-2 bg-red-600 text-white font-black rounded-lg shadow-md hover:bg-red-700 transition">ENREGISTRER</button>
             </div>
         </div>
     </div>
@@ -113,78 +154,97 @@
         const pdfjsLib = window['pdfjs-dist/build/pdf'];
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-        let tasks = JSON.parse(localStorage.getItem('lps_tasks')) || [];
-        let kpiChart = null;
+        let tasks = JSON.parse(localStorage.getItem('build_lean_tasks')) || [];
+        let ppcChart = null;
         let isDrawing = false;
         let startX, startY;
         let currentRect = { x: 0, y: 0, w: 0, h: 0 };
         let activeTaskId = null;
+        let selectedColor = '#3b82f6';
+        let currentFilter = 'all';
 
         const wrapper = document.getElementById('canvasWrapper');
         const selectionRect = document.getElementById('selectionRect');
         const picImage = document.getElementById('picImage');
 
-        function saveTasks() {
-            localStorage.setItem('lps_tasks', JSON.stringify(tasks));
+        function save() {
+            localStorage.setItem('build_lean_tasks', JSON.stringify(tasks));
             renderUI();
         }
 
         function renderUI() {
-            const markersLayer = document.getElementById('markersLayer');
-            const tableBody = document.getElementById('taskTableBody');
-            markersLayer.innerHTML = '';
-            tableBody.innerHTML = '';
+            const markers = document.getElementById('markersLayer');
+            const table = document.getElementById('taskTableBody');
+            markers.innerHTML = '';
+            table.innerHTML = '';
 
             const counts = { done: 0, ongoing: 0, delayed: 0, total: tasks.length };
             
             tasks.forEach(task => {
-                if(task.status === 'done') counts.done++;
-                if(task.status === 'ongoing') counts.ongoing++;
-                if(task.status === 'delayed') counts.delayed++;
+                counts[task.status]++;
+                
+                // Dessin sur plan
+                if (currentFilter === 'all' || task.status === currentFilter) {
+                    const zone = document.createElement('div');
+                    zone.className = `task-zone rounded shadow-sm`;
+                    zone.style.cssText = `left:${task.rect.x}px; top:${task.rect.y}px; width:${task.rect.w}px; height:${task.rect.h}px; background:${task.color}55; border-color:${task.color};`;
+                    zone.innerHTML = `<span>${task.name}</span>`;
+                    zone.onclick = (e) => { e.stopPropagation(); showMenu(e, task.id); };
+                    markers.appendChild(zone);
+                }
 
-                const zone = document.createElement('div');
-                zone.className = `task-zone status-${task.status} rounded`;
-                zone.style.cssText = `left:${task.rect.x}px; top:${task.rect.y}px; width:${task.rect.w}px; height:${task.rect.h}px; border-color:${task.color}; background-color:${task.color}44;`;
-                zone.innerHTML = `<span>${task.name}</span>`;
-                zone.onclick = (e) => { e.stopPropagation(); showStatusMenu(e, task.id); };
-                markersLayer.appendChild(zone);
-
-                const row = document.createElement('tr');
-                row.innerHTML = `<td class="p-3 font-bold">${task.name}</td><td class="p-3">${task.owner}</td><td class="p-3">${task.status}</td><td class="p-3 text-red-500">${task.cause || ''}</td>`;
-                tableBody.appendChild(row);
+                // Table
+                if (currentFilter === 'all' || task.status === currentFilter) {
+                    const row = document.createElement('tr');
+                    const statusLabels = { done: 'Terminée', ongoing: 'En cours', delayed: 'Reportée' };
+                    const statusColors = { done: 'bg-green-100 text-green-700', ongoing: 'bg-blue-100 text-blue-700', delayed: 'bg-red-100 text-red-700' };
+                    
+                    row.innerHTML = `
+                        <td class="p-3 font-bold text-slate-700">${task.name}</td>
+                        <td class="p-3">${task.owner || '-'}</td>
+                        <td class="p-3"><span class="px-2 py-1 rounded-full font-black text-[9px] uppercase ${statusColors[task.status]}">${statusLabels[task.status]}</span></td>
+                        <td class="p-3 text-red-500 font-medium">${task.causes ? task.causes.join(', ') : ''} ${task.comment ? '('+task.comment+')' : ''}</td>
+                    `;
+                    table.appendChild(row);
+                }
             });
 
-            updateCharts(counts);
+            updateStats(counts);
         }
 
-        function updateCharts(counts) {
-            const ppc = counts.total > 0 ? Math.round((counts.done / counts.total) * 100) : 0;
-            document.getElementById('ppcValue').innerText = ppc + '%';
-            if (kpiChart) {
-                kpiChart.data.datasets[0].data = [counts.done, counts.ongoing, counts.delayed, counts.total - (counts.done+counts.ongoing+counts.delayed)];
-                kpiChart.update();
+        function updateStats(c) {
+            const ppc = c.total > 0 ? Math.round((c.done / c.total) * 100) : 0;
+            document.getElementById('ppcPercentage').innerText = ppc + '%';
+            
+            // Update Onglets
+            document.getElementById('tab-all').innerText = `TOUTES (100%)`;
+            document.getElementById('tab-done').innerText = `TERMINÉES (${c.total ? Math.round(c.done/c.total*100) : 0}%)`;
+            document.getElementById('tab-ongoing').innerText = `EN COURS (${c.total ? Math.round(c.ongoing/c.total*100) : 0}%)`;
+            document.getElementById('tab-delayed').innerText = `REPORTÉES (${c.total ? Math.round(c.delayed/c.total*100) : 0}%)`;
+
+            if (ppcChart) {
+                ppcChart.data.datasets[0].data = [c.done, c.ongoing, c.delayed];
+                ppcChart.update();
             }
         }
 
         // Logic Dessin
-        wrapper.onmousedown = function(e) {
+        wrapper.onmousedown = (e) => {
             if (!picImage.src || e.target.closest('.task-zone')) return;
             isDrawing = true;
-            const rect = wrapper.getBoundingClientRect();
-            startX = e.clientX - rect.left + wrapper.scrollLeft;
-            startY = e.clientY - rect.top + wrapper.scrollTop;
+            const r = wrapper.getBoundingClientRect();
+            startX = e.clientX - r.left + wrapper.scrollLeft;
+            startY = e.clientY - r.top + wrapper.scrollTop;
             selectionRect.style.left = startX + 'px';
             selectionRect.style.top = startY + 'px';
-            selectionRect.style.width = '0px';
-            selectionRect.style.height = '0px';
             selectionRect.classList.remove('hidden');
         };
 
-        window.onmousemove = function(e) {
+        window.onmousemove = (e) => {
             if (!isDrawing) return;
-            const rect = wrapper.getBoundingClientRect();
-            const curX = e.clientX - rect.left + wrapper.scrollLeft;
-            const curY = e.clientY - rect.top + wrapper.scrollTop;
+            const r = wrapper.getBoundingClientRect();
+            const curX = e.clientX - r.left + wrapper.scrollLeft;
+            const curY = e.clientY - r.top + wrapper.scrollTop;
             currentRect = { x: Math.min(curX, startX), y: Math.min(curY, startY), w: Math.abs(curX - startX), h: Math.abs(curY - startY) };
             selectionRect.style.left = currentRect.x + 'px';
             selectionRect.style.top = currentRect.y + 'px';
@@ -192,47 +252,74 @@
             selectionRect.style.height = currentRect.h + 'px';
         };
 
-        window.onmouseup = function() {
-            if (!isDrawing) return;
-            isDrawing = false;
-            selectionRect.classList.add('hidden');
-            if (currentRect.w > 10) document.getElementById('taskModal').classList.remove('hidden');
-        };
+        window.onmouseup = () => { if(isDrawing && currentRect.w > 10) document.getElementById('createModal').classList.remove('hidden'); isDrawing = false; selectionRect.classList.add('hidden'); };
 
         function confirmTask() {
-            const name = document.getElementById('modalTaskName').value;
-            if (!name) return;
-            tasks.push({ id: Date.now(), name, owner: document.getElementById('modalTaskOwner').value, rect: {...currentRect}, status: 'ongoing', color: '#3b82f6' });
-            saveTasks();
-            closeModal();
-        }
-
-        function showStatusMenu(e, id) {
-            activeTaskId = id;
-            const menu = document.getElementById('statusMenu');
-            menu.style.left = e.pageX + 'px';
-            menu.style.top = e.pageY + 'px';
-            menu.classList.remove('hidden');
+            const name = document.getElementById('newTaskName').value;
+            const owner = document.getElementById('newTaskOwner').value;
+            if(!name) return;
+            tasks.push({ id: Date.now(), name, owner, color: selectedColor, rect: {...currentRect}, status: 'ongoing', causes: [], comment: '' });
+            save();
+            closeModals();
+            document.getElementById('newTaskName').value = '';
         }
 
         function setStatus(s) {
-            const task = tasks.find(t => t.id === activeTaskId);
-            if (task) { 
-                task.status = s; 
-                task.color = s === 'done' ? '#22c55e' : (s === 'delayed' ? '#ef4444' : '#3b82f6');
+            const t = tasks.find(x => x.id === activeTaskId);
+            if(t) { 
+                t.status = s; 
+                if(s !== 'delayed') { t.causes = []; t.comment = ''; }
             }
             document.getElementById('statusMenu').classList.add('hidden');
-            saveTasks();
+            save();
         }
 
-        function deleteActiveTask() {
-            tasks = tasks.filter(t => t.id !== activeTaskId);
+        function openDelayModal() {
             document.getElementById('statusMenu').classList.add('hidden');
-            saveTasks();
+            document.getElementById('delayModal').classList.remove('hidden');
         }
 
-        // Upload
-        document.getElementById('picUpload').onchange = function(e) {
+        function saveDelayReasons() {
+            const t = tasks.find(x => x.id === activeTaskId);
+            const checks = document.querySelectorAll('.cause-check:checked');
+            t.status = 'delayed';
+            t.causes = Array.from(checks).map(c => c.value);
+            t.comment = document.getElementById('delayComment').value;
+            closeModals();
+            save();
+        }
+
+        function switchTab(t) {
+            currentFilter = t;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('tab-' + t).classList.add('active');
+            renderUI();
+        }
+
+        function selectColor(c, el) {
+            selectedColor = c;
+            document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('selected'));
+            el.classList.add('selected');
+        }
+
+        function showMenu(e, id) {
+            activeTaskId = id;
+            const m = document.getElementById('statusMenu');
+            m.style.left = e.pageX + 'px'; m.style.top = e.pageY + 'px';
+            m.classList.remove('hidden');
+        }
+
+        function deleteActiveTask() { tasks = tasks.filter(x => x.id !== activeTaskId); document.getElementById('statusMenu').classList.add('hidden'); save(); }
+
+        function closeModals() { 
+            document.getElementById('createModal').classList.add('hidden'); 
+            document.getElementById('delayModal').classList.add('hidden'); 
+            document.querySelectorAll('.cause-check').forEach(c => c.checked = false);
+            document.getElementById('delayComment').value = '';
+        }
+
+        // Upload Plan
+        document.getElementById('picUpload').onchange = (e) => {
             const file = e.target.files[0];
             const reader = new FileReader();
             reader.onload = async (ev) => {
@@ -244,16 +331,12 @@
                     canvas.height = viewport.height; canvas.width = viewport.width;
                     await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
                     picImage.src = canvas.toDataURL();
-                } else {
-                    picImage.src = ev.target.result;
-                }
+                } else { picImage.src = ev.target.result; }
                 picImage.classList.remove('hidden');
-                document.getElementById('emptyState').classList.add('hidden');
             };
             file.type === 'application/pdf' ? reader.readAsArrayBuffer(file) : reader.readAsDataURL(file);
         };
 
-        // Téléchargement
         function downloadPIC() {
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
@@ -263,27 +346,28 @@
             tasks.forEach(t => {
                 ctx.globalAlpha = 0.4; ctx.fillStyle = t.color;
                 ctx.fillRect(t.rect.x, t.rect.y, t.rect.w, t.rect.h);
-                ctx.globalAlpha = 1; ctx.strokeStyle = t.color; ctx.lineWidth = 3;
+                ctx.globalAlpha = 1; ctx.strokeStyle = t.color; ctx.lineWidth = 4;
                 ctx.strokeRect(t.rect.x, t.rect.y, t.rect.w, t.rect.h);
-                ctx.fillStyle = "black"; ctx.font = "bold 16px Arial";
-                ctx.fillText(t.name, t.rect.x + 5, t.rect.y + 20);
+                ctx.fillStyle = "black"; ctx.font = "bold 20px Arial";
+                ctx.fillText(t.name, t.rect.x + 5, t.rect.y + 25);
             });
             const link = document.createElement('a');
-            link.download = 'PIC_LPS_Export.jpg';
+            link.download = 'Plan_LPS_Semaine.jpg';
             link.href = canvas.toDataURL('image/jpeg');
             link.click();
         }
 
-        function closeModal() { document.getElementById('taskModal').classList.add('hidden'); }
-
-        window.onload = function() {
-            kpiChart = new Chart(document.getElementById('kpiChart'), {
+        window.onload = () => {
+            ppcChart = new Chart(document.getElementById('ppcChart'), {
                 type: 'doughnut',
-                data: { datasets: [{ data: [0,0,0,1], backgroundColor: ['#22c55e', '#3b82f6', '#ef4444', '#f1f5f9'] }] },
-                options: { cutout: '80%', plugins: { legend: { display: false } } }
+                data: { labels: ['Fait', 'En cours', 'Retard'], datasets: [{ data: [0, 0, 0], backgroundColor: ['#10b981', '#3b82f6', '#ef4444'], borderWeight: 0 }] },
+                options: { cutout: '85%', plugins: { legend: { display: false } } }
             });
             renderUI();
         };
+
+        // Fermer le menu si on clique ailleurs
+        window.onclick = (e) => { if(!e.target.closest('.task-zone') && !e.target.closest('#statusMenu')) document.getElementById('statusMenu').classList.add('hidden'); };
     </script>
 </body>
 </html>
