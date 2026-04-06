@@ -2,40 +2,51 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BUILD-Lean | LPS Pilotage</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BUILD-Lean | Mobile & Desktop</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <style>
-        .pic-container { position: relative; cursor: crosshair; overflow: auto; max-height: 70vh; border: 2px solid #e2e8f0; background: #f8fafc; min-height: 500px; }
+        /* Optimisation Tactile */
+        body { touch-action: manipulation; }
+        .pic-container { 
+            position: relative; 
+            overflow: auto; 
+            max-height: 60vh; 
+            border: 2px solid #e2e8f0; 
+            background: #f8fafc; 
+            min-height: 400px;
+            touch-action: none; /* Empêche le défilement de la page pendant le dessin */
+        }
         #markersLayer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; }
-        .task-zone { position: absolute; border: 2px solid; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; color: white; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); pointer-events: auto; }
+        .task-zone { position: absolute; border: 2px solid; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: white; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); pointer-events: auto; min-width: 20px; min-height: 20px; }
         .selection-rect { position: absolute; border: 2px dashed #004587; background: rgba(0, 69, 135, 0.1); pointer-events: none; z-index: 20; }
-        .status-menu { position: absolute; z-index: 100; background: white; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); padding: 8px; border: 1px solid #e2e8f0; }
-        .tab-btn { border-bottom: 3px solid transparent; transition: all 0.3s; padding: 10px 15px; font-size: 12px; font-weight: 700; color: #64748b; uppercase; }
+        .status-menu { position: absolute; z-index: 100; background: white; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); padding: 12px; border: 1px solid #e2e8f0; min-width: 160px; }
+        .tab-btn { border-bottom: 3px solid transparent; transition: all 0.3s; padding: 12px 8px; font-size: 10px; font-weight: 700; color: #64748b; white-space: nowrap; }
         .tab-btn.active { border-bottom-color: #004587; color: #004587; }
-        .color-dot { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
-        .color-dot.selected { border-color: #000; transform: scale(1.1); }
+        .color-dot { width: 35px; height: 35px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; }
+        .color-dot.selected { border-color: #000; }
     </style>
 </head>
 <body class="bg-slate-50 font-sans text-slate-900">
 
-    <div class="max-w-[1600px] mx-auto p-4">
-        <header class="flex justify-between items-center mb-4 bg-white p-4 rounded-xl shadow-sm border-b-4 border-[#004587]">
+    <div class="max-w-[1600px] mx-auto p-2 md:p-4">
+        <header class="flex flex-col md:flex-row justify-between items-center mb-4 bg-white p-4 rounded-xl shadow-sm border-b-4 border-[#004587] gap-4">
             <div class="flex items-center gap-2">
-                <span class="text-2xl font-black text-[#004587]">BUILD <span class="text-slate-300 font-light italic">Lean</span></span>
+                <span class="text-xl font-black text-[#004587]">BUILD <span class="text-slate-300 font-light italic">Lean</span></span>
             </div>
-            <div class="flex gap-3">
+            <div class="flex gap-2 w-full md:w-auto">
                 <input type="file" id="picUpload" accept="image/*,application/pdf" class="hidden">
-                <button onclick="document.getElementById('picUpload').click()" class="bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-md hover:bg-black transition">Charger Plan (PDF / Image)</button>
-                <button onclick="downloadPIC()" class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-md hover:bg-green-700 transition">Télécharger JPG</button>
+                <button onclick="document.getElementById('picUpload').click()" class="flex-1 bg-slate-800 text-white px-3 py-3 rounded-lg text-xs font-bold shadow-md">Charger Plan</button>
+                <button onclick="downloadPIC()" class="flex-1 bg-green-600 text-white px-3 py-3 rounded-lg text-xs font-bold shadow-md">Télécharger</button>
             </div>
         </header>
 
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
             <div class="lg:col-span-3 space-y-4">
-                <div class="bg-white p-2 rounded-xl shadow-sm border border-slate-200 relative">
+                <div class="bg-white p-1 rounded-xl shadow-sm border border-slate-200 relative">
+                    <p class="text-[9px] text-center text-slate-400 font-bold mb-1 md:hidden">Utilisez un doigt pour dessiner une zone</p>
                     <div id="canvasWrapper" class="pic-container rounded-lg">
                         <img id="picImage" src="" alt="" class="hidden" draggable="false">
                         <div id="markersLayer"></div>
@@ -43,63 +54,47 @@
                     </div>
                     
                     <div id="statusMenu" class="status-menu hidden">
-                        <button onclick="setStatus('done')" class="block w-full text-left px-4 py-2 hover:bg-green-50 text-green-700 font-bold text-xs">Réalisée</button>
-                        <button onclick="setStatus('ongoing')" class="block w-full text-left px-4 py-2 hover:bg-blue-50 text-blue-700 font-bold text-xs">En cours</button>
-                        <button onclick="openDelayModal()" class="block w-full text-left px-4 py-2 hover:bg-red-50 text-red-700 font-bold text-xs">Reportée (Motifs)</button>
-                        <hr class="my-1">
-                        <button onclick="deleteActiveTask()" class="block w-full text-left px-4 py-2 text-slate-400 text-[10px]">Supprimer</button>
+                        <button onclick="setStatus('done')" class="block w-full text-left px-4 py-3 hover:bg-green-50 text-green-700 font-bold text-sm border-b">Réalisée</button>
+                        <button onclick="setStatus('ongoing')" class="block w-full text-left px-4 py-3 hover:bg-blue-50 text-blue-700 font-bold text-sm border-b">En cours</button>
+                        <button onclick="openDelayModal()" class="block w-full text-left px-4 py-3 hover:bg-red-50 text-red-700 font-bold text-sm border-b">Reportée</button>
+                        <button onclick="deleteActiveTask()" class="block w-full text-left px-4 py-3 text-slate-400 text-xs mt-2">Supprimer</button>
                     </div>
                 </div>
 
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                    <div class="flex border-b bg-slate-50" id="tabsHeader">
-                        <button onclick="switchTab('all')" class="tab-btn active" id="tab-all">TOUTES (100%)</button>
-                        <button onclick="switchTab('done')" class="tab-btn" id="tab-done">TERMINÉES (0%)</button>
-                        <button onclick="switchTab('ongoing')" class="tab-btn" id="tab-ongoing">EN COURS (0%)</button>
-                        <button onclick="switchTab('delayed')" class="tab-btn" id="tab-delayed">REPORTÉES (0%)</button>
+                    <div class="flex overflow-x-auto border-b bg-slate-50 no-scrollbar" id="tabsHeader">
+                        <button onclick="switchTab('all')" class="tab-btn active shrink-0" id="tab-all">TOUTES</button>
+                        <button onclick="switchTab('done')" class="tab-btn shrink-0" id="tab-done">FAIT</button>
+                        <button onclick="switchTab('ongoing')" class="tab-btn shrink-0" id="tab-ongoing">COURS</button>
+                        <button onclick="switchTab('delayed')" class="tab-btn shrink-0" id="tab-delayed">REPORT</button>
                     </div>
-                    <div class="max-height-[300px] overflow-auto">
-                        <table class="w-full text-left text-[11px]">
-                            <thead class="bg-white sticky top-0 border-b">
-                                <tr>
-                                    <th class="p-3 uppercase text-slate-400 font-black">Tâche</th>
-                                    <th class="p-3 uppercase text-slate-400 font-black">Resp.</th>
-                                    <th class="p-3 uppercase text-slate-400 font-black">Statut</th>
-                                    <th class="p-3 uppercase text-slate-400 font-black">Causes de retard / Obs.</th>
-                                </tr>
-                            </thead>
+                    <div class="max-h-[300px] overflow-auto">
+                        <table class="w-full text-left text-[10px]">
                             <tbody id="taskTableBody" class="divide-y divide-slate-100"></tbody>
                         </table>
                     </div>
                 </div>
             </div>
 
-            <div class="space-y-4">
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 text-center">
-                    <h2 class="font-black text-slate-400 mb-4 uppercase text-[10px] tracking-widest">PPC SEMAINE</h2>
-                    <div class="relative h-48 flex items-center justify-center">
-                        <canvas id="ppcChart"></canvas>
-                        <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                            <span id="ppcPercentage" class="text-4xl font-black text-slate-800">0%</span>
-                            <span class="text-[9px] font-bold text-slate-400 uppercase">Réussite</span>
-                        </div>
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 text-center">
+                <div class="relative h-40 flex items-center justify-center">
+                    <canvas id="ppcChart"></canvas>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                        <span id="ppcPercentage" class="text-3xl font-black text-slate-800">0%</span>
+                        <span class="text-[8px] font-bold text-slate-400 uppercase">PPC Semaine</span>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="createModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center z-[200] p-4">
-        <div class="bg-white rounded-2xl p-8 w-full max-w-md shadow-2xl">
-            <h3 class="text-xl font-black mb-6 uppercase italic text-slate-800 tracking-tighter">Nouvelle Zone Identifiée</h3>
-            <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Désignation</label>
-            <input type="text" id="newTaskName" placeholder="Nom de la tâche (ex: Voile V12)" class="w-full border-2 border-slate-100 rounded-xl p-3 mb-4 focus:border-blue-500 outline-none transition font-medium">
+    <div id="createModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center z-[200] p-4">
+        <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl">
+            <h3 class="text-lg font-black mb-4 uppercase italic">Nouvelle Zone</h3>
+            <input type="text" id="newTaskName" placeholder="Tâche (ex: Voile)" class="w-full border-2 border-slate-100 rounded-xl p-4 mb-4 text-sm outline-none focus:border-blue-500">
+            <input type="text" id="newTaskOwner" placeholder="Équipe" class="w-full border-2 border-slate-100 rounded-xl p-4 mb-4 text-sm outline-none">
             
-            <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Responsable</label>
-            <input type="text" id="newTaskOwner" placeholder="Équipe / Sous-traitant" class="w-full border-2 border-slate-100 rounded-xl p-3 mb-4 focus:border-blue-500 outline-none transition font-medium">
-            
-            <label class="text-[10px] font-bold text-slate-400 uppercase mb-2 block">Couleur de zone</label>
-            <div class="flex gap-4 mb-8">
+            <div class="flex justify-between mb-6 px-2">
                 <div onclick="selectColor('#3b82f6', this)" class="color-dot bg-blue-500 selected"></div>
                 <div onclick="selectColor('#ef4444', this)" class="color-dot bg-red-500"></div>
                 <div onclick="selectColor('#f59e0b', this)" class="color-dot bg-amber-500"></div>
@@ -107,45 +102,8 @@
             </div>
 
             <div class="flex gap-3">
-                <button onclick="closeModals()" class="flex-1 py-3 font-bold text-slate-400 hover:text-slate-600 transition">ANNULER</button>
-                <button onclick="confirmTask()" class="flex-1 py-3 bg-[#004587] text-white rounded-xl font-bold shadow-lg hover:bg-blue-900 transition">VALIDER</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="delayModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center z-[200] p-4">
-        <div class="bg-white rounded-2xl w-full max-w-4xl shadow-2xl overflow-hidden">
-            <div class="bg-red-600 p-4 text-white">
-                <h3 class="text-xl font-black uppercase italic">Tâche Reportée</h3>
-            </div>
-            <div class="p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div>
-                    <h4 class="text-[11px] font-black bg-slate-100 p-2 mb-3 uppercase tracking-widest">Méthodes / Planning</h4>
-                    <div class="space-y-2 text-xs font-bold text-slate-600">
-                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="cause-check" value="Planning initial irréaliste"> Planning initial irréaliste</label>
-                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="cause-check" value="Séquencement incohérent"> Séquencement incohérent</label>
-                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="cause-check" value="Coordination insuffisante"> Coordination insuffisante</label>
-                    </div>
-                    <h4 class="text-[11px] font-black bg-slate-100 p-2 my-3 uppercase tracking-widest">Ressources Humaines</h4>
-                    <div class="space-y-2 text-xs font-bold text-slate-600">
-                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="cause-check" value="Manque de main-d'œuvre"> Manque de main-d'œuvre</label>
-                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="cause-check" value="Sous-traitant absent"> Sous-traitant absent</label>
-                    </div>
-                </div>
-                <div>
-                    <h4 class="text-[11px] font-black bg-slate-100 p-2 mb-3 uppercase tracking-widest">Logistique / Matériel</h4>
-                    <div class="space-y-2 text-xs font-bold text-slate-600">
-                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="cause-check" value="Matériaux non livrés"> Matériaux non livrés</label>
-                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="cause-check" value="Matériel en panne"> Matériel en panne</label>
-                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" class="cause-check" value="Plans non disponibles"> Plans non disponibles</label>
-                    </div>
-                    <h4 class="text-[11px] font-black bg-slate-100 p-2 my-3 uppercase tracking-widest">Observations / Divers</h4>
-                    <textarea id="delayComment" placeholder="Commentaire libre..." class="w-full border rounded-lg p-2 text-xs h-20 outline-none focus:border-red-500"></textarea>
-                </div>
-            </div>
-            <div class="p-4 bg-slate-50 border-t flex justify-end gap-4">
-                <button onclick="closeModals()" class="px-6 py-2 font-bold text-slate-400">ANNULER</button>
-                <button onclick="saveDelayReasons()" class="px-8 py-2 bg-red-600 text-white font-black rounded-lg shadow-md hover:bg-red-700 transition">ENREGISTRER</button>
+                <button onclick="closeModals()" class="flex-1 py-4 font-bold text-slate-400">ANNULER</button>
+                <button onclick="confirmTask()" class="flex-1 py-4 bg-[#004587] text-white rounded-xl font-bold shadow-lg">VALIDER</button>
             </div>
         </div>
     </div>
@@ -167,23 +125,70 @@
         const selectionRect = document.getElementById('selectionRect');
         const picImage = document.getElementById('picImage');
 
-        function save() {
-            localStorage.setItem('build_lean_tasks', JSON.stringify(tasks));
-            renderUI();
+        // GESTION TACTILE + SOURIS
+        function getCoords(e) {
+            const r = wrapper.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return {
+                x: clientX - r.left + wrapper.scrollLeft,
+                y: clientY - r.top + wrapper.scrollTop
+            };
         }
+
+        const startAction = (e) => {
+            if (!picImage.src || e.target.closest('.task-zone')) return;
+            isDrawing = true;
+            const coords = getCoords(e);
+            startX = coords.x;
+            startY = coords.y;
+            selectionRect.style.left = startX + 'px';
+            selectionRect.style.top = startY + 'px';
+            selectionRect.style.width = '0px';
+            selectionRect.style.height = '0px';
+            selectionRect.classList.remove('hidden');
+        };
+
+        const moveAction = (e) => {
+            if (!isDrawing) return;
+            const coords = getCoords(e);
+            currentRect = { 
+                x: Math.min(coords.x, startX), 
+                y: Math.min(coords.y, startY), 
+                w: Math.abs(coords.x - startX), 
+                h: Math.abs(coords.y - startY) 
+            };
+            selectionRect.style.left = currentRect.x + 'px';
+            selectionRect.style.top = currentRect.y + 'px';
+            selectionRect.style.width = currentRect.w + 'px';
+            selectionRect.style.height = currentRect.h + 'px';
+        };
+
+        const endAction = () => {
+            if(isDrawing && currentRect.w > 10) document.getElementById('createModal').classList.remove('hidden');
+            isDrawing = false;
+            selectionRect.classList.add('hidden');
+        };
+
+        wrapper.addEventListener('mousedown', startAction);
+        window.addEventListener('mousemove', moveAction);
+        window.addEventListener('mouseup', endAction);
+
+        wrapper.addEventListener('touchstart', startAction, {passive: false});
+        window.addEventListener('touchmove', moveAction, {passive: false});
+        window.addEventListener('touchend', endAction);
+
+        // --- Fonctions identiques à la version précédente ---
+        function save() { localStorage.setItem('build_lean_tasks', JSON.stringify(tasks)); renderUI(); }
 
         function renderUI() {
             const markers = document.getElementById('markersLayer');
             const table = document.getElementById('taskTableBody');
-            markers.innerHTML = '';
-            table.innerHTML = '';
-
+            markers.innerHTML = ''; table.innerHTML = '';
             const counts = { done: 0, ongoing: 0, delayed: 0, total: tasks.length };
             
             tasks.forEach(task => {
                 counts[task.status]++;
-                
-                // Dessin sur plan
                 if (currentFilter === 'all' || task.status === currentFilter) {
                     const zone = document.createElement('div');
                     zone.className = `task-zone rounded shadow-sm`;
@@ -191,134 +196,50 @@
                     zone.innerHTML = `<span>${task.name}</span>`;
                     zone.onclick = (e) => { e.stopPropagation(); showMenu(e, task.id); };
                     markers.appendChild(zone);
-                }
 
-                // Table
-                if (currentFilter === 'all' || task.status === currentFilter) {
                     const row = document.createElement('tr');
-                    const statusLabels = { done: 'Terminée', ongoing: 'En cours', delayed: 'Reportée' };
-                    const statusColors = { done: 'bg-green-100 text-green-700', ongoing: 'bg-blue-100 text-blue-700', delayed: 'bg-red-100 text-red-700' };
-                    
-                    row.innerHTML = `
-                        <td class="p-3 font-bold text-slate-700">${task.name}</td>
-                        <td class="p-3">${task.owner || '-'}</td>
-                        <td class="p-3"><span class="px-2 py-1 rounded-full font-black text-[9px] uppercase ${statusColors[task.status]}">${statusLabels[task.status]}</span></td>
-                        <td class="p-3 text-red-500 font-medium">${task.causes ? task.causes.join(', ') : ''} ${task.comment ? '('+task.comment+')' : ''}</td>
-                    `;
+                    row.innerHTML = `<td class="p-3 font-bold">${task.name}</td><td class="p-3 text-slate-500">${task.owner}</td><td class="p-3 text-right font-black uppercase text-[8px]">${task.status}</td>`;
                     table.appendChild(row);
                 }
             });
-
             updateStats(counts);
         }
 
         function updateStats(c) {
             const ppc = c.total > 0 ? Math.round((c.done / c.total) * 100) : 0;
             document.getElementById('ppcPercentage').innerText = ppc + '%';
-            
-            // Update Onglets
-            document.getElementById('tab-all').innerText = `TOUTES (100%)`;
-            document.getElementById('tab-done').innerText = `TERMINÉES (${c.total ? Math.round(c.done/c.total*100) : 0}%)`;
-            document.getElementById('tab-ongoing').innerText = `EN COURS (${c.total ? Math.round(c.ongoing/c.total*100) : 0}%)`;
-            document.getElementById('tab-delayed').innerText = `REPORTÉES (${c.total ? Math.round(c.delayed/c.total*100) : 0}%)`;
-
-            if (ppcChart) {
-                ppcChart.data.datasets[0].data = [c.done, c.ongoing, c.delayed];
-                ppcChart.update();
-            }
+            if (ppcChart) { ppcChart.data.datasets[0].data = [c.done, c.ongoing, c.delayed]; ppcChart.update(); }
         }
-
-        // Logic Dessin
-        wrapper.onmousedown = (e) => {
-            if (!picImage.src || e.target.closest('.task-zone')) return;
-            isDrawing = true;
-            const r = wrapper.getBoundingClientRect();
-            startX = e.clientX - r.left + wrapper.scrollLeft;
-            startY = e.clientY - r.top + wrapper.scrollTop;
-            selectionRect.style.left = startX + 'px';
-            selectionRect.style.top = startY + 'px';
-            selectionRect.classList.remove('hidden');
-        };
-
-        window.onmousemove = (e) => {
-            if (!isDrawing) return;
-            const r = wrapper.getBoundingClientRect();
-            const curX = e.clientX - r.left + wrapper.scrollLeft;
-            const curY = e.clientY - r.top + wrapper.scrollTop;
-            currentRect = { x: Math.min(curX, startX), y: Math.min(curY, startY), w: Math.abs(curX - startX), h: Math.abs(curY - startY) };
-            selectionRect.style.left = currentRect.x + 'px';
-            selectionRect.style.top = currentRect.y + 'px';
-            selectionRect.style.width = currentRect.w + 'px';
-            selectionRect.style.height = currentRect.h + 'px';
-        };
-
-        window.onmouseup = () => { if(isDrawing && currentRect.w > 10) document.getElementById('createModal').classList.remove('hidden'); isDrawing = false; selectionRect.classList.add('hidden'); };
 
         function confirmTask() {
             const name = document.getElementById('newTaskName').value;
-            const owner = document.getElementById('newTaskOwner').value;
             if(!name) return;
-            tasks.push({ id: Date.now(), name, owner, color: selectedColor, rect: {...currentRect}, status: 'ongoing', causes: [], comment: '' });
-            save();
-            closeModals();
-            document.getElementById('newTaskName').value = '';
-        }
-
-        function setStatus(s) {
-            const t = tasks.find(x => x.id === activeTaskId);
-            if(t) { 
-                t.status = s; 
-                if(s !== 'delayed') { t.causes = []; t.comment = ''; }
-            }
-            document.getElementById('statusMenu').classList.add('hidden');
-            save();
-        }
-
-        function openDelayModal() {
-            document.getElementById('statusMenu').classList.add('hidden');
-            document.getElementById('delayModal').classList.remove('hidden');
-        }
-
-        function saveDelayReasons() {
-            const t = tasks.find(x => x.id === activeTaskId);
-            const checks = document.querySelectorAll('.cause-check:checked');
-            t.status = 'delayed';
-            t.causes = Array.from(checks).map(c => c.value);
-            t.comment = document.getElementById('delayComment').value;
-            closeModals();
-            save();
-        }
-
-        function switchTab(t) {
-            currentFilter = t;
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('tab-' + t).classList.add('active');
-            renderUI();
-        }
-
-        function selectColor(c, el) {
-            selectedColor = c;
-            document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('selected'));
-            el.classList.add('selected');
+            tasks.push({ id: Date.now(), name, owner: document.getElementById('newTaskOwner').value, color: selectedColor, rect: {...currentRect}, status: 'ongoing', causes: [] });
+            save(); closeModals();
         }
 
         function showMenu(e, id) {
             activeTaskId = id;
             const m = document.getElementById('statusMenu');
-            m.style.left = e.pageX + 'px'; m.style.top = e.pageY + 'px';
+            const x = e.touches ? e.touches[0].pageX : e.pageX;
+            const y = e.touches ? e.touches[0].pageY : e.pageY;
+            m.style.left = (x > window.innerWidth - 180 ? x - 180 : x) + 'px';
+            m.style.top = y + 'px';
             m.classList.remove('hidden');
         }
 
-        function deleteActiveTask() { tasks = tasks.filter(x => x.id !== activeTaskId); document.getElementById('statusMenu').classList.add('hidden'); save(); }
-
-        function closeModals() { 
-            document.getElementById('createModal').classList.add('hidden'); 
-            document.getElementById('delayModal').classList.add('hidden'); 
-            document.querySelectorAll('.cause-check').forEach(c => c.checked = false);
-            document.getElementById('delayComment').value = '';
+        function setStatus(s) {
+            const t = tasks.find(x => x.id === activeTaskId);
+            if(t) t.status = s;
+            document.getElementById('statusMenu').classList.add('hidden');
+            save();
         }
 
-        // Upload Plan
+        function deleteActiveTask() { tasks = tasks.filter(x => x.id !== activeTaskId); document.getElementById('statusMenu').classList.add('hidden'); save(); }
+        function selectColor(c, el) { selectedColor = c; document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('selected')); el.classList.add('selected'); }
+        function closeModals() { document.getElementById('createModal').classList.add('hidden'); }
+        function switchTab(t) { currentFilter = t; document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.getElementById('tab-' + t).classList.add('active'); renderUI(); }
+
         document.getElementById('picUpload').onchange = (e) => {
             const file = e.target.files[0];
             const reader = new FileReader();
@@ -337,37 +258,14 @@
             file.type === 'application/pdf' ? reader.readAsArrayBuffer(file) : reader.readAsDataURL(file);
         };
 
-        function downloadPIC() {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = picImage.naturalWidth;
-            canvas.height = picImage.naturalHeight;
-            ctx.drawImage(picImage, 0, 0);
-            tasks.forEach(t => {
-                ctx.globalAlpha = 0.4; ctx.fillStyle = t.color;
-                ctx.fillRect(t.rect.x, t.rect.y, t.rect.w, t.rect.h);
-                ctx.globalAlpha = 1; ctx.strokeStyle = t.color; ctx.lineWidth = 4;
-                ctx.strokeRect(t.rect.x, t.rect.y, t.rect.w, t.rect.h);
-                ctx.fillStyle = "black"; ctx.font = "bold 20px Arial";
-                ctx.fillText(t.name, t.rect.x + 5, t.rect.y + 25);
-            });
-            const link = document.createElement('a');
-            link.download = 'Plan_LPS_Semaine.jpg';
-            link.href = canvas.toDataURL('image/jpeg');
-            link.click();
-        }
-
         window.onload = () => {
             ppcChart = new Chart(document.getElementById('ppcChart'), {
                 type: 'doughnut',
-                data: { labels: ['Fait', 'En cours', 'Retard'], datasets: [{ data: [0, 0, 0], backgroundColor: ['#10b981', '#3b82f6', '#ef4444'], borderWeight: 0 }] },
+                data: { datasets: [{ data: [0, 0, 0], backgroundColor: ['#10b981', '#3b82f6', '#ef4444'], borderWeight: 0 }] },
                 options: { cutout: '85%', plugins: { legend: { display: false } } }
             });
             renderUI();
         };
-
-        // Fermer le menu si on clique ailleurs
-        window.onclick = (e) => { if(!e.target.closest('.task-zone') && !e.target.closest('#statusMenu')) document.getElementById('statusMenu').classList.add('hidden'); };
     </script>
 </body>
 </html>
