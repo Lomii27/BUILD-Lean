@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BUILD-Lean | Gestion de Chantier Avancée</title>
+    <title>BUILD-Lean | Gestion de Chantier Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -16,7 +16,7 @@
         #markersLayer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; }
         .task-zone { position: absolute; border: 2px solid; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: white; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); pointer-events: auto; overflow: hidden; }
         .selection-rect { position: absolute; border: 2px dashed #004587; background: rgba(0, 69, 135, 0.2); pointer-events: none; z-index: 20; }
-        .status-menu { position: absolute; z-index: 100; background: white; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); border: 1px solid #e2e8f0; min-width: 200px; overflow: hidden; }
+        .status-menu { position: absolute; z-index: 100; background: white; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); border: 1px solid #e2e8f0; min-width: 200px; }
         .tab-btn { border-bottom: 3px solid transparent; transition: all 0.2s; padding: 12px 10px; font-size: 10px; font-weight: 800; color: #64748b; }
         .tab-btn.active { border-bottom-color: #004587; color: #004587; }
         .color-dot { width: 35px; height: 35px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; transition: transform 0.1s; }
@@ -43,9 +43,9 @@
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
             <div class="lg:col-span-3 space-y-4">
                 <div class="bg-white p-1 rounded-xl shadow-sm border border-slate-200 relative">
-                    <div id="modeBanner" class="hidden absolute top-0 left-0 w-full bg-indigo-600 text-white text-xs font-black text-center py-2 z-50 rounded-t-lg shadow-md tracking-wider">
+                    <div id="modeBanner" class="hidden absolute top-0 left-0 w-full bg-indigo-600 text-white text-[10px] font-black text-center py-2 z-50 rounded-t-lg shadow-md uppercase tracking-wider">
                         <span id="modeBannerText"></span>
-                        <button onclick="resetDrawingMode()" class="ml-4 underline text-indigo-200 hover:text-white">Annuler (Echap)</button>
+                        <button onclick="resetDrawingMode()" class="ml-4 underline opacity-80 hover:opacity-100 italic">Annuler (Echap)</button>
                     </div>
 
                     <div id="canvasWrapper" class="pic-container rounded-lg">
@@ -54,16 +54,16 @@
                         <div id="selectionRect" class="selection-rect hidden"></div>
                     </div>
                     
-                    <div id="statusMenu" class="status-menu hidden flex flex-col">
-                        <div class="p-2 border-b bg-slate-100 flex justify-between gap-2">
-                            <button onclick="editTaskInfo()" class="flex-1 text-[10px] uppercase font-black text-slate-700 bg-white shadow-sm border border-slate-200 p-2 rounded hover:bg-slate-50">Infos ✏️</button>
-                            <button onclick="setDrawingMode('redraw')" class="flex-1 text-[10px] uppercase font-black text-slate-700 bg-white shadow-sm border border-slate-200 p-2 rounded hover:bg-slate-50">Forme 🔄</button>
+                    <div id="statusMenu" class="status-menu hidden flex flex-col overflow-hidden">
+                        <div class="p-2 border-b bg-slate-50 flex justify-between gap-2">
+                            <button onclick="editTaskInfo()" class="flex-1 text-[9px] uppercase font-black text-slate-600 bg-white border p-2 rounded hover:bg-slate-50 shadow-sm">Infos ✏️</button>
+                            <button onclick="setDrawingMode('redraw')" class="flex-1 text-[9px] uppercase font-black text-slate-600 bg-white border p-2 rounded hover:bg-slate-50 shadow-sm">Forme 🔄</button>
                         </div>
-                        <button onclick="setStatus('done')" class="text-left px-5 py-3 hover:bg-green-50 text-green-700 font-bold text-sm border-b transition-colors">Réalisée ✅</button>
-                        <button onclick="setStatus('ongoing')" class="text-left px-5 py-3 hover:bg-blue-50 text-blue-700 font-bold text-sm border-b transition-colors">En cours 🏗️</button>
-                        <button onclick="openDelayModal()" class="text-left px-5 py-3 hover:bg-red-50 text-red-700 font-bold text-sm border-b transition-colors">Reportée ⚠️</button>
-                        <button onclick="setDrawingMode('progress')" class="text-left px-5 py-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-800 font-black text-sm border-b transition-colors">Tracer Avancement 📏</button>
-                        <button onclick="deleteActiveTask()" class="text-center px-4 py-2 text-slate-400 text-[10px] uppercase font-bold hover:bg-slate-50 transition-colors">Supprimer la tâche</button>
+                        <button onclick="setStatus('done')" class="text-left px-5 py-3 hover:bg-green-50 text-green-700 font-bold text-sm border-b">Réalisée ✅</button>
+                        <button onclick="setStatus('ongoing')" class="text-left px-5 py-3 hover:bg-blue-50 text-blue-700 font-bold text-sm border-b">En cours 🏗️</button>
+                        <button onclick="openDelayModal()" class="text-left px-5 py-3 hover:bg-red-50 text-red-700 font-bold text-sm border-b">Reportée ⚠️</button>
+                        <button onclick="setDrawingMode('progress')" class="text-left px-5 py-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-800 font-black text-xs border-b">Tracer Avancement 📏</button>
+                        <button onclick="deleteActiveTask()" class="text-center py-2 text-slate-400 text-[9px] uppercase font-bold hover:bg-slate-100">Supprimer</button>
                     </div>
                 </div>
 
@@ -75,10 +75,10 @@
                         <button onclick="switchTab('delayed')" class="tab-btn shrink-0" id="tab-delayed">REPORT</button>
                     </div>
                     <div class="max-h-[300px] overflow-auto">
-                        <table class="w-full text-left text-[11px] whitespace-nowrap">
-                            <thead class="bg-slate-100 text-slate-500 font-bold uppercase text-[9px]">
+                        <table class="w-full text-left text-[11px]">
+                            <thead class="bg-slate-100 text-slate-500 font-bold uppercase text-[9px] sticky top-0">
                                 <tr>
-                                    <th class="p-3">Tâche & Causes</th>
+                                    <th class="p-3">Tâche</th>
                                     <th class="p-3">Équipe</th>
                                     <th class="p-3 text-center">% Avanc.</th>
                                     <th class="p-3 text-right">Statut</th>
@@ -106,7 +106,7 @@
         <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl">
             <h3 id="modalTitle" class="text-lg font-black mb-4 uppercase italic">Nouvelle Zone</h3>
             <input type="text" id="newTaskName" placeholder="Tâche (ex: Voile V01)" class="w-full border-2 border-slate-100 rounded-xl p-4 mb-4 text-sm outline-none focus:border-[#004587]">
-            <input type="text" id="newTaskOwner" placeholder="Sous-traitant / Équipe" class="w-full border-2 border-slate-100 rounded-xl p-4 mb-4 text-sm outline-none focus:border-[#004587]">
+            <input type="text" id="newTaskOwner" placeholder="Équipe / Entreprise" class="w-full border-2 border-slate-100 rounded-xl p-4 mb-4 text-sm outline-none focus:border-[#004587]">
             <div class="flex justify-around mb-8">
                 <div onclick="selectColor('#3b82f6', this)" class="color-dot bg-blue-500 selected" data-color="#3b82f6"></div>
                 <div onclick="selectColor('#ef4444', this)" class="color-dot bg-red-500" data-color="#ef4444"></div>
@@ -126,24 +126,44 @@
                 <h3 class="text-lg font-black uppercase italic">Causes du Report</h3>
                 <button onclick="closeModals()" class="text-2xl font-bold hover:text-red-200">&times;</button>
             </div>
-            <div class="p-4 md:p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="space-y-4">
-                    <div>
-                        <h4 class="text-[11px] font-black bg-slate-100 p-2 mb-2 uppercase text-slate-700">Planning & Matériel</h4>
-                        <div class="flex flex-col gap-2 text-xs font-bold text-slate-600">
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Planning initial irréaliste"> Planning initial irréaliste</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Matériaux non livrés"> Matériaux non livrés</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Manque de main-d'œuvre"> Manque de main-d'œuvre</label>
-                        </div>
+            <div class="p-4 md:p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                
+                <div>
+                    <h4 class="text-[11px] font-black bg-slate-100 p-2 mb-2 uppercase text-slate-700">Planning & Management</h4>
+                    <div class="flex flex-col gap-2 text-xs font-bold text-slate-600">
+                        <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Planning initial irréaliste"> Planning initial irréaliste</label>
+                        <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Tâche non planifiée"> Tâche non planifiée</label>
+                        <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Coordination insuffisante"> Coordination insuffisante</label>
+                        <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Ordre de priorité non respecté"> Priorité non respectée</label>
                     </div>
                 </div>
-                <div class="space-y-4">
-                    <div>
-                        <h4 class="text-[11px] font-black bg-slate-100 p-2 mb-2 uppercase text-slate-700">Divers / Commentaires</h4>
-                        <textarea id="delayComment" placeholder="Observations..." class="w-full border-2 border-slate-200 rounded-xl p-3 h-20 text-xs outline-none focus:border-red-500"></textarea>
+
+                <div>
+                    <h4 class="text-[11px] font-black bg-slate-100 p-2 mb-2 uppercase text-slate-700">Ressources & Matériel</h4>
+                    <div class="flex flex-col gap-2 text-xs font-bold text-slate-600">
+                        <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Manque de main-d'œuvre"> Manque de main-d'œuvre</label>
+                        <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Matériaux non livrés / Rupture"> Matériaux non livrés / Rupture</label>
+                        <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Panne d'engin / Matériel"> Panne d'engin / Matériel</label>
+                        <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Grue indisponible"> Grue indisponible</label>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="text-[11px] font-black bg-slate-100 p-2 mb-2 uppercase text-slate-700">Technique & Site</h4>
+                    <div class="flex flex-col gap-2 text-xs font-bold text-slate-600">
+                        <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Intempéries"> Intempéries</label>
+                        <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Problème technique / Études"> Problème technique / Études</label>
+                        <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Attente validation / Visas"> Attente validation / Visas</label>
+                        <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Zone non libérée par lot précédent"> Zone non libérée</label>
                     </div>
                 </div>
             </div>
+
+            <div class="p-4 border-t border-slate-100">
+                <h4 class="text-[11px] font-black bg-slate-100 p-2 mb-2 uppercase text-slate-700">Commentaires libres</h4>
+                <textarea id="delayComment" placeholder="Détaillez ici les raisons spécifiques..." class="w-full border-2 border-slate-200 rounded-xl p-3 h-20 text-xs outline-none focus:border-red-500"></textarea>
+            </div>
+
             <div class="p-4 bg-slate-50 flex gap-3 sticky bottom-0 border-t border-slate-200">
                 <button onclick="closeModals()" class="flex-1 py-3 font-bold text-slate-400">ANNULER</button>
                 <button onclick="saveDelayReasons()" class="flex-1 py-3 bg-red-600 text-white rounded-xl font-black shadow-md hover:bg-red-700">VALIDER</button>
@@ -172,7 +192,6 @@
         const pdfjsLib = window['pdfjs-dist/build/pdf'];
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-        // Structure de données enrichie
         let tasks = JSON.parse(localStorage.getItem('build_lean_tasks')) || [];
         let ppcChart = null;
         let isDrawing = false;
@@ -181,10 +200,8 @@
         let activeTaskId = null;
         let selectedColor = '#3b82f6';
         let currentFilter = 'all';
-
-        // Nouveaux états de dessin
-        let drawingMode = 'new'; // 'new', 'redraw', 'progress'
-        let editingTaskId = null; // ID de la tâche en cours de modification
+        let drawingMode = 'new';
+        let editingTaskId = null;
 
         const wrapper = document.getElementById('canvasWrapper');
         const selectionRect = document.getElementById('selectionRect');
@@ -197,7 +214,6 @@
             return { x: clientX - r.left + wrapper.scrollLeft, y: clientY - r.top + wrapper.scrollTop };
         }
 
-        // --- GESTION DU DESSIN MULTI-MODE ---
         const startAction = (e) => {
             if (!picImage.src || (e.target.closest('.task-zone') && drawingMode === 'new')) return;
             isDrawing = true;
@@ -205,11 +221,7 @@
             startX = coords.x; startY = coords.y;
             selectionRect.style.left = startX + 'px'; selectionRect.style.top = startY + 'px';
             selectionRect.style.width = '0px'; selectionRect.style.height = '0px';
-            
-            // Couleur de sélection selon le mode
-            if(drawingMode === 'progress') selectionRect.style.borderColor = '#4f46e5'; // Indigo
-            else selectionRect.style.borderColor = '#004587';
-            
+            selectionRect.style.borderColor = (drawingMode === 'progress') ? '#4f46e5' : '#004587';
             selectionRect.classList.remove('hidden');
         };
 
@@ -224,19 +236,14 @@
         const endAction = () => {
             if(isDrawing && currentRect.w > 10) {
                 if (drawingMode === 'new') {
-                    // Création classique
                     document.getElementById('modalTitle').innerText = "Nouvelle Zone";
                     document.getElementById('modalBtn').innerText = "CRÉER";
                     document.getElementById('createModal').classList.remove('hidden');
-                } 
-                else if (drawingMode === 'redraw') {
-                    // Modification de la forme
+                } else if (drawingMode === 'redraw') {
                     const t = tasks.find(x => x.id === activeTaskId);
                     if (t) { t.rect = {...currentRect}; t.progressRect = null; t.progress = 0; }
                     save(); resetDrawingMode();
-                } 
-                else if (drawingMode === 'progress') {
-                    // Calcul de l'intersection pour l'avancement
+                } else if (drawingMode === 'progress') {
                     const t = tasks.find(x => x.id === activeTaskId);
                     if (t) {
                         const intersection = getIntersection(t.rect, currentRect);
@@ -245,8 +252,6 @@
                             const totalArea = t.rect.w * t.rect.h;
                             const progArea = intersection.w * intersection.h;
                             t.progress = Math.round((progArea / totalArea) * 100);
-                        } else {
-                            t.progressRect = null; t.progress = 0;
                         }
                     }
                     save(); resetDrawingMode();
@@ -262,7 +267,6 @@
         window.addEventListener('touchmove', moveAction, {passive: false});
         window.addEventListener('touchend', endAction);
 
-        // Outil mathématique pour l'intersection de deux rectangles
         function getIntersection(r1, r2) {
             const x = Math.max(r1.x, r2.x);
             const y = Math.max(r1.y, r2.y);
@@ -272,30 +276,23 @@
             return { x, y, w, h };
         }
 
-        // Activer un mode de dessin spécifique
         function setDrawingMode(mode) {
             drawingMode = mode;
             document.getElementById('statusMenu').classList.add('hidden');
             const banner = document.getElementById('modeBanner');
-            if (mode === 'progress') {
-                document.getElementById('modeBannerText').innerText = "📐 Dessinez la partie réellement réalisée DANS la zone.";
-                banner.classList.remove('hidden');
-            } else if (mode === 'redraw') {
-                document.getElementById('modeBannerText').innerText = "🔄 Dessinez la nouvelle forme complète de la tâche.";
-                banner.classList.remove('hidden');
-            }
+            const text = document.getElementById('modeBannerText');
+            if (mode === 'progress') text.innerText = "📏 TRACEZ LA ZONE RÉALISÉE À L'INTÉRIEUR DU CADRE";
+            else if (mode === 'redraw') text.innerText = "🔄 REDESSINEZ LA FORME DE LA TÂCHE";
+            banner.classList.remove('hidden');
         }
 
         function resetDrawingMode() {
-            drawingMode = 'new';
-            editingTaskId = null;
+            drawingMode = 'new'; editingTaskId = null;
             document.getElementById('modeBanner').classList.add('hidden');
         }
 
-        // Annuler via Echap
         window.addEventListener('keydown', (e) => { if (e.key === 'Escape') resetDrawingMode(); });
 
-        // --- INTERFACE ET DONNÉES ---
         function save() { localStorage.setItem('build_lean_tasks', JSON.stringify(tasks)); renderUI(); }
 
         function renderUI() {
@@ -307,8 +304,6 @@
             tasks.forEach(task => {
                 counts[task.status]++;
                 if (currentFilter === 'all' || task.status === currentFilter) {
-                    
-                    // Rendu Visuel de la Zone
                     const zone = document.createElement('div');
                     zone.className = `task-zone rounded shadow-sm border-2`;
                     zone.style.left = `${task.rect.x}px`; zone.style.top = `${task.rect.y}px`;
@@ -316,33 +311,23 @@
                     zone.style.borderColor = task.color;
                     
                     let innerHTML = '';
-                    // Si on a un avancement, on dessine le bloc plein à l'intérieur
                     if (task.progressRect) {
-                        zone.style.background = task.color + '22'; // Fond transparent
+                        zone.style.background = task.color + '22';
                         const rx = task.progressRect.x - task.rect.x;
                         const ry = task.progressRect.y - task.rect.y;
-                        innerHTML += `<div style="position:absolute; left:${rx}px; top:${ry}px; width:${task.progressRect.w}px; height:${task.progressRect.h}px; background:${task.color}; opacity:0.7;"></div>`;
+                        innerHTML += `<div style="position:absolute; left:${rx}px; top:${ry}px; width:${task.progressRect.w}px; height:${task.progressRect.h}px; background:${task.color}; opacity:0.6;"></div>`;
                     } else {
-                        zone.style.background = task.color + '44'; // Remplissage classique
+                        zone.style.background = task.color + '44';
                     }
-                    
-                    // Texte au premier plan
-                    innerHTML += `<span style="position:relative; z-index:5; background:rgba(0,0,0,0.5); padding:2px 4px; border-radius:4px; text-align:center;">${task.name}<br>${task.progress || 0}%</span>`;
+                    innerHTML += `<span style="position:relative; z-index:5;">${task.name}<br>${task.progress || 0}%</span>`;
                     zone.innerHTML = innerHTML;
                     
                     zone.onclick = (e) => { e.stopPropagation(); if(drawingMode === 'new') showMenu(e, task.id); };
                     markers.appendChild(zone);
 
-                    // Rendu Tableau
                     const row = document.createElement('tr');
                     let causesText = task.status === 'delayed' && task.causes ? `<br><span class="text-[9px] text-red-500 block">• ${task.causes.join(', ')}</span>` : "";
-                    
-                    row.innerHTML = `
-                        <td class="p-3 font-bold">${task.name}${causesText}</td>
-                        <td class="p-3 text-slate-500">${task.owner}</td>
-                        <td class="p-3 text-center font-black ${task.progress === 100 ? 'text-green-600' : 'text-indigo-600'}">${task.progress || 0}%</td>
-                        <td class="p-3 text-right font-black uppercase text-[9px]">${task.status}</td>
-                    `;
+                    row.innerHTML = `<td class="p-3 font-bold">${task.name}${causesText}</td><td class="p-3 text-slate-500">${task.owner}</td><td class="p-3 text-center font-black text-indigo-600">${task.progress || 0}%</td><td class="p-3 text-right font-black uppercase text-[9px]">${task.status}</td>`;
                     table.appendChild(row);
                 }
             });
@@ -368,22 +353,19 @@
         function setStatus(s) {
             const t = tasks.find(x => x.id === activeTaskId);
             if(t) { 
-                t.status = s; t.causes = []; t.comment = ''; 
-                if (s === 'done') { t.progress = 100; t.progressRect = {...t.rect}; } // Auto fill 100%
+                t.status = s; t.causes = []; 
+                if (s === 'done') { t.progress = 100; t.progressRect = {...t.rect}; }
             }
             document.getElementById('statusMenu').classList.add('hidden'); save();
         }
 
-        // --- EDITION D'INFORMATIONS ---
         function editTaskInfo() {
             const t = tasks.find(x => x.id === activeTaskId);
             if(!t) return;
             editingTaskId = t.id;
             document.getElementById('newTaskName').value = t.name;
             document.getElementById('newTaskOwner').value = t.owner;
-            document.querySelectorAll('.color-dot').forEach(d => {
-                if(d.dataset.color === t.color) { selectColor(t.color, d); }
-            });
+            document.querySelectorAll('.color-dot').forEach(d => { if(d.dataset.color === t.color) selectColor(t.color, d); });
             document.getElementById('modalTitle').innerText = "Modifier les infos";
             document.getElementById('modalBtn').innerText = "ENREGISTRER";
             document.getElementById('createModal').classList.remove('hidden');
@@ -393,32 +375,30 @@
         function confirmTask() {
             const name = document.getElementById('newTaskName').value;
             if(!name) return;
-
             if (editingTaskId) {
                 const t = tasks.find(x => x.id === editingTaskId);
                 t.name = name; t.owner = document.getElementById('newTaskOwner').value; t.color = selectedColor;
                 editingTaskId = null;
             } else {
-                tasks.push({ id: Date.now(), name, owner: document.getElementById('newTaskOwner').value, color: selectedColor, rect: {...currentRect}, status: 'ongoing', causes: [], comment: '', progressRect: null, progress: 0 });
+                tasks.push({ id: Date.now(), name, owner: document.getElementById('newTaskOwner').value, color: selectedColor, rect: {...currentRect}, status: 'ongoing', causes: [], progressRect: null, progress: 0 });
             }
             save(); closeModals();
             document.getElementById('newTaskName').value = ''; document.getElementById('newTaskOwner').value = '';
         }
 
-        // Utilitaires de modals
         function openDelayModal() { document.getElementById('statusMenu').classList.add('hidden'); document.getElementById('delayModal').classList.remove('hidden'); }
         function saveDelayReasons() {
             const t = tasks.find(x => x.id === activeTaskId);
             const checks = document.querySelectorAll('.cause-check:checked');
-            t.status = 'delayed'; t.causes = Array.from(checks).map(c => c.value); t.comment = document.getElementById('delayComment').value;
+            t.status = 'delayed'; t.causes = Array.from(checks).map(c => c.value);
             closeModals(); save();
         }
+
         function deleteActiveTask() { tasks = tasks.filter(x => x.id !== activeTaskId); document.getElementById('statusMenu').classList.add('hidden'); save(); }
         function selectColor(c, el) { selectedColor = c; document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('selected')); el.classList.add('selected'); }
         function closeModals() { document.getElementById('createModal').classList.add('hidden'); document.getElementById('delayModal').classList.add('hidden'); resetDrawingMode(); }
         function switchTab(t) { currentFilter = t; document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.getElementById('tab-' + t).classList.add('active'); renderUI(); }
 
-        // Chargement du plan
         document.getElementById('picUpload').onchange = (e) => {
             const file = e.target.files[0]; const reader = new FileReader();
             reader.onload = async (ev) => {
@@ -434,7 +414,6 @@
             file.type === 'application/pdf' ? reader.readAsArrayBuffer(file) : reader.readAsDataURL(file);
         };
 
-        // --- GÉNÉRATION DU PDF AMÉLIORÉE ---
         async function generateFullReport() {
             const { jsPDF } = window.jspdf; const pdf = new jsPDF('p', 'mm', 'a4');
             const reportDate = new Date().toLocaleDateString('fr-FR');
@@ -445,13 +424,11 @@
             mapCanvas.width = picImage.naturalWidth; mapCanvas.height = picImage.naturalHeight;
             mapCtx.drawImage(picImage, 0, 0);
             
-            // Dessiner les zones AVEC avancement sur le PDF
             tasks.forEach(t => {
                 mapCtx.globalAlpha = 0.2; mapCtx.fillStyle = t.color;
                 mapCtx.fillRect(t.rect.x, t.rect.y, t.rect.w, t.rect.h);
                 mapCtx.globalAlpha = 1; mapCtx.strokeStyle = t.color; mapCtx.lineWidth = 4;
                 mapCtx.strokeRect(t.rect.x, t.rect.y, t.rect.w, t.rect.h);
-
                 if(t.progressRect) {
                     mapCtx.globalAlpha = 0.6; mapCtx.fillStyle = t.color;
                     mapCtx.fillRect(t.progressRect.x, t.progressRect.y, t.progressRect.w, t.progressRect.h);
@@ -462,33 +439,26 @@
             const reportImg = new Image(); reportImg.src = mapCanvas.toDataURL('image/jpeg'); reportImg.style.width = '100%';
             reportMapContainer.appendChild(reportImg);
 
-            // Création des tableaux PDF avec colonne %
             const tablesContainer = document.getElementById('reportTables'); tablesContainer.innerHTML = '';
             const createTable = (title, items, color) => {
                 if(items.length === 0) return '';
-                let html = `<h3 style="color:${color}; font-weight:900; margin-top:20px; border-bottom:1px solid #eee; padding-bottom:5px; font-size:14px;">${title}</h3>`;
-                html += `<table style="width:100%; border-collapse:collapse; margin-bottom:20px; font-size:11px; text-align:left;">`;
-                html += `<tr style="color:#64748b; background:#f8fafc;"><th style="padding:8px; width:25%;">Tâche</th><th style="padding:8px; width:20%;">Équipe</th><th style="padding:8px; width:10%; text-align:center;">Avanc.</th><th style="padding:8px; width:45%;">Observations</th></tr>`;
-                
+                let html = `<h3 style="color:${color}; font-weight:900; margin-top:20px; border-bottom:1px solid #eee; font-size:13px;">${title}</h3>`;
+                html += `<table style="width:100%; border-collapse:collapse; margin-bottom:10px; font-size:10px;">`;
+                html += `<tr style="background:#f8fafc;"><th style="padding:5px;">Tâche</th><th style="padding:5px;">Équipe</th><th style="padding:5px; text-align:center;">%</th><th style="padding:5px;">Causes</th></tr>`;
                 items.forEach(i => {
-                    let causeText = i.status === 'delayed' && i.causes ? i.causes.join(' <br>• ') : "";
-                    if(causeText !== "") causeText = "• " + causeText;
-                    html += `<tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:8px; font-weight:bold;">${i.name}</td><td style="padding:8px;">${i.owner}</td><td style="padding:8px; text-align:center; font-weight:bold;">${i.progress || 0}%</td><td style="padding:8px; color:red; font-size:10px;">${causeText}</td></tr>`;
+                    html += `<tr style="border-bottom:1px solid #eee;"><td style="padding:5px; font-weight:bold;">${i.name}</td><td style="padding:5px;">${i.owner}</td><td style="padding:5px; text-align:center;">${i.progress}%</td><td style="padding:5px; color:red;">${i.causes ? i.causes.join(', ') : ''}</td></tr>`;
                 });
                 html += `</table>`; return html;
             };
 
-            tablesContainer.innerHTML += createTable("TÂCHES RÉUSSIES ✅", tasks.filter(t => t.status === 'done'), "#10b981");
-            tablesContainer.innerHTML += createTable("TÂCHES EN COURS 🏗️", tasks.filter(t => t.status === 'ongoing'), "#3b82f6");
-            tablesContainer.innerHTML += createTable("TÂCHES REPORTÉES ⚠️", tasks.filter(t => t.status === 'delayed'), "#ef4444");
+            tablesContainer.innerHTML += createTable("RÉUSSIES ✅", tasks.filter(t => t.status === 'done'), "#10b981");
+            tablesContainer.innerHTML += createTable("EN COURS 🏗️", tasks.filter(t => t.status === 'ongoing'), "#3b82f6");
+            tablesContainer.innerHTML += createTable("REPORTÉES ⚠️", tasks.filter(t => t.status === 'delayed'), "#ef4444");
 
             const reportElement = document.getElementById('reportTemplate');
             const canvas = await html2canvas(reportElement, { scale: 2 });
-            const imgData = canvas.toDataURL('image/png');
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-            pdf.save(`Rapport_LPS_${reportDate.replace(/\//g, '-')}.pdf`);
+            pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, (canvas.height * 210) / canvas.width);
+            pdf.save(`Rapport_BuildLean_${reportDate}.pdf`);
         }
 
         window.onload = () => {
