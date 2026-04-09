@@ -14,7 +14,7 @@
         body { touch-action: manipulation; }
         .pic-container { position: relative; overflow: auto; max-height: 65vh; border: 2px solid #e2e8f0; background: #f8fafc; min-height: 400px; touch-action: none; }
         #markersLayer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; }
-        .task-zone { position: absolute; border: 2px solid; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: white; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); pointer-events: auto; overflow: hidden; }
+        .task-zone { position: absolute; border: 2px solid; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: white; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); pointer-events: auto; overflow: hidden; text-align: center; }
         .selection-rect { position: absolute; border: 2px dashed #004587; background: rgba(0, 69, 135, 0.2); pointer-events: none; z-index: 20; }
         .status-menu { position: absolute; z-index: 100; background: white; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); border: 1px solid #e2e8f0; min-width: 200px; }
         .tab-btn { border-bottom: 3px solid transparent; transition: all 0.2s; padding: 12px 10px; font-size: 10px; font-weight: 800; color: #64748b; }
@@ -70,9 +70,9 @@
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                     <div class="flex overflow-x-auto border-b bg-slate-50 no-scrollbar">
                         <button onclick="switchTab('all')" class="tab-btn active shrink-0" id="tab-all">TOUTES</button>
-                        <button onclick="switchTab('Fait')" class="tab-btn shrink-0" id="tab-done">FAIT</button>
-                        <button onclick="switchTab('En cours')" class="tab-btn shrink-0" id="tab-ongoing">COURS</button>
-                        <button onclick="switchTab('Retardé')" class="tab-btn shrink-0" id="tab-delayed">REPORT</button>
+                        <button onclick="switchTab('done')" class="tab-btn shrink-0" id="tab-done">FAIT</button>
+                        <button onclick="switchTab('ongoing')" class="tab-btn shrink-0" id="tab-ongoing">COURS</button>
+                        <button onclick="switchTab('delayed')" class="tab-btn shrink-0" id="tab-delayed">REPORT</button>
                     </div>
                     <div class="max-h-[300px] overflow-auto">
                         <table class="w-full text-left text-[11px]">
@@ -136,57 +136,24 @@
                             <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Tâche non planifiée"> Tâche non planifiée</label>
                             <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Séquencement incohérent"> Séquencement des tâches incohérent</label>
                             <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Priorités mal définies"> Priorités mal définies</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Coordination insuffisante"> Coordination insuffisante</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Absence de responsable"> Absence de responsable désigné</label>
                         </div>
                     </div>
                     <div>
                         <h4 class="text-[11px] font-black bg-slate-100 p-2 mb-2 uppercase text-slate-700">Plans & Technique</h4>
                         <div class="flex flex-col gap-2 text-xs font-bold text-slate-600">
                             <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Plans non disponibles"> Plans non disponibles</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Plans erronés/incomplets"> Plans erronés ou incomplets</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Attente validation technique"> Attente de validation technique</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Problème conception chantier"> Problème conception sur chantier</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Non-conformité précédente"> Non-conformité tâche précédente</label>
-                        </div>
-                    </div>
-                    <div>
-                        <h4 class="text-[11px] font-black bg-slate-100 p-2 mb-2 uppercase text-slate-700">Ressources Humaines</h4>
-                        <div class="flex flex-col gap-2 text-xs font-bold text-slate-600">
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Manque main-d’œuvre"> Manque de main-d’œuvre</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Compétences inadaptées"> Compétences non adaptées</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Sous-traitant absent"> Sous-traitant absent</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Conflit équipes"> Conflit ou désaccord entre équipes</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Consignes mal comprises"> Consignes mal comprises</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Plans erronés"> Plans erronés / incomplets</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Attente validation"> Attente de validation technique</label>
                         </div>
                     </div>
                 </div>
-                
                 <div class="space-y-4">
                     <div>
-                        <h4 class="text-[11px] font-black bg-slate-100 p-2 mb-2 uppercase text-slate-700">Logistique & Matériel</h4>
+                        <h4 class="text-[11px] font-black bg-slate-100 p-2 mb-2 uppercase text-slate-700">Logistique & Ressources</h4>
                         <div class="flex flex-col gap-2 text-xs font-bold text-slate-600">
+                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Manque main-d'œuvre"> Manque de main-d'œuvre</label>
                             <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Matériaux non livrés"> Matériaux non livrés</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Matériaux non conformes"> Matériaux non conformes</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Matériel manquant"> Matériel manquant</label>
                             <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Matériel en panne"> Matériel en panne</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Matériel affecté ailleurs"> Matériel affecté ailleurs</label>
-                        </div>
-                    </div>
-                    <div>
-                        <h4 class="text-[11px] font-black bg-slate-100 p-2 mb-2 uppercase text-slate-700">Administratif & Client</h4>
-                        <div class="flex flex-col gap-2 text-xs font-bold text-slate-600">
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Autorisations manquantes"> Autorisations manquantes</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Retard validation Client"> Retard validation Client / MOA</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Modif client non arbitrée"> Modification client non arbitrée</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Litige en cours"> Litige en cours sur le lot</label>
-                        </div>
-                    </div>
-                    <div>
-                        <h4 class="text-[11px] font-black bg-slate-100 p-2 mb-2 uppercase text-slate-700">Autres</h4>
-                        <div class="flex flex-col gap-2 text-xs font-bold text-slate-600">
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Sécurité/Environnement"> Environnement / Sécurité</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Finance/Trésorerie"> Finance / Trésorerie</label>
                         </div>
                     </div>
                     <div>
@@ -206,16 +173,19 @@
     <div id="reportTemplate">
         <div class="report-header">
             <div>
-                <h1 style="font-size: 28px; font-weight: 900; color: #004587;">RAPPORT DE PRODUCTION SEMAINE</h1>
+                <h1 style="font-size: 28px; font-weight: 900; color: #004587;">RAPPORT DE PRODUCTION</h1>
                 <p id="reportDate" style="color: #64748b; font-weight: bold;"></p>
             </div>
             <div style="text-align: right;">
-                <img src="Logo 1.jpg" style="height: 50px; width: auto;" alt="">
+                <h2 style="font-weight: 900; color: #004587;">BUILD-Lean</h2>
             </div>
         </div>
-        <div id="reportMapContainer" style="width: 100%; border: 1px solid #e2e8f0; margin-bottom: 30px;"></div>
-        <div style="background: #f8fafc; padding: 20px; border-radius: 15px; text-align: center; margin-bottom: 20px;">
-            <div id="reportPpcValue" style="font-size: 48px; font-weight: 900; color: #004587;">0%</div>
+        <div id="reportMapContainer" style="width: 100%; border: 1px solid #e2e8f0; margin-bottom: 30px; position: relative;"></div>
+        <div style="display: grid; grid-template-cols: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+            <div style="background: #f8fafc; padding: 20px; border-radius: 15px; text-align: center;">
+                <p style="font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase;">PPC Semaine</p>
+                <div id="reportPpcValue" style="font-size: 48px; font-weight: 900; color: #004587;">0%</div>
+            </div>
         </div>
         <div id="reportTables"></div>
     </div>
@@ -239,6 +209,24 @@
         const selectionRect = document.getElementById('selectionRect');
         const picImage = document.getElementById('picImage');
 
+        // Initialisation du Chart
+        window.onload = () => {
+            const ctx = document.getElementById('ppcChart').getContext('2d');
+            ppcChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Fait', 'En cours', 'Reporté'],
+                    datasets: [{
+                        data: [0, 0, 0],
+                        backgroundColor: ['#10b981', '#3b82f6', '#ef4444'],
+                        borderWidth: 0
+                    }]
+                },
+                options: { cutout: '80%', plugins: { legend: { display: false } } }
+            });
+            renderUI();
+        };
+
         function getCoords(e) {
             const r = wrapper.getBoundingClientRect();
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -253,7 +241,6 @@
             startX = coords.x; startY = coords.y;
             selectionRect.style.left = startX + 'px'; selectionRect.style.top = startY + 'px';
             selectionRect.style.width = '0px'; selectionRect.style.height = '0px';
-            selectionRect.style.borderColor = (drawingMode === 'progress') ? '#4f46e5' : '#004587';
             selectionRect.classList.remove('hidden');
         };
 
@@ -269,7 +256,6 @@
             if(isDrawing && currentRect.w > 10) {
                 if (drawingMode === 'new') {
                     document.getElementById('modalTitle').innerText = "Nouvelle Zone";
-                    document.getElementById('modalBtn').innerText = "CRÉER";
                     document.getElementById('createModal').classList.remove('hidden');
                 } else if (drawingMode === 'redraw') {
                     const t = tasks.find(x => x.id === activeTaskId);
@@ -278,10 +264,10 @@
                 } else if (drawingMode === 'progress') {
                     const t = tasks.find(x => x.id === activeTaskId);
                     if (t) {
-                        const intersection = getIntersection(t.rect, currentRect);
-                        if (intersection) {
-                            t.progressRect = intersection;
-                            t.progress = Math.round(((intersection.w * intersection.h) / (t.rect.w * t.rect.h)) * 100);
+                        const inter = getIntersection(t.rect, currentRect);
+                        if (inter) {
+                            t.progressRect = inter;
+                            t.progress = Math.round(((inter.w * inter.h) / (t.rect.w * t.rect.h)) * 100);
                         }
                     }
                     save(); resetDrawingMode();
@@ -293,31 +279,12 @@
         wrapper.addEventListener('mousedown', startAction);
         window.addEventListener('mousemove', moveAction);
         window.addEventListener('mouseup', endAction);
-        wrapper.addEventListener('touchstart', startAction, {passive: false});
-        window.addEventListener('touchmove', moveAction, {passive: false});
-        window.addEventListener('touchend', endAction);
 
         function getIntersection(r1, r2) {
-            const x = Math.max(r1.x, r2.x);
-            const y = Math.max(r1.y, r2.y);
+            const x = Math.max(r1.x, r2.x), y = Math.max(r1.y, r2.y);
             const w = Math.min(r1.x + r1.w, r2.x + r2.w) - x;
             const h = Math.min(r1.y + r1.h, r2.y + r2.h) - y;
             return (w <= 0 || h <= 0) ? null : { x, y, w, h };
-        }
-
-        function setDrawingMode(mode) {
-            drawingMode = mode;
-            document.getElementById('statusMenu').classList.add('hidden');
-            const banner = document.getElementById('modeBanner');
-            const text = document.getElementById('modeBannerText');
-            if (mode === 'progress') text.innerText = "📏 TRACEZ LA ZONE RÉALISÉE SUR LE PLAN";
-            else if (mode === 'redraw') text.innerText = "🔄 REDESSINEZ LE CADRE DE LA TÂCHE";
-            banner.classList.remove('hidden');
-        }
-
-        function resetDrawingMode() {
-            drawingMode = 'new'; editingTaskId = null;
-            document.getElementById('modeBanner').classList.add('hidden');
         }
 
         function save() { localStorage.setItem('build_lean_tasks', JSON.stringify(tasks)); renderUI(); }
@@ -326,40 +293,34 @@
             const markers = document.getElementById('markersLayer');
             const table = document.getElementById('taskTableBody');
             markers.innerHTML = ''; table.innerHTML = '';
-            const counts = { done: 0, ongoing: 0, delayed: 0, total: tasks.length };
+            const c = { done: 0, ongoing: 0, delayed: 0, total: tasks.length };
             
             tasks.forEach(task => {
-                counts[task.status]++;
+                c[task.status]++;
                 if (currentFilter === 'all' || task.status === currentFilter) {
                     const zone = document.createElement('div');
-                    zone.className = `task-zone rounded shadow-sm border-2`;
-                    zone.style.left = `${task.rect.x}px`; zone.style.top = `${task.rect.y}px`;
-                    zone.style.width = `${task.rect.w}px`; zone.style.height = `${task.rect.h}px`;
+                    zone.className = `task-zone rounded border-2`;
+                    zone.style.left = task.rect.x + 'px'; zone.style.top = task.rect.y + 'px';
+                    zone.style.width = task.rect.w + 'px'; zone.style.height = task.rect.h + 'px';
                     zone.style.borderColor = task.color;
                     
                     let inner = '';
                     if (task.progressRect) {
-                        zone.style.background = task.color + '22';
-                        const rx = task.progressRect.x - task.rect.x;
-                        const ry = task.progressRect.y - task.rect.y;
+                        const rx = task.progressRect.x - task.rect.x, ry = task.progressRect.y - task.rect.y;
                         inner += `<div style="position:absolute; left:${rx}px; top:${ry}px; width:${task.progressRect.w}px; height:${task.progressRect.h}px; background:${task.color}; opacity:0.6;"></div>`;
-                    } else { zone.style.background = task.color + '44'; }
-                    inner += `<span style="position:relative; z-index:5;">${task.name}<br>${task.progress || 0}%</span>`;
+                    }
+                    inner += `<span style="position:relative; z-index:5;">${task.name}<br>${task.progress}%</span>`;
                     zone.innerHTML = inner;
-                    zone.onclick = (e) => { e.stopPropagation(); if(drawingMode === 'new') showMenu(e, task.id); };
+                    zone.onclick = (e) => { e.stopPropagation(); showMenu(e, task.id); };
                     markers.appendChild(zone);
 
                     const row = document.createElement('tr');
-                    let detail = "";
-                    if (task.status === 'delayed' && task.causes) {
-                        detail = `<br><span class="text-[9px] text-red-500 block">• ${task.causes.join('<br>• ')}</span>`;
-                        if(task.comment) detail += `<span class="text-[9px] italic text-slate-400 block">${task.comment}</span>`;
-                    }
-                    row.innerHTML = `<td class="p-3 font-bold">${task.name}${detail}</td><td class="p-3 text-slate-500">${task.owner}</td><td class="p-3 text-center font-black text-indigo-600">${task.progress || 0}%</td><td class="p-3 text-right font-black uppercase text-[9px]">${task.status}</td>`;
+                    let detail = task.status === 'delayed' ? `<br><span class="text-red-500 text-[9px]">• ${task.causes.join(', ')}</span>` : '';
+                    row.innerHTML = `<td class="p-3 font-bold">${task.name}${detail}</td><td class="p-3">${task.owner}</td><td class="p-3 text-center">${task.progress}%</td><td class="p-3 text-right font-black">${task.status.toUpperCase()}</td>`;
                     table.appendChild(row);
                 }
             });
-            updateStats(counts);
+            updateStats(c);
         }
 
         function updateStats(c) {
@@ -371,41 +332,20 @@
         function showMenu(e, id) {
             activeTaskId = id;
             const m = document.getElementById('statusMenu');
-            const x = e.touches ? e.touches[0].pageX : e.pageX;
-            const y = e.touches ? e.touches[0].pageY : e.pageY;
-            m.style.left = (x > window.innerWidth - 200 ? x - 200 : x) + 'px';
-            m.style.top = (y > window.innerHeight - 250 ? y - 250 : y) + 'px';
+            m.style.left = (e.pageX > window.innerWidth - 200 ? e.pageX - 200 : e.pageX) + 'px';
+            m.style.top = e.pageY + 'px';
             m.classList.remove('hidden');
         }
 
-        function editTaskInfo() {
+        function setStatus(s) {
             const t = tasks.find(x => x.id === activeTaskId);
-            editingTaskId = t.id;
-            document.getElementById('newTaskName').value = t.name;
-            document.getElementById('newTaskOwner').value = t.owner;
-            document.getElementById('modalTitle').innerText = "Modifier Tâche";
-            document.getElementById('createModal').classList.remove('hidden');
+            if(t) { t.status = s; if(s === 'done') { t.progress = 100; t.progressRect = {...t.rect}; } }
+            document.getElementById('statusMenu').classList.add('hidden'); save();
+        }
+
+        function openDelayModal() {
             document.getElementById('statusMenu').classList.add('hidden');
-        }
-
-        function confirmTask() {
-            const name = document.getElementById('newTaskName').value;
-            if(!name) return;
-            if (editingTaskId) {
-                const t = tasks.find(x => x.id === editingTaskId);
-                t.name = name; t.owner = document.getElementById('newTaskOwner').value; t.color = selectedColor;
-                editingTaskId = null;
-            } else {
-                tasks.push({ id: Date.now(), name, owner: document.getElementById('newTaskOwner').value, color: selectedColor, rect: {...currentRect}, status: 'ongoing', causes: [], comment: '', progressRect: null, progress: 0 });
-            }
-            save(); closeModals();
-        }
-
-        function openDelayModal() { 
-            document.getElementById('statusMenu').classList.add('hidden'); 
-            document.querySelectorAll('.cause-check').forEach(c => c.checked = false);
-            document.getElementById('delayComment').value = "";
-            document.getElementById('delayModal').classList.remove('hidden'); 
+            document.getElementById('delayModal').classList.remove('hidden');
         }
 
         function saveDelayReasons() {
@@ -416,178 +356,109 @@
             closeModals(); save();
         }
 
-        function setStatus(s) {
-            const t = tasks.find(x => x.id === activeTaskId);
-            if(t) { 
-                t.status = s; t.causes = []; t.comment = '';
-                if (s === 'done') { t.progress = 100; t.progressRect = {...t.rect}; }
+        function confirmTask() {
+            const name = document.getElementById('newTaskName').value;
+            if(!name) return;
+            if(editingTaskId) {
+                const t = tasks.find(x => x.id === editingTaskId);
+                t.name = name; t.owner = document.getElementById('newTaskOwner').value; t.color = selectedColor;
+                editingTaskId = null;
+            } else {
+                tasks.push({ id: Date.now(), name, owner: document.getElementById('newTaskOwner').value, color: selectedColor, rect: {...currentRect}, status: 'ongoing', causes: [], comment: '', progressRect: null, progress: 0 });
             }
-            document.getElementById('statusMenu').classList.add('hidden'); save();
+            save(); closeModals();
         }
 
-        function deleteActiveTask() { tasks = tasks.filter(x => x.id !== activeTaskId); document.getElementById('statusMenu').classList.add('hidden'); save(); }
+        function setDrawingMode(m) {
+            drawingMode = m; document.getElementById('statusMenu').classList.add('hidden');
+            document.getElementById('modeBannerText').innerText = m === 'progress' ? "📏 TRACEZ L'AVANCEMENT SUR LE PLAN" : "🔄 REDESSINEZ LA ZONE";
+            document.getElementById('modeBanner').classList.remove('hidden');
+        }
+
+        function resetDrawingMode() { drawingMode = 'new'; document.getElementById('modeBanner').classList.add('hidden'); }
+        function closeModals() { document.getElementById('createModal').classList.add('hidden'); document.getElementById('delayModal').classList.add('hidden'); }
         function selectColor(c, el) { selectedColor = c; document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('selected')); el.classList.add('selected'); }
-        function closeModals() { document.getElementById('createModal').classList.add('hidden'); document.getElementById('delayModal').classList.add('hidden'); resetDrawingMode(); }
         function switchTab(t) { currentFilter = t; document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.getElementById('tab-' + t).classList.add('active'); renderUI(); }
+        function deleteActiveTask() { tasks = tasks.filter(x => x.id !== activeTaskId); document.getElementById('statusMenu').classList.add('hidden'); save(); }
+        function editTaskInfo() {
+            const t = tasks.find(x => x.id === activeTaskId);
+            editingTaskId = t.id;
+            document.getElementById('newTaskName').value = t.name;
+            document.getElementById('newTaskOwner').value = t.owner;
+            document.getElementById('createModal').classList.remove('hidden');
+            document.getElementById('statusMenu').classList.add('hidden');
+        }
 
         document.getElementById('picUpload').onchange = (e) => {
-            const file = e.target.files[0]; 
-            const reader = new FileReader();
-            
+            const file = e.target.files[0]; const reader = new FileReader();
             reader.onload = async (ev) => {
                 if (file.type === 'application/pdf') {
                     const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(ev.target.result) }).promise;
-                    const page = await pdf.getPage(1); 
-                    const viewport = page.getViewport({ scale: 2 });
-                    const canvas = document.createElement('canvas'); 
-                    canvas.height = viewport.height; 
-                    canvas.width = viewport.width;
+                    const page = await pdf.getPage(1); const viewport = page.getViewport({ scale: 2 });
+                    const canvas = document.createElement('canvas'); canvas.height = viewport.height; canvas.width = viewport.width;
                     await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
                     picImage.src = canvas.toDataURL();
-                } else { 
-                    picImage.src = ev.target.result; 
-                }
+                } else { picImage.src = ev.target.result; }
                 picImage.classList.remove('hidden');
             };
-            
-            if (file) {
-                reader.readAsDataURL(file);
-            }
+            file.type === 'application/pdf' ? reader.readAsArrayBuffer(file) : reader.readAsDataURL(file);
         };
 
+        // --- GÉNÉRATION DU RAPPORT PDF (Finalisée) ---
         async function generateFullReport() {
-            const today = new Date();
-            document.getElementById('reportDate').innerText = today.toLocaleDateString('fr-FR');
-
-            // Calcul du PPC
-            const total = tasks.length;
-            const done = tasks.filter(t => t.status === 'done').length;
-            const ppc = total > 0 ? Math.round((done / total) * 100) : 0;
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const dateStr = new Date().toLocaleDateString('fr-FR');
             
-            const ppcElement = document.getElementById('reportPpcValue');
-            ppcElement.innerHTML = `PPC Global (Taux de réussite) : <span style="color:#10b981;">${ppc}%</span>`;
-            ppcElement.style.fontSize = "32px"; 
-
-            // Capture du plan
-            const mapContainer = document.getElementById('reportMapContainer');
-            mapContainer.innerHTML = ''; 
-            const canvasWrapper = document.getElementById('canvasWrapper');
+            document.getElementById('reportDate').innerText = "Date : " + dateStr;
+            const mapCont = document.getElementById('reportMapContainer');
+            mapCont.innerHTML = '';
             
-            try {
-                document.getElementById('selectionRect').classList.add('hidden');
-                
-                const canvas = await html2canvas(canvasWrapper, { useCORS: true, scale: 2 });
-                const img = document.createElement('img');
-                img.src = canvas.toDataURL('image/jpeg', 0.9);
-                img.style.width = '100%';
-                img.style.height = 'auto';
-                img.style.borderRadius = '8px';
-                mapContainer.appendChild(img);
-            } catch (e) {
-                console.error("Erreur de capture du plan", e);
-            }
+            // On clone l'image et les markers pour le PDF
+            const cloneImg = picImage.cloneNode();
+            cloneImg.style.width = "100%";
+            mapCont.appendChild(cloneImg);
+            
+            const markersClone = document.getElementById('markersLayer').cloneNode(true);
+            markersClone.style.pointerEvents = "none";
+            mapCont.appendChild(markersClone);
 
-            // Construction des tableaux
-            const tableContainer = document.getElementById('reportTables');
-            let tablesHTML = '';
+            // Construction du tableau des retards
+            let tableHtml = `<table style="width:100%; border-collapse:collapse; font-family:sans-serif; font-size:10px;">
+                <tr style="background:#004587; color:white;">
+                    <th style="padding:8px; border:1px solid #ddd;">Tâche</th>
+                    <th style="padding:8px; border:1px solid #ddd;">Équipe</th>
+                    <th style="padding:8px; border:1px solid #ddd;">Statut</th>
+                    <th style="padding:8px; border:1px solid #ddd;">Causes / Commentaires</th>
+                </tr>`;
+            
+            tasks.forEach(t => {
+                const causeText = t.status === 'delayed' ? (t.causes.join(', ') + (t.comment ? ' - ' + t.comment : '')) : '-';
+                tableHtml += `<tr>
+                    <td style="padding:8px; border:1px solid #ddd; font-weight:bold;">${t.name}</td>
+                    <td style="padding:8px; border:1px solid #ddd;">${t.owner}</td>
+                    <td style="padding:8px; border:1px solid #ddd; font-weight:bold; color:${t.status==='done'?'green':(t.status==='delayed'?'red':'blue')}">${t.status.toUpperCase()}</td>
+                    <td style="padding:8px; border:1px solid #ddd; font-style:italic;">${causeText}</td>
+                </tr>`;
+            });
+            tableHtml += `</table>`;
+            document.getElementById('reportTables').innerHTML = tableHtml;
 
-            const buildTable = (title, statusFilter, color) => {
-                const filteredTasks = tasks.filter(t => t.status === statusFilter);
-                if (filteredTasks.length === 0) return '';
+            const ppcVal = tasks.length > 0 ? Math.round((tasks.filter(x=>x.status==='done').length / tasks.length)*100) : 0;
+            document.getElementById('reportPpcValue').innerText = ppcVal + "%";
 
-                let html = `
-                <div style="margin-bottom: 40px; page-break-inside: avoid;">
-                    <h3 style="color: ${color}; font-size: 20px; font-weight: bold; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 3px solid ${color}; text-transform: uppercase; text-align: left;">
-                        ${title} (${filteredTasks.length})
-                    </h3>
-                    <table style="width: 100%; border-collapse: collapse; font-size: 13px; font-family: sans-serif;">
-                        <thead>
-                            <tr style="background-color: #f8fafc; color: #475569;">
-                                <th style="padding: 12px; text-align: left; border: 1px solid #cbd5e1; width: 25%;">Tâche</th>
-                                <th style="padding: 12px; text-align: left; border: 1px solid #cbd5e1; width: 25%;">Équipe</th>
-                                <th style="padding: 12px; text-align: center; border: 1px solid #cbd5e1; width: 10%;">%</th>
-                `;
-                
-                if (statusFilter === 'delayed') {
-                    html += `<th style="padding: 12px; text-align: left; border: 1px solid #cbd5e1; width: 40%;">Causes / Observations</th>`;
-                } else {
-                    html += `<th style="padding: 12px; text-align: center; border: 1px solid #cbd5e1; width: 40%;">Statut</th>`;
-                }
-
-                html += `</tr></thead><tbody>`;
-
-                filteredTasks.forEach(t => {
-                    let statusText = statusFilter === 'done' ? 'Réalisée' : (statusFilter === 'ongoing' ? 'En cours' : 'Reportée');
-                    
-                    html += `<tr>
-                        <td style="padding: 10px; border: 1px solid #cbd5e1;"><strong>${t.name}</strong></td>
-                        <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: left;">${t.owner}</td>
-                        <td style="padding: 10px; border: 1px solid #cbd5e1; text-align: center; font-weight: bold; color: #004587;">${t.progress || 0}%</td>`;
-                    
-                    if (statusFilter === 'delayed') {
-                        let causesText = (t.causes && t.causes.length > 0) ? t.causes.join(' • ') : '';
-                        let commentText = t.comment ? `<br><em style="color:#64748b;">${t.comment}</em>` : '';
-                        html += `<td style="padding: 10px; border: 1px solid #cbd5e1; color: #dc2626; text-align: left;">${causesText}${commentText}</td>`;
-                    } else {
-                        html += `<td style="padding: 10px; border: 1px solid #cbd5e1; text-align: center; color: ${color}; font-weight: bold;">${statusText}</td>`;
-                    }
-                    html += `</tr>`;
-                });
-
-                html += `</tbody></table></div>`;
-                return html;
-            };
-
-            tablesHTML += buildTable('✅ Tâches Réussies', 'done', '#16a34a');
-            tablesHTML += buildTable('🏗️ Tâches En Cours', 'ongoing', '#2563eb');
-            tablesHTML += buildTable('⚠️ Tâches Reportées', 'delayed', '#dc2626');
-
-            tableContainer.innerHTML = tablesHTML;
-
-            // Génération PDF
-            const template = document.getElementById('reportTemplate');
-            template.style.left = '0';
-            template.style.zIndex = '-1';
-
-            try {
-                const finalCanvas = await html2canvas(template, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
-                const imgData = finalCanvas.toDataURL('image/jpeg', 1.0);
-                
-                const pdf = new jspdf.jsPDF({
-                    orientation: 'portrait',
-                    unit: 'mm',
-                    format: 'a4'
-                });
-
-                const pdfWidth = pdf.internal.pageSize.getWidth();
-                const pdfHeight = (finalCanvas.height * pdfWidth) / finalCanvas.width;
-                const pageHeight = pdf.internal.pageSize.getHeight();
-                
-                let heightLeft = pdfHeight;
-                let position = 0;
-
-                pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, pdfHeight);
-                heightLeft -= pageHeight;
-
-                while (heightLeft > 0) {
-                    position = heightLeft - pdfHeight;
-                    pdf.addPage();
-                    pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, pdfHeight);
-                    heightLeft -= pageHeight;
-                }
-
-                pdf.save(`Rapport_BuildLean_${today.toLocaleDateString('fr-FR').replace(/\//g, '-')}.pdf`);
-            } catch (e) {
-                console.error("Erreur PDF", e);
-                alert("Erreur lors de l'export du PDF.");
-            } finally {
-                template.style.left = '-9999px';
-                mapContainer.innerHTML = '';
-            }
+            // Capture HTML to Canvas
+            const reportEl = document.getElementById('reportTemplate');
+            const canvas = await html2canvas(reportEl, { scale: 2, useCORS: true });
+            const imgData = canvas.toDataURL('image/jpeg', 0.95);
+            
+            const imgProps = pdf.getImageProperties(imgData);
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+            
+            pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+            pdf.save(`Rapport_BuildLean_${dateStr.replace(/\//g,'-')}.pdf`);
         }
-
-        // Initialisation de l'affichage
-        renderUI();
     </script>
 </body>
 </html>
