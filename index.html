@@ -21,7 +21,7 @@
         .tab-btn.active { border-bottom-color: #004587; color: #004587; }
         .color-dot { width: 35px; height: 35px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; transition: transform 0.1s; }
         .color-dot.selected { border-color: #000; transform: scale(1.15); }
-        #reportTemplate { position: absolute; left: -9999px; top: 0; width: 800px; background: white; padding: 40px; }
+        #reportTemplate { position: absolute; left: -9999px; top: 0; width: 850px; background: white; padding: 40px; }
         .report-header { border-bottom: 4px solid #004587; padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; }
         .custom-checkbox { width: 18px; height: 18px; cursor: pointer; accent-color: #dc2626; }
     </style>
@@ -135,9 +135,7 @@
                             <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Planning initial irréaliste"> Planning initial irréaliste</label>
                             <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Tâche non planifiée"> Tâche non planifiée</label>
                             <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Séquencement incohérent"> Séquencement des tâches incohérent</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Priorités mal définies"> Priorités mal définies</label>
                             <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Coordination insuffisante"> Coordination insuffisante</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Absence de responsable"> Absence de responsable désigné</label>
                         </div>
                     </div>
                     <div>
@@ -146,47 +144,17 @@
                             <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Plans non disponibles"> Plans non disponibles</label>
                             <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Plans erronés/incomplets"> Plans erronés ou incomplets</label>
                             <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Attente validation technique"> Attente de validation technique</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Problème conception chantier"> Problème conception sur chantier</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Non-conformité précédente"> Non-conformité tâche précédente</label>
-                        </div>
-                    </div>
-                    <div>
-                        <h4 class="text-[11px] font-black bg-slate-100 p-2 mb-2 uppercase text-slate-700">Ressources Humaines</h4>
-                        <div class="flex flex-col gap-2 text-xs font-bold text-slate-600">
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Manque main-d’œuvre"> Manque de main-d’œuvre</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Compétences inadaptées"> Compétences non adaptées</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Sous-traitant absent"> Sous-traitant absent</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Conflit équipes"> Conflit ou désaccord entre équipes</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Consignes mal comprises"> Consignes mal comprises</label>
                         </div>
                     </div>
                 </div>
                 
                 <div class="space-y-4">
                     <div>
-                        <h4 class="text-[11px] font-black bg-slate-100 p-2 mb-2 uppercase text-slate-700">Logistique & Matériel</h4>
+                        <h4 class="text-[11px] font-black bg-slate-100 p-2 mb-2 uppercase text-slate-700">Logistique & Ressources</h4>
                         <div class="flex flex-col gap-2 text-xs font-bold text-slate-600">
+                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Manque main-d’œuvre"> Manque de main-d’œuvre</label>
                             <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Matériaux non livrés"> Matériaux non livrés</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Matériaux non conformes"> Matériaux non conformes</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Matériel manquant"> Matériel manquant</label>
                             <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Matériel en panne"> Matériel en panne</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Matériel affecté ailleurs"> Matériel affecté ailleurs</label>
-                        </div>
-                    </div>
-                    <div>
-                        <h4 class="text-[11px] font-black bg-slate-100 p-2 mb-2 uppercase text-slate-700">Administratif & Client</h4>
-                        <div class="flex flex-col gap-2 text-xs font-bold text-slate-600">
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Autorisations manquantes"> Autorisations manquantes</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Retard validation Client"> Retard validation Client / MOA</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Modif client non arbitrée"> Modification client non arbitrée</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Litige en cours"> Litige en cours sur le lot</label>
-                        </div>
-                    </div>
-                    <div>
-                        <h4 class="text-[11px] font-black bg-slate-100 p-2 mb-2 uppercase text-slate-700">Autres</h4>
-                        <div class="flex flex-col gap-2 text-xs font-bold text-slate-600">
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Sécurité/Environnement"> Environnement / Sécurité</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Finance/Trésorerie"> Finance / Trésorerie</label>
                         </div>
                     </div>
                     <div>
@@ -206,17 +174,22 @@
     <div id="reportTemplate">
         <div class="report-header">
             <div>
-                <h1 style="font-size: 28px; font-weight: 900; color: #004587;">RAPPORT DE PRODUCTION SEMAINE</h1>
-                <p id="reportDate" style="color: #64748b; font-weight: bold;"></p>
+                <h1 style="font-size: 28px; font-weight: 900; color: #004587; margin:0;">RAPPORT DE PRODUCTION</h1>
+                <p id="reportDateLabel" style="color: #64748b; font-weight: bold; font-size: 16px; margin: 5px 0 0 0;"></p>
             </div>
             <div style="text-align: right;">
-                <img src="Logo 1.jpg" style="height: 50px; width: auto;">
+                <img src="Logo 1.jpg" style="height: 60px; width: auto;" alt="Logo">
             </div>
         </div>
-        <div id="reportMapContainer" style="width: 100%; border: 1px solid #e2e8f0; margin-bottom: 30px;"></div>
-        <div style="background: #f8fafc; padding: 20px; border-radius: 15px; text-align: center; margin-bottom: 20px;">
-            <div id="reportPpcValue" style="font-size: 48px; font-weight: 900; color: #004587;">0%</div>
+
+        <div id="reportMapContainer" style="width: 100%; border: 2px solid #e2e8f0; border-radius: 8px; margin-bottom: 30px; overflow: hidden; background: #fff;"></div>
+
+        <div style="background: #f8fafc; padding: 25px; border-radius: 15px; text-align: center; margin-bottom: 30px; border: 1px solid #f1f5f9;">
+            <h2 style="font-size: 36px; font-weight: 900; color: #004587; margin: 0;">
+                PPC Global (Taux de réussite) : <span id="reportPpcValueLabel" style="color: #10b981;">0%</span>
+            </h2>
         </div>
+
         <div id="reportTables"></div>
     </div>
 
@@ -239,6 +212,24 @@
         const selectionRect = document.getElementById('selectionRect');
         const picImage = document.getElementById('picImage');
 
+        // --- INIT CHART ---
+        window.onload = () => {
+            const ctx = document.getElementById('ppcChart').getContext('2d');
+            ppcChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    datasets: [{
+                        data: [0, 0, 0],
+                        backgroundColor: ['#10b981', '#3b82f6', '#ef4444'],
+                        borderWidth: 0
+                    }]
+                },
+                options: { cutout: '80%', plugins: { tooltip: { enabled: false } } }
+            });
+            renderUI();
+        };
+
+        // --- LOGIQUE DESSIN ---
         function getCoords(e) {
             const r = wrapper.getBoundingClientRect();
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -253,7 +244,6 @@
             startX = coords.x; startY = coords.y;
             selectionRect.style.left = startX + 'px'; selectionRect.style.top = startY + 'px';
             selectionRect.style.width = '0px'; selectionRect.style.height = '0px';
-            selectionRect.style.borderColor = (drawingMode === 'progress') ? '#4f46e5' : '#004587';
             selectionRect.classList.remove('hidden');
         };
 
@@ -293,9 +283,6 @@
         wrapper.addEventListener('mousedown', startAction);
         window.addEventListener('mousemove', moveAction);
         window.addEventListener('mouseup', endAction);
-        wrapper.addEventListener('touchstart', startAction, {passive: false});
-        window.addEventListener('touchmove', moveAction, {passive: false});
-        window.addEventListener('touchend', endAction);
 
         function getIntersection(r1, r2) {
             const x = Math.max(r1.x, r2.x);
@@ -305,22 +292,11 @@
             return (w <= 0 || h <= 0) ? null : { x, y, w, h };
         }
 
-        function setDrawingMode(mode) {
-            drawingMode = mode;
-            document.getElementById('statusMenu').classList.add('hidden');
-            const banner = document.getElementById('modeBanner');
-            const text = document.getElementById('modeBannerText');
-            if (mode === 'progress') text.innerText = "📏 TRACEZ LA ZONE RÉALISÉE SUR LE PLAN";
-            else if (mode === 'redraw') text.innerText = "🔄 REDESSINEZ LE CADRE DE LA TÂCHE";
-            banner.classList.remove('hidden');
-        }
-
-        function resetDrawingMode() {
-            drawingMode = 'new'; editingTaskId = null;
-            document.getElementById('modeBanner').classList.add('hidden');
-        }
-
+        // --- UI & STORAGE ---
         function save() { localStorage.setItem('build_lean_tasks', JSON.stringify(tasks)); renderUI(); }
+        function setDrawingMode(mode) { drawingMode = mode; document.getElementById('statusMenu').classList.add('hidden'); document.getElementById('modeBanner').classList.remove('hidden'); document.getElementById('modeBannerText').innerText = (mode === 'progress') ? "📏 TRACEZ LA ZONE RÉALISÉE" : "🔄 REDESSINEZ LE CADRE"; }
+        function resetDrawingMode() { drawingMode = 'new'; document.getElementById('modeBanner').classList.add('hidden'); }
+        function closeModals() { document.getElementById('createModal').classList.add('hidden'); document.getElementById('delayModal').classList.add('hidden'); }
 
         function renderUI() {
             const markers = document.getElementById('markersLayer');
@@ -339,23 +315,18 @@
                     
                     let inner = '';
                     if (task.progressRect) {
-                        zone.style.background = task.color + '22';
                         const rx = task.progressRect.x - task.rect.x;
                         const ry = task.progressRect.y - task.rect.y;
                         inner += `<div style="position:absolute; left:${rx}px; top:${ry}px; width:${task.progressRect.w}px; height:${task.progressRect.h}px; background:${task.color}; opacity:0.6;"></div>`;
                     } else { zone.style.background = task.color + '44'; }
                     inner += `<span style="position:relative; z-index:5;">${task.name}<br>${task.progress || 0}%</span>`;
                     zone.innerHTML = inner;
-                    zone.onclick = (e) => { e.stopPropagation(); if(drawingMode === 'new') showMenu(e, task.id); };
+                    zone.onclick = (e) => { e.stopPropagation(); showMenu(e, task.id); };
                     markers.appendChild(zone);
 
                     const row = document.createElement('tr');
-                    let detail = "";
-                    if (task.status === 'delayed' && task.causes) {
-                        detail = `<br><span class="text-[9px] text-red-500 block">• ${task.causes.join('<br>• ')}</span>`;
-                        if(task.comment) detail += `<span class="text-[9px] italic text-slate-400 block">${task.comment}</span>`;
-                    }
-                    row.innerHTML = `<td class="p-3 font-bold">${task.name}${detail}</td><td class="p-3 text-slate-500">${task.owner}</td><td class="p-3 text-center font-black text-indigo-600">${task.progress || 0}%</td><td class="p-3 text-right font-black uppercase text-[9px]">${task.status}</td>`;
+                    let detail = (task.status === 'delayed' && task.causes) ? `<br><span class="text-[9px] text-red-500">• ${task.causes.join(', ')}</span>` : "";
+                    row.innerHTML = `<td class="p-3 font-bold">${task.name}${detail}</td><td class="p-3">${task.owner}</td><td class="p-3 text-center">${task.progress}%</td><td class="p-3 text-right uppercase text-[9px]">${task.status}</td>`;
                     table.appendChild(row);
                 }
             });
@@ -371,43 +342,17 @@
         function showMenu(e, id) {
             activeTaskId = id;
             const m = document.getElementById('statusMenu');
-            const x = e.touches ? e.touches[0].pageX : e.pageX;
-            const y = e.touches ? e.touches[0].pageY : e.pageY;
-            m.style.left = (x > window.innerWidth - 200 ? x - 200 : x) + 'px';
-            m.style.top = (y > window.innerHeight - 250 ? y - 250 : y) + 'px';
+            m.style.left = e.pageX + 'px'; m.style.top = e.pageY + 'px';
             m.classList.remove('hidden');
         }
 
-        function editTaskInfo() {
+        function setStatus(s) {
             const t = tasks.find(x => x.id === activeTaskId);
-            editingTaskId = t.id;
-            document.getElementById('newTaskName').value = t.name;
-            document.getElementById('newTaskOwner').value = t.owner;
-            document.getElementById('modalTitle').innerText = "Modifier Tâche";
-            document.getElementById('createModal').classList.remove('hidden');
-            document.getElementById('statusMenu').classList.add('hidden');
+            if(t) { t.status = s; if (s === 'done') t.progress = 100; }
+            document.getElementById('statusMenu').classList.add('hidden'); save();
         }
 
-        function confirmTask() {
-            const name = document.getElementById('newTaskName').value;
-            if(!name) return;
-            if (editingTaskId) {
-                const t = tasks.find(x => x.id === editingTaskId);
-                t.name = name; t.owner = document.getElementById('newTaskOwner').value; t.color = selectedColor;
-                editingTaskId = null;
-            } else {
-                tasks.push({ id: Date.now(), name, owner: document.getElementById('newTaskOwner').value, color: selectedColor, rect: {...currentRect}, status: 'ongoing', causes: [], comment: '', progressRect: null, progress: 0 });
-            }
-            save(); closeModals();
-        }
-
-        function openDelayModal() { 
-            document.getElementById('statusMenu').classList.add('hidden'); 
-            document.querySelectorAll('.cause-check').forEach(c => c.checked = false);
-            document.getElementById('delayComment').value = "";
-            document.getElementById('delayModal').classList.remove('hidden'); 
-        }
-
+        function openDelayModal() { document.getElementById('statusMenu').classList.add('hidden'); document.getElementById('delayModal').classList.remove('hidden'); }
         function saveDelayReasons() {
             const t = tasks.find(x => x.id === activeTaskId);
             const checks = document.querySelectorAll('.cause-check:checked');
@@ -416,28 +361,31 @@
             closeModals(); save();
         }
 
-        function setStatus(s) {
-            const t = tasks.find(x => x.id === activeTaskId);
-            if(t) { 
-                t.status = s; t.causes = []; t.comment = '';
-                if (s === 'done') { t.progress = 100; t.progressRect = {...t.rect}; }
+        function confirmTask() {
+            const name = document.getElementById('newTaskName').value;
+            if (editingTaskId) {
+                const t = tasks.find(x => x.id === editingTaskId);
+                t.name = name; t.owner = document.getElementById('newTaskOwner').value;
+                editingTaskId = null;
+            } else {
+                tasks.push({ id: Date.now(), name, owner: document.getElementById('newTaskOwner').value, color: selectedColor, rect: {...currentRect}, status: 'ongoing', progress: 0 });
             }
-            document.getElementById('statusMenu').classList.add('hidden'); save();
+            save(); closeModals();
         }
 
         function deleteActiveTask() { tasks = tasks.filter(x => x.id !== activeTaskId); document.getElementById('statusMenu').classList.add('hidden'); save(); }
-        function selectColor(c, el) { selectedColor = c; document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('selected')); el.classList.add('selected'); }
-        function closeModals() { document.getElementById('createModal').classList.add('hidden'); document.getElementById('delayModal').classList.add('hidden'); resetDrawingMode(); }
         function switchTab(t) { currentFilter = t; document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.getElementById('tab-' + t).classList.add('active'); renderUI(); }
+        function selectColor(c, el) { selectedColor = c; document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('selected')); el.classList.add('selected'); }
 
+        // --- IMPORT PLAN ---
         document.getElementById('picUpload').onchange = (e) => {
             const file = e.target.files[0]; const reader = new FileReader();
             reader.onload = async (ev) => {
                 if (file.type === 'application/pdf') {
                     const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(ev.target.result) }).promise;
-                    const page = await pdf.getPage(1); const viewport = page.getViewport({ scale: 2 });
-                    const canvas = document.createElement('canvas'); canvas.height = viewport.height; canvas.width = viewport.width;
-                    await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+                    const page = await pdf.getPage(1); const vp = page.getViewport({ scale: 2 });
+                    const canvas = document.createElement('canvas'); canvas.height = vp.height; canvas.width = vp.width;
+                    await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
                     picImage.src = canvas.toDataURL();
                 } else { picImage.src = ev.target.result; }
                 picImage.classList.remove('hidden');
@@ -445,56 +393,71 @@
             file.type === 'application/pdf' ? reader.readAsArrayBuffer(file) : reader.readAsDataURL(file);
         };
 
+        // --- EXPORT PDF FINAL ---
         async function generateFullReport() {
-            const { jsPDF } = window.jspdf; const pdf = new jsPDF('p', 'mm', 'a4');
-            const reportDate = new Date().toLocaleDateString('fr-FR');
-            document.getElementById('reportDate').innerText = "Édité le " + reportDate;
-            document.getElementById('reportPpcValue').innerText = document.getElementById('ppcPercentage').innerText;
-
-            const mapCanvas = document.createElement('canvas'); const mapCtx = mapCanvas.getContext('2d');
-            mapCanvas.width = picImage.naturalWidth; mapCanvas.height = picImage.naturalHeight;
-            mapCtx.drawImage(picImage, 0, 0);
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const dateStr = new Date().toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
             
-            tasks.forEach(t => {
-                mapCtx.globalAlpha = 0.2; mapCtx.fillStyle = t.color; mapCtx.fillRect(t.rect.x, t.rect.y, t.rect.w, t.rect.h);
-                mapCtx.globalAlpha = 1; mapCtx.strokeStyle = t.color; mapCtx.lineWidth = 4; mapCtx.strokeRect(t.rect.x, t.rect.y, t.rect.w, t.rect.h);
-                if(t.progressRect) { mapCtx.globalAlpha = 0.6; mapCtx.fillStyle = t.color; mapCtx.fillRect(t.progressRect.x, t.progressRect.y, t.progressRect.w, t.progressRect.h); }
+            document.getElementById('reportDateLabel').innerText = "Édité le " + dateStr;
+            
+            const done = tasks.filter(t => t.status === 'done');
+            const ppc = tasks.length > 0 ? Math.round((done.length / tasks.length) * 100) : 0;
+            document.getElementById('reportPpcValueLabel').innerText = ppc + '%';
+
+            // Génération des tableaux HTML
+            let tablesHtml = '';
+            const categories = [
+                { title: "✅ TÂCHES RÉUSSIES", color: "#10b981", data: tasks.filter(t => t.status === 'done'), showCauses: false },
+                { title: "🏗️ TÂCHES EN COURS", color: "#3b82f6", data: tasks.filter(t => t.status === 'ongoing'), showCauses: false },
+                { title: "⚠️ TÂCHES REPORTÉES", color: "#ef4444", data: tasks.filter(t => t.status === 'delayed'), showCauses: true }
+            ];
+
+            categories.forEach(cat => {
+                if (cat.data.length > 0) {
+                    tablesHtml += `
+                    <div style="margin-bottom: 25px;">
+                        <h3 style="color: ${cat.color}; font-size: 18px; font-weight: bold; border-bottom: 2px solid ${cat.color}; padding-bottom: 5px; margin-bottom: 10px;">${cat.title}</h3>
+                        <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                            <tr style="background: #f8fafc; text-align: left;">
+                                <th style="padding: 8px; border: 1px solid #e2e8f0;">Tâche</th>
+                                <th style="padding: 8px; border: 1px solid #e2e8f0;">Équipe</th>
+                                <th style="padding: 8px; border: 1px solid #e2e8f0; text-align: center;">%</th>
+                                <th style="padding: 8px; border: 1px solid #e2e8f0;">${cat.showCauses ? 'Causes / Observations' : 'Statut'}</th>
+                            </tr>
+                            ${cat.data.map(t => `
+                                <tr>
+                                    <td style="padding: 8px; border: 1px solid #e2e8f0; font-weight: bold;">${t.name}</td>
+                                    <td style="padding: 8px; border: 1px solid #e2e8f0;">${t.owner}</td>
+                                    <td style="padding: 8px; border: 1px solid #e2e8f0; text-align: center;">${t.progress}%</td>
+                                    <td style="padding: 8px; border: 1px solid #e2e8f0; color: ${cat.color};">
+                                        ${cat.showCauses ? (t.causes || []).join(' • ') + (t.comment ? ' <br><i>' + t.comment + '</i>' : '') : 'Réalisé'}
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </table>
+                    </div>`;
+                }
             });
+            document.getElementById('reportTables').innerHTML = tablesHtml;
 
-            document.getElementById('reportMapContainer').innerHTML = '';
-            const reportImg = new Image(); reportImg.src = mapCanvas.toDataURL('image/jpeg'); reportImg.style.width = '100%';
-            document.getElementById('reportMapContainer').appendChild(reportImg);
+            // Capture du plan
+            const mapContainer = document.getElementById('reportMapContainer');
+            mapContainer.innerHTML = '';
+            const mapCanvas = await html2canvas(wrapper, { scale: 2 });
+            mapCanvas.style.width = '100%';
+            mapContainer.appendChild(mapCanvas);
 
-            const createTable = (title, items, color) => {
-                if(items.length === 0) return '';
-                let html = `<h3 style="color:${color}; font-weight:900; margin-top:20px; border-bottom:1px solid #eee; font-size:13px;">${title}</h3><table style="width:100%; border-collapse:collapse; font-size:10px;">`;
-                html += `<tr style="background:#f8fafc;"><th style="padding:5px; text-align:left;">Tâche</th><th style="padding:5px;">Equipe</th><th style="padding:5px;">%</th><th style="padding:5px;">Causes/Obs</th></tr>`;
-                items.forEach(i => {
-                    let causeText = (i.causes && i.causes.length > 0) ? i.causes.join(', ') : "";
-                    if(i.comment) causeText += (causeText ? " | " : "") + i.comment;
-                    html += `<tr style="border-bottom:1px solid #eee;"><td style="padding:5px; font-weight:bold;">${i.name}</td><td style="padding:5px;">${i.owner}</td><td style="padding:5px; text-align:center;">${i.progress}%</td><td style="padding:5px; color:red;">${causeText}</td></tr>`;
-                });
-                return html + `</table>`;
-            };
-
-            document.getElementById('reportTables').innerHTML = createTable("RÉUSSIES ✅", tasks.filter(t => t.status === 'done'), "#10b981") + createTable("EN COURS 🏗️", tasks.filter(t => t.status === 'ongoing'), "#3b82f6") + createTable("REPORTÉES ⚠️", tasks.filter(t => t.status === 'delayed'), "#ef4444");
-
-            const canvas = await html2canvas(document.getElementById('reportTemplate'), { scale: 2 });
-            pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, (canvas.height * 210) / canvas.width);
-            pdf.save(`Rapport_BuildLean_${reportDate}.pdf`);
+            // Export final
+            const template = document.getElementById('reportTemplate');
+            const finalCanvas = await html2canvas(template, { scale: 2 });
+            const imgData = finalCanvas.toDataURL('image/jpeg', 0.95);
+            const pdfW = pdf.internal.pageSize.getWidth();
+            const pdfH = (finalCanvas.height * pdfW) / finalCanvas.width;
+            
+            pdf.addImage(imgData, 'JPEG', 0, 0, pdfW, pdfH);
+            pdf.save(`Rapport_Production_${new Date().toISOString().split('T')[0]}.pdf`);
         }
-
-        window.onload = () => {
-            ppcChart = new Chart(document.getElementById('ppcChart'), {
-                type: 'doughnut',
-                data: { labels:['Fait','Cours','Retard'], datasets: [{ data: [0, 0, 0], backgroundColor: ['#10b981', '#3b82f6', '#ef4444'], borderWeight: 0 }] },
-                options: { cutout: '85%', plugins: { legend: { display: false } } }
-            });
-            renderUI();
-        };
-
-        window.onclick = (e) => { if(!e.target.closest('.task-zone') && !e.target.closest('#statusMenu') && drawingMode === 'new') document.getElementById('statusMenu').classList.add('hidden'); };
-        window.addEventListener('keydown', (e) => { if (e.key === 'Escape') resetDrawingMode(); });
     </script>
 </body>
 </html>
