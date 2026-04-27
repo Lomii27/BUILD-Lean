@@ -13,9 +13,10 @@
     <style>
         body { touch-action: manipulation; }
         .pic-container { position: relative; overflow: auto; max-height: 65vh; border: 2px solid #e2e8f0; background: #f8fafc; min-height: 400px; touch-action: none; }
-        #markersLayer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; }
-        .task-zone { position: absolute; border: 2px solid; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: white; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); pointer-events: auto; overflow: hidden; text-align: center; }
-        .selection-rect { position: absolute; border: 2px dashed #004587; background: rgba(0, 69, 135, 0.2); pointer-events: none; z-index: 20; }
+        
+        /* Overlay SVG pour le dessin libre */
+        #drawingOverlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; }
+        
         .status-menu { position: absolute; z-index: 100; background: white; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); border: 1px solid #e2e8f0; min-width: 200px; }
         .tab-btn { border-bottom: 3px solid transparent; transition: all 0.2s; padding: 12px 10px; font-size: 10px; font-weight: 800; color: #64748b; }
         .tab-btn.active { border-bottom-color: #004587; color: #004587; }
@@ -24,6 +25,13 @@
         .color-dot { width: 30px; height: 30px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; transition: transform 0.1s; }
         .color-dot.selected { border-color: #000; transform: scale(1.2); }
         
+        @keyframes pulse-red-svg {
+            0% { stroke-width: 2; opacity: 1; }
+            50% { stroke-width: 6; opacity: 0.6; }
+            100% { stroke-width: 2; opacity: 1; }
+        }
+        .pulse-red-svg { animation: pulse-red-svg 2s infinite; }
+
         #reportTemplate { 
             position: absolute; left: -9999px; top: 0; width: 800px; 
             background: white; padding: 30px; box-sizing: border-box; 
@@ -37,13 +45,17 @@
 
     <div class="max-w-[1600px] mx-auto p-2 md:p-4">
         <header class="flex flex-col md:flex-row justify-between items-center mb-4 bg-white p-4 rounded-xl shadow-sm border-b-4 border-[#004587] gap-3">
-            <div class="flex items-center">
-                <img src="Logo 1.jpg" alt="Logo BUILD-Lean" class="h-12 w-auto"> 
+            <div class="flex items-center gap-4">
+                <img src="Logo 1.jpg" alt="Logo BUILD-Lean" class="h-12 w-auto" onerror="this.style.display='none'"> 
+                <div class="flex items-center bg-slate-100 rounded-lg p-1 border border-slate-200">
+                    <select id="weekSelector" onchange="switchWeek(this.value)" class="bg-transparent text-sm font-bold text-[#004587] outline-none pl-2 pr-4 cursor-pointer"></select>
+                    <button onclick="createNewWeek()" class="bg-white text-slate-600 px-3 py-1 rounded shadow-sm text-[10px] font-black uppercase hover:bg-slate-200 ml-2">+ Nvlle Semaine</button>
+                </div>
             </div>
             <div class="flex gap-2 w-full md:w-auto">
                 <input type="file" id="picUpload" accept="image/*,application/pdf" class="hidden">
-                <button onclick="document.getElementById('picUpload').click()" class="flex-1 bg-slate-800 text-white px-3 py-3 rounded-lg text-xs font-bold uppercase">Plan</button>
-                <button onclick="generateFullReport()" class="flex-1 bg-blue-700 text-white px-3 py-3 rounded-lg text-xs font-bold uppercase shadow-lg">Exporter Rapport PDF</button>
+                <button onclick="document.getElementById('picUpload').click()" class="flex-1 bg-slate-800 text-white px-4 py-3 rounded-lg text-xs font-bold uppercase hover:bg-slate-700">Importer PIC</button>
+                <button onclick="generateFullReport()" class="flex-1 bg-blue-700 text-white px-4 py-3 rounded-lg text-xs font-bold uppercase shadow-lg hover:bg-blue-800">Exporter PDF</button>
             </div>
         </header>
 
@@ -51,14 +63,14 @@
             <div class="lg:col-span-3 space-y-4">
                 <div class="bg-white p-1 rounded-xl shadow-sm border border-slate-200 relative">
                     <div id="modeBanner" class="hidden absolute top-0 left-0 w-full bg-indigo-600 text-white text-[10px] font-black text-center py-2 z-50 rounded-t-lg shadow-md uppercase tracking-wider">
-                        <span id="modeBannerText"></span>
+                        <span id="modeBannerText">DESSINEZ LE NOUVEAU CONTOUR DE LA ZONE</span>
                         <button onclick="resetDrawingMode()" class="ml-4 underline opacity-80 hover:opacity-100 italic">Annuler (Echap)</button>
                     </div>
 
                     <div id="canvasWrapper" class="pic-container rounded-lg">
                         <img id="picImage" src="" alt="" class="hidden" draggable="false">
-                        <div id="markersLayer"></div>
-                        <div id="selectionRect" class="selection-rect hidden"></div>
+                        <!-- Calque SVG pour le dessin libre -->
+                        <svg id="drawingOverlay"></svg>
                     </div>
                     
                     <div id="statusMenu" class="status-menu hidden flex flex-col overflow-hidden">
@@ -68,12 +80,12 @@
                         </div>
                         <div class="p-2 border-b bg-slate-50 flex justify-between gap-2">
                             <button onclick="editTaskInfo()" class="flex-1 text-[9px] uppercase font-black text-slate-600 bg-white border p-2 rounded shadow-sm">Infos ✏️</button>
-                            <button onclick="setDrawingMode('redraw')" class="flex-1 text-[9px] uppercase font-black text-slate-600 bg-white border p-2 rounded shadow-sm">Forme 🔄</button>
+                            <button onclick="setDrawingMode('redraw')" class="flex-1 text-[9px] uppercase font-black text-slate-600 bg-white border p-2 rounded shadow-sm">Tracé 🔄</button>
                         </div>
+                        <button onclick="setProgressPrompt()" class="text-left px-5 py-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-800 font-black text-xs border-b">Définir Avancement (%) 📏</button>
                         <button onclick="setStatus('done')" class="text-left px-5 py-3 hover:bg-green-50 text-green-700 font-bold text-sm border-b">Réalisée ✅</button>
                         <button onclick="setStatus('ongoing')" class="text-left px-5 py-3 hover:bg-blue-50 text-blue-700 font-bold text-sm border-b">En cours 🏗️</button>
                         <button onclick="openDelayModal()" class="text-left px-5 py-3 hover:bg-red-50 text-red-700 font-bold text-sm border-b">Reportée ⚠️</button>
-                        <button onclick="setDrawingMode('progress')" class="text-left px-5 py-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-800 font-black text-xs border-b">Tracer Avancement 📏</button>
                         <button onclick="deleteActiveTask()" class="text-center py-2 text-slate-400 text-[9px] uppercase font-bold hover:bg-slate-100">Supprimer</button>
                     </div>
                 </div>
@@ -89,9 +101,10 @@
                         <table class="w-full text-left text-[11px]">
                             <thead class="bg-slate-100 text-slate-500 font-bold uppercase text-[9px] sticky top-0">
                                 <tr>
-                                    <th class="p-3">Tâche</th>
+                                    <th class="p-3">Zone / Tâche</th>
                                     <th class="p-3">Équipe</th>
-                                    <th class="p-3 text-center">%</th>
+                                    <th class="p-3">Achèvement</th>
+                                    <th class="p-3 text-center">Prog.</th>
                                     <th class="p-3 text-right">Statut</th>
                                 </tr>
                             </thead>
@@ -113,6 +126,42 @@
         </div>
     </div>
 
+    <!-- Modals (Création/Edition & Retard) -->
+    <div id="createModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center z-[200] p-4">
+        <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl">
+            <h3 id="modalTitle" class="text-lg font-black mb-4 uppercase italic text-[#004587]">Nouvelle Zone</h3>
+            
+            <label class="block text-[10px] font-black text-slate-400 uppercase mb-1">Désignation</label>
+            <input type="text" id="newTaskName" placeholder="Tâche (ex: Voile V01)" class="w-full border-2 border-slate-100 rounded-xl p-3 mb-3 text-sm outline-none focus:border-[#004587]">
+            
+            <label class="block text-[10px] font-black text-slate-400 uppercase mb-1">Responsable</label>
+            <input type="text" id="newTaskOwner" placeholder="Équipe / Entreprise" class="w-full border-2 border-slate-100 rounded-xl p-3 mb-3 text-sm outline-none focus:border-[#004587]">
+            
+            <label class="block text-[10px] font-black text-slate-400 uppercase mb-1">Date d'achèvement prévue</label>
+            <input type="date" id="newTaskDeadline" class="w-full border-2 border-slate-100 rounded-xl p-3 mb-5 text-sm outline-none focus:border-[#004587]">
+
+            <label class="block text-[10px] font-black text-slate-400 uppercase mb-2">Couleur Métier</label>
+            <div class="grid grid-cols-5 gap-2 mb-6">
+                <div onclick="selectColor('#3b82f6', this)" class="color-dot bg-blue-500 selected" data-color="#3b82f6"></div>
+                <div onclick="selectColor('#ef4444', this)" class="color-dot bg-red-500" data-color="#ef4444"></div>
+                <div onclick="selectColor('#f59e0b', this)" class="color-dot bg-amber-500" data-color="#f59e0b"></div>
+                <div onclick="selectColor('#10b981', this)" class="color-dot bg-emerald-500" data-color="#10b981"></div>
+                <div onclick="selectColor('#8b5cf6', this)" class="color-dot bg-purple-500" data-color="#8b5cf6"></div>
+                <div onclick="selectColor('#ec4899', this)" class="color-dot bg-pink-500" data-color="#ec4899"></div>
+                <div onclick="selectColor('#06b6d4', this)" class="color-dot bg-cyan-500" data-color="#06b6d4"></div>
+                <div onclick="selectColor('#f97316', this)" class="color-dot bg-orange-500" data-color="#f97316"></div>
+                <div onclick="selectColor('#4b5563', this)" class="color-dot bg-slate-600" data-color="#4b5563"></div>
+                <div onclick="selectColor('#1e293b', this)" class="color-dot bg-slate-900" data-color="#1e293b"></div>
+            </div>
+            
+            <div class="flex gap-3">
+                <button onclick="closeModals()" class="flex-1 py-3 font-bold text-slate-400 hover:text-slate-600">ANNULER</button>
+                <button onclick="confirmTask()" class="flex-1 py-3 bg-[#004587] text-white rounded-xl font-bold shadow-lg" id="modalBtn">CRÉER</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Retard -->
     <div id="delayModal" class="fixed inset-0 bg-slate-900/90 backdrop-blur-md hidden z-[300] p-2 md:p-6 overflow-y-auto">
         <div class="bg-white rounded-2xl w-full max-w-5xl mx-auto mt-4 mb-4 shadow-2xl overflow-hidden">
             <div class="bg-red-600 p-4 text-white flex justify-between items-center sticky top-0 z-10">
@@ -120,6 +169,7 @@
                 <button onclick="closeModals()" class="text-2xl font-bold hover:text-red-200">&times;</button>
             </div>
             <div class="p-4 md:p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Groupes de causes (identiques à avant) -->
                 <div class="space-y-4">
                     <div>
                         <h4 class="text-[11px] font-black bg-slate-100 p-2 mb-2 uppercase text-slate-700">Planning & Management</h4>
@@ -129,15 +179,6 @@
                             <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Séquencement incohérent"> Séquencement incohérent</label>
                             <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Priorités mal définies"> Priorités mal définies</label>
                             <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Coordination insuffisante"> Coordination insuffisante</label>
-                        </div>
-                    </div>
-                    <div>
-                        <h4 class="text-[11px] font-black bg-slate-100 p-2 mb-2 uppercase text-slate-700">Plans & Technique</h4>
-                        <div class="flex flex-col gap-2 text-xs font-bold text-slate-600">
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Plans non disponibles"> Plans non disponibles</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Plans erronés/incomplets"> Plans erronés/incomplets</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Attente validation technique"> Attente validation technique</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Non-conformité précédente"> Non-conformité tâche précédente</label>
                         </div>
                     </div>
                 </div>
@@ -151,27 +192,19 @@
                             <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Matériel en panne"> Matériel en panne</label>
                         </div>
                     </div>
-                    <div>
-                        <h4 class="text-[11px] font-black bg-slate-100 p-2 mb-2 uppercase text-slate-700">Administratif & Client</h4>
-                        <div class="flex flex-col gap-2 text-xs font-bold text-slate-600">
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Autorisations manquantes"> Autorisations manquantes</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Validation client en attente"> Validation client en attente</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Modification client"> Modification client</label>
-                        </div>
-                    </div>
                 </div>
                 <div class="space-y-4">
                     <div>
-                        <h4 class="text-[11px] font-black bg-slate-100 p-2 mb-2 uppercase text-slate-700">Environnement & Aléas</h4>
+                        <h4 class="text-[11px] font-black bg-slate-100 p-2 mb-2 uppercase text-slate-700">Plans & Technique</h4>
                         <div class="flex flex-col gap-2 text-xs font-bold text-slate-600">
-                            <label class="flex items-center gap-2 font-black text-blue-700 bg-blue-50 p-1 rounded"><input type="checkbox" class="cause-check custom-checkbox" value="Intempéries"> 🌧️ INTEMPÉRIES</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Sécurité / Environnement"> Sécurité / Environnement</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Trésorerie / Finance"> Trésorerie / Finance</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Plans non disponibles"> Plans non disponibles</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Plans erronés/incomplets"> Plans erronés</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Attente validation technique"> Attente validation technique</label>
                         </div>
                     </div>
                     <div>
                         <h4 class="text-[11px] font-black bg-slate-100 p-2 mb-2 uppercase text-slate-700">Observation libre</h4>
-                        <textarea id="delayComment" placeholder="Détaillez ici..." class="w-full border-2 border-slate-200 rounded-xl p-3 h-24 text-xs outline-none focus:border-red-500"></textarea>
+                        <textarea id="delayComment" placeholder="Précisez..." class="w-full border-2 border-slate-200 rounded-xl p-3 h-20 text-xs outline-none focus:border-red-500"></textarea>
                     </div>
                 </div>
             </div>
@@ -182,30 +215,7 @@
         </div>
     </div>
 
-    <div id="createModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center z-[200] p-4">
-        <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl">
-            <h3 id="modalTitle" class="text-lg font-black mb-4 uppercase italic">Nouvelle Zone</h3>
-            <input type="text" id="newTaskName" placeholder="Tâche (ex: Voile V01)" class="w-full border-2 border-slate-100 rounded-xl p-4 mb-4 text-sm outline-none focus:border-[#004587]">
-            <input type="text" id="newTaskOwner" placeholder="Équipe / Entreprise" class="w-full border-2 border-slate-100 rounded-xl p-4 mb-4 text-sm outline-none focus:border-[#004587]">
-            <div class="grid grid-cols-5 gap-2 mb-8">
-                <div onclick="selectColor('#3b82f6', this)" class="color-dot bg-blue-500 selected" data-color="#3b82f6"></div>
-                <div onclick="selectColor('#ef4444', this)" class="color-dot bg-red-500" data-color="#ef4444"></div>
-                <div onclick="selectColor('#f59e0b', this)" class="color-dot bg-amber-500" data-color="#f59e0b"></div>
-                <div onclick="selectColor('#10b981', this)" class="color-dot bg-emerald-500" data-color="#10b981"></div>
-                <div onclick="selectColor('#8b5cf6', this)" class="color-dot bg-purple-500" data-color="#8b5cf6"></div>
-                <div onclick="selectColor('#ec4899', this)" class="color-dot bg-pink-500" data-color="#ec4899"></div>
-                <div onclick="selectColor('#06b6d4', this)" class="color-dot bg-cyan-500" data-color="#06b6d4"></div>
-                <div onclick="selectColor('#f97316', this)" class="color-dot bg-orange-500" data-color="#f97316"></div>
-                <div onclick="selectColor('#4b5563', this)" class="color-dot bg-slate-600" data-color="#4b5563"></div>
-                <div onclick="selectColor('#1e293b', this)" class="color-dot bg-slate-900" data-color="#1e293b"></div>
-            </div>
-            <div class="flex gap-3">
-                <button onclick="closeModals()" class="flex-1 py-4 font-bold text-slate-400">ANNULER</button>
-                <button onclick="confirmTask()" class="flex-1 py-4 bg-[#004587] text-white rounded-xl font-bold shadow-lg" id="modalBtn">CRÉER</button>
-            </div>
-        </div>
-    </div>
-
+    <!-- Template PDF caché -->
     <div id="reportTemplate">
         <div class="report-header">
             <div>
@@ -213,7 +223,7 @@
                 <p id="reportDateLabel" style="color: #64748b; font-weight: bold; font-size: 14px; margin: 5px 0 0 0;"></p>
             </div>
             <div style="text-align: right;">
-                <img src="Logo 1.jpg" style="height: 50px; width: auto;" alt="Logo">
+                <img src="Logo 1.jpg" style="height: 50px; width: auto;" alt="Logo" onerror="this.style.display='none'">
             </div>
         </div>
         <div id="reportMapContainer" style="width: 100%; border: 2px solid #e2e8f0; border-radius: 8px; margin-bottom: 20px; background: #fff;"></div>
@@ -228,13 +238,41 @@
         const pdfjsLib = window['pdfjs-dist/build/pdf'];
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-        let tasks = JSON.parse(localStorage.getItem('build_lean_tasks')) || [];
-        let ppcChart = null, isDrawing = false, startX, startY, currentRect = { x: 0, y: 0, w: 0, h: 0 };
-        let activeTaskId = null, selectedColor = '#3b82f6', currentFilter = 'all', drawingMode = 'new', editingTaskId = null;
+        // --- GESTION DES SEMAINES ET DONNEES ---
+        let appData = JSON.parse(localStorage.getItem('build_lean_data'));
+        
+        // Migration depuis l'ancienne version ou initialisation
+        if (!appData) {
+            let oldTasks = JSON.parse(localStorage.getItem('build_lean_tasks')) || [];
+            // Conversion des anciens rectangles en polygones (points de path)
+            oldTasks.forEach(t => {
+                if(t.rect && !t.path) {
+                    t.path = [
+                        {x: t.rect.x, y: t.rect.y},
+                        {x: t.rect.x + t.rect.w, y: t.rect.y},
+                        {x: t.rect.x + t.rect.w, y: t.rect.y + t.rect.h},
+                        {x: t.rect.x, y: t.rect.y + t.rect.h}
+                    ];
+                }
+            });
+            appData = {
+                weeks: { "Semaine Initiale": oldTasks },
+                currentWeek: "Semaine Initiale"
+            };
+            localStorage.setItem('build_lean_data', JSON.stringify(appData));
+        }
 
-        const wrapper = document.getElementById('canvasWrapper'), selectionRect = document.getElementById('selectionRect'), picImage = document.getElementById('picImage');
+        let tasks = appData.weeks[appData.currentWeek] || [];
+        
+        let ppcChart = null, isDrawing = false, currentPath = [];
+        let activeTaskId = null, selectedColor = '#3b82f6', currentFilter = 'all', drawingMode = 'new', editingTaskId = null;
+        let tempPolyline = null; // Tracé en temps réel
+
+        const wrapper = document.getElementById('canvasWrapper'), picImage = document.getElementById('picImage');
+        const svgOverlay = document.getElementById('drawingOverlay');
 
         window.onload = () => {
+            renderWeekSelector();
             ppcChart = new Chart(document.getElementById('ppcChart').getContext('2d'), {
                 type: 'doughnut', data: { datasets: [{ data: [0, 0, 0], backgroundColor: ['#10b981', '#3b82f6', '#ef4444'], borderWidth: 0 }] },
                 options: { cutout: '80%', plugins: { tooltip: { enabled: false } } }
@@ -242,6 +280,46 @@
             renderUI();
         };
 
+        // --- GESTION DES SEMAINES ---
+        function renderWeekSelector() {
+            const selector = document.getElementById('weekSelector');
+            selector.innerHTML = '';
+            Object.keys(appData.weeks).forEach(week => {
+                const opt = document.createElement('option');
+                opt.value = week;
+                opt.text = week;
+                if(week === appData.currentWeek) opt.selected = true;
+                selector.appendChild(opt);
+            });
+        }
+
+        function switchWeek(weekName) {
+            appData.currentWeek = weekName;
+            tasks = appData.weeks[weekName];
+            save();
+        }
+
+        function createNewWeek() {
+            let name = prompt("Nom de la nouvelle semaine de planning (ex: S45) :");
+            if (!name || appData.weeks[name]) return;
+            
+            // Reporter les tâches non terminées à la nouvelle semaine
+            let carriedTasks = tasks.filter(t => t.status !== 'done').map(t => ({
+                ...t, 
+                id: Date.now() + Math.random(), // Nouvel ID
+                status: 'none', // Reset du statut pour la nouvelle semaine
+                progress: 0
+            }));
+            
+            appData.weeks[name] = carriedTasks;
+            appData.currentWeek = name;
+            tasks = appData.weeks[name];
+            
+            renderWeekSelector();
+            save();
+        }
+
+        // --- DESSIN MAIN LEVÉE (SVG) ---
         function getCoords(e) {
             const r = wrapper.getBoundingClientRect();
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -250,94 +328,147 @@
         }
 
         const startAction = (e) => {
-            if (!picImage.src || (e.target.closest('.task-zone') && drawingMode === 'new')) return;
+            if (!picImage.src || (e.target.closest('polygon') && drawingMode === 'new')) return;
             isDrawing = true;
+            closeStatusMenu();
             const coords = getCoords(e);
-            startX = coords.x; startY = coords.y;
-            selectionRect.style.left = startX + 'px'; selectionRect.style.top = startY + 'px';
-            selectionRect.style.width = '0px'; selectionRect.style.height = '0px';
-            selectionRect.classList.remove('hidden');
+            currentPath = [{x: coords.x, y: coords.y}];
+            
+            // Ligne de preview pendant le dessin
+            tempPolyline = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+            tempPolyline.setAttribute("fill", "rgba(0, 69, 135, 0.2)");
+            tempPolyline.setAttribute("stroke", "#004587");
+            tempPolyline.setAttribute("stroke-width", "3");
+            tempPolyline.setAttribute("stroke-dasharray", "5,5");
+            svgOverlay.appendChild(tempPolyline);
         };
 
         const moveAction = (e) => {
             if (!isDrawing) return;
             const coords = getCoords(e);
-            currentRect = { x: Math.min(coords.x, startX), y: Math.min(coords.y, startY), w: Math.abs(coords.x - startX), h: Math.abs(coords.y - startY) };
-            selectionRect.style.left = currentRect.x + 'px'; selectionRect.style.top = currentRect.y + 'px';
-            selectionRect.style.width = currentRect.w + 'px'; selectionRect.style.height = currentRect.h + 'px';
+            currentPath.push({x: coords.x, y: coords.y});
+            tempPolyline.setAttribute("points", currentPath.map(p => `${p.x},${p.y}`).join(" "));
         };
 
         const endAction = () => {
-            if(isDrawing && currentRect.w > 10) {
+            if(isDrawing && currentPath.length > 3) {
                 if (drawingMode === 'new') {
                     document.getElementById('modalTitle').innerText = "Nouvelle Zone";
                     document.getElementById('modalBtn').innerText = "CRÉER";
                     document.getElementById('newTaskName').value = "";
                     document.getElementById('newTaskOwner').value = "";
+                    document.getElementById('newTaskDeadline').value = "";
                     document.getElementById('createModal').classList.remove('hidden');
                 } else if (drawingMode === 'redraw') {
                     const t = tasks.find(x => x.id === activeTaskId);
-                    if (t) { t.rect = {...currentRect}; t.progressRect = null; t.progress = 0; }
-                    save(); resetDrawingMode();
-                } else if (drawingMode === 'progress') {
-                    const t = tasks.find(x => x.id === activeTaskId);
-                    if (t) {
-                        const intersection = getIntersection(t.rect, currentRect);
-                        if (intersection) {
-                            t.progressRect = intersection;
-                            t.progress = Math.round(((intersection.w * intersection.h) / (t.rect.w * t.rect.h)) * 100);
-                        }
-                    }
+                    if (t) { t.path = [...currentPath]; t.progress = 0; }
                     save(); resetDrawingMode();
                 }
             }
-            isDrawing = false; selectionRect.classList.add('hidden');
+            isDrawing = false;
+            if(tempPolyline) { tempPolyline.remove(); tempPolyline = null; }
         };
 
         wrapper.addEventListener('mousedown', startAction);
-        wrapper.addEventListener('touchstart', (e) => { if (drawingMode !== 'new' || !e.target.closest('.task-zone')) e.preventDefault(); startAction(e); }, { passive: false });
+        wrapper.addEventListener('touchstart', (e) => { if (drawingMode !== 'new' || e.target.tagName !== 'polygon') e.preventDefault(); startAction(e); }, { passive: false });
         window.addEventListener('mousemove', moveAction);
         window.addEventListener('touchmove', (e) => { if (isDrawing) { e.preventDefault(); moveAction(e); } }, { passive: false });
         window.addEventListener('mouseup', endAction);
         window.addEventListener('touchend', endAction);
 
-        function getIntersection(r1, r2) {
-            const x = Math.max(r1.x, r2.x), y = Math.max(r1.y, r2.y);
-            const w = Math.min(r1.x + r1.w, r2.x + r2.w) - x, h = Math.min(r1.y + r1.h, r2.y + r2.h) - y;
-            return (w <= 0 || h <= 0) ? null : { x, y, w, h };
+        function save() { 
+            appData.weeks[appData.currentWeek] = tasks;
+            localStorage.setItem('build_lean_data', JSON.stringify(appData)); 
+            renderUI(); 
         }
 
-        function save() { localStorage.setItem('build_lean_tasks', JSON.stringify(tasks)); renderUI(); }
-        function setDrawingMode(m) { drawingMode = m; document.getElementById('statusMenu').classList.add('hidden'); document.getElementById('modeBanner').classList.remove('hidden'); document.getElementById('modeBannerText').innerText = (m === 'progress') ? "📏 TRACEZ LA ZONE RÉALISÉE" : "🔄 REDESSINEZ LE CADRE"; }
-        function resetDrawingMode() { drawingMode = 'new'; document.getElementById('modeBanner').classList.add('hidden'); }
-        function closeModals() { document.getElementById('createModal').classList.add('hidden'); document.getElementById('delayModal').classList.add('hidden'); }
+        function setDrawingMode(m) { 
+            drawingMode = m; 
+            document.getElementById('statusMenu').classList.add('hidden'); 
+            document.getElementById('modeBanner').classList.remove('hidden'); 
+            document.getElementById('modeBannerText').innerText = "🔄 TRACEZ LE NOUVEAU CONTOUR SUR LE PLAN"; 
+            svgOverlay.style.pointerEvents = "none"; // Désactiver le clic sur les formes existantes pour redessiner
+        }
         
+        function resetDrawingMode() { 
+            drawingMode = 'new'; 
+            document.getElementById('modeBanner').classList.add('hidden'); 
+            svgOverlay.style.pointerEvents = "none"; // Reset, les polygones eux-mêmes reçoivent les events
+            renderUI(); // Pour réactiver les events sur les polygons
+        }
+
+        function closeModals() { document.getElementById('createModal').classList.add('hidden'); document.getElementById('delayModal').classList.add('hidden'); }
         function closeStatusMenu() { document.getElementById('statusMenu').classList.add('hidden'); activeTaskId = null; }
 
+        function getBoundingBox(path) {
+            let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+            path.forEach(p => {
+                if(p.x < minX) minX = p.x; if(p.x > maxX) maxX = p.x;
+                if(p.y < minY) minY = p.y; if(p.y > maxY) maxY = p.y;
+            });
+            return { cx: minX + (maxX - minX)/2, cy: minY + (maxY - minY)/2 };
+        }
+
         function renderUI() {
-            const markers = document.getElementById('markersLayer'), table = document.getElementById('taskTableBody');
-            markers.innerHTML = ''; table.innerHTML = '';
-            const c = { done: 0, ongoing: 0, delayed: 0, total: tasks.length };
+            svgOverlay.innerHTML = ''; 
+            const table = document.getElementById('taskTableBody');
+            table.innerHTML = '';
+            
+            const c = { done: 0, ongoing: 0, delayed: 0, none: 0, total: tasks.length };
+            
             tasks.forEach(task => {
                 c[task.status]++;
                 if (currentFilter === 'all' || task.status === currentFilter) {
-                    const zone = document.createElement('div');
-                    zone.className = `task-zone rounded border-2`;
-                    zone.style.cssText = `left:${task.rect.x}px; top:${task.rect.y}px; width:${task.rect.w}px; height:${task.rect.h}px; border-color:${task.color};`;
-                    let inner = '';
-                    if (task.progressRect) {
-                        const rx = task.progressRect.x - task.rect.x, ry = task.progressRect.y - task.rect.y;
-                        inner += `<div style="position:absolute; left:${rx}px; top:${ry}px; width:${task.progressRect.w}px; height:${task.progressRect.h}px; background:${task.color}; opacity:0.6;"></div>`;
-                    } else { zone.style.background = task.color + '44'; }
-                    inner += `<span style="position:relative; z-index:5;">${task.name}<br>${task.progress || 0}%</span>`;
-                    zone.innerHTML = inner;
-                    const handleSelect = (e) => { e.preventDefault(); e.stopPropagation(); if(drawingMode === 'new') showMenu(e, task.id); };
-                    zone.onclick = handleSelect; zone.ontouchend = handleSelect;
-                    markers.appendChild(zone);
+                    
+                    // -- Rendu SVG (Dessin libre) --
+                    if(task.path && task.path.length > 0) {
+                        const poly = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+                        poly.setAttribute("points", task.path.map(p => `${p.x},${p.y}`).join(" "));
+                        poly.setAttribute("fill", task.color + "44");
+                        poly.setAttribute("stroke", task.color);
+                        poly.setAttribute("stroke-width", "2");
+                        poly.style.pointerEvents = drawingMode === 'new' ? "all" : "none";
+                        poly.style.cursor = "pointer";
 
+                        if (task.status === 'ongoing') {
+                            poly.setAttribute("stroke-width", "4");
+                            poly.setAttribute("stroke-dasharray", "6,6");
+                        } else if (task.status === 'delayed') {
+                            poly.setAttribute("stroke", "#ef4444");
+                            poly.classList.add('pulse-red-svg');
+                        } else if (task.status === 'done') {
+                            poly.setAttribute("fill", "rgba(34, 197, 94, 0.5)");
+                            poly.setAttribute("stroke", "#16a34a");
+                        }
+
+                        const handleSelect = (e) => { e.preventDefault(); e.stopPropagation(); if(drawingMode === 'new') showMenu(e, task.id); };
+                        poly.onmousedown = handleSelect; poly.ontouchstart = handleSelect;
+                        svgOverlay.appendChild(poly);
+
+                        // Texte au centre
+                        const bbox = getBoundingBox(task.path);
+                        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                        text.setAttribute("x", bbox.cx);
+                        text.setAttribute("y", bbox.cy);
+                        text.setAttribute("text-anchor", "middle");
+                        text.setAttribute("dominant-baseline", "middle");
+                        text.setAttribute("fill", "#000");
+                        text.setAttribute("font-size", "11px");
+                        text.setAttribute("font-weight", "900");
+                        text.setAttribute("pointer-events", "none"); // Passe au travers pour cliquer le polygone
+                        text.style.textShadow = "1px 1px 3px white, -1px -1px 3px white";
+                        text.innerHTML = `<tspan x="${bbox.cx}" dy="-0.6em">${task.name}</tspan><tspan x="${bbox.cx}" dy="1.2em">${task.progress || 0}%</tspan>`;
+                        svgOverlay.appendChild(text);
+                    }
+
+                    // -- Ligne Tableau --
                     const row = document.createElement('tr');
                     let detail = (task.status === 'delayed' && task.causes) ? `<br><span class="text-red-500 text-[9px]">• ${task.causes.join(', ')}</span>` : '';
-                    row.innerHTML = `<td class="p-3 font-bold">${task.name}${detail}</td><td class="p-3 text-slate-500">${task.owner}</td><td class="p-3 text-center">${task.progress}%</td><td class="p-3 text-right uppercase text-[9px] font-black">${task.status}</td>`;
+                    let deadlineStr = task.deadline ? `<br><span class="text-blue-600 text-[9px]">Échéance: ${new Date(task.deadline).toLocaleDateString('fr-FR')}</span>` : '';
+                    
+                    let statusLabel = task.status === 'done' ? 'Fait' : (task.status === 'ongoing' ? 'Cours' : (task.status === 'delayed' ? 'Report' : 'À faire'));
+                    
+                    row.innerHTML = `<td class="p-3 font-bold">${task.name}${deadlineStr}${detail}</td><td class="p-3 text-slate-500">${task.owner}</td><td class="p-3 text-center">${task.progress || 0}%</td><td class="p-3 text-right uppercase text-[9px] font-black">${statusLabel}</td>`;
                     table.appendChild(row);
                 }
             });
@@ -353,16 +484,43 @@
         function showMenu(e, id) {
             activeTaskId = id;
             const m = document.getElementById('statusMenu');
+            const r = wrapper.getBoundingClientRect();
             const pageX = e.pageX || (e.touches ? e.touches[0].pageX : 0);
             const pageY = e.pageY || (e.touches ? e.touches[0].pageY : 0);
-            m.style.left = Math.min(pageX, window.innerWidth - 210) + 'px';
-            m.style.top = pageY + 'px';
+            // Positionne le menu dans le container
+            m.style.left = Math.min(pageX - r.left + wrapper.scrollLeft, wrapper.clientWidth - 210) + 'px';
+            m.style.top = (pageY - r.top + wrapper.scrollTop) + 'px';
             m.classList.remove('hidden');
+        }
+
+        // --- AVANCEMENT ET STATUT AUTO ---
+        function setProgressPrompt() {
+            const t = tasks.find(x => x.id === activeTaskId);
+            if(!t) return;
+            let val = prompt(`Avancement actuel pour "${t.name}" (%) :`, t.progress || 0);
+            if (val !== null) {
+                let num = parseInt(val);
+                if (!isNaN(num)) {
+                    t.progress = Math.min(100, Math.max(0, num));
+                    // Statut automatique basé sur l'avancement
+                    if (t.progress === 100) t.status = 'done';
+                    else if (t.progress > 0) t.status = 'ongoing';
+                    // Si on repasse de 100 à < 100
+                    else if (t.progress < 100 && t.status === 'done') t.status = 'ongoing';
+                    
+                    save();
+                }
+            }
+            closeStatusMenu();
         }
 
         function setStatus(s) {
             const t = tasks.find(x => x.id === activeTaskId);
-            if(t) { t.status = s; if (s === 'done') t.progress = 100; }
+            if(t) { 
+                t.status = s; 
+                if (s === 'done') t.progress = 100; 
+                else if (s === 'none') t.progress = 0;
+            }
             closeStatusMenu(); save();
         }
 
@@ -383,13 +541,27 @@
 
         function confirmTask() {
             const name = document.getElementById('newTaskName').value;
+            const deadline = document.getElementById('newTaskDeadline').value;
             if(!name) return;
+            
             if (editingTaskId) {
                 const t = tasks.find(x => x.id === editingTaskId);
-                t.name = name; t.owner = document.getElementById('newTaskOwner').value; t.color = selectedColor;
+                t.name = name; 
+                t.owner = document.getElementById('newTaskOwner').value; 
+                t.deadline = deadline;
+                t.color = selectedColor;
                 editingTaskId = null;
             } else {
-                tasks.push({ id: Date.now(), name, owner: document.getElementById('newTaskOwner').value, color: selectedColor, rect: {...currentRect}, status: 'ongoing', progress: 0 });
+                tasks.push({ 
+                    id: Date.now(), 
+                    name, 
+                    owner: document.getElementById('newTaskOwner').value, 
+                    deadline: deadline,
+                    color: selectedColor, 
+                    path: [...currentPath], 
+                    status: 'none', 
+                    progress: 0 
+                });
             }
             save(); closeModals();
         }
@@ -403,6 +575,7 @@
             editingTaskId = t.id; 
             document.getElementById('newTaskName').value = t.name; 
             document.getElementById('newTaskOwner').value = t.owner; 
+            document.getElementById('newTaskDeadline').value = t.deadline || "";
             document.getElementById('modalTitle').innerText = "Modifier Tâche";
             document.getElementById('modalBtn').innerText = "MODIFIER";
             
@@ -416,6 +589,7 @@
             closeStatusMenu(); 
         }
 
+        // --- CHARGEMENT PLAN ---
         document.getElementById('picUpload').onchange = (e) => {
             const file = e.target.files[0]; const reader = new FileReader();
             reader.onload = async (ev) => {
@@ -427,14 +601,21 @@
                     picImage.src = canvas.toDataURL();
                 } else { picImage.src = ev.target.result; }
                 picImage.classList.remove('hidden');
+                
+                // Set SVG dimension to match image after it loads
+                picImage.onload = () => {
+                    svgOverlay.setAttribute('width', picImage.width);
+                    svgOverlay.setAttribute('height', picImage.height);
+                };
             };
             file.type === 'application/pdf' ? reader.readAsArrayBuffer(file) : reader.readAsDataURL(file);
         };
 
+        // --- EXPORT ---
         async function generateFullReport() {
             const { jsPDF } = window.jspdf; const pdf = new jsPDF('p', 'mm', 'a4');
             const dateStr = new Date().toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-            document.getElementById('reportDateLabel').innerText = "Édité le " + dateStr;
+            document.getElementById('reportDateLabel').innerText = "Planning : " + appData.currentWeek + " - Édité le " + dateStr;
             const done = tasks.filter(t => t.status === 'done');
             const ppc = tasks.length > 0 ? Math.round((done.length / tasks.length) * 100) : 0;
             document.getElementById('reportPpcValueLabel').innerText = ppc + '%';
@@ -460,7 +641,7 @@
                             </tr>
                             ${cat.data.map(t => `
                                 <tr>
-                                    <td style="padding: 6px; border: 1px solid #e2e8f0; font-weight: bold;">${t.name}</td>
+                                    <td style="padding: 6px; border: 1px solid #e2e8f0; font-weight: bold;">${t.name}<br><i style="font-size:8px;color:#64748b">Échéance: ${t.deadline || '-'}</i></td>
                                     <td style="padding: 6px; border: 1px solid #e2e8f0;">${t.owner}</td>
                                     <td style="padding: 6px; border: 1px solid #e2e8f0; text-align: center;">${t.progress}%</td>
                                     <td style="padding: 6px; border: 1px solid #e2e8f0;">
@@ -474,6 +655,9 @@
             });
             document.getElementById('reportTables').innerHTML = tablesHtml;
             const mapContainer = document.getElementById('reportMapContainer'); mapContainer.innerHTML = '';
+            
+            // Masquer temporairement le status menu si visible pour la capture
+            document.getElementById('statusMenu').classList.add('hidden');
             const mapCanvas = await html2canvas(wrapper, { scale: 2 });
             const mapImg = document.createElement('img'); mapImg.src = mapCanvas.toDataURL('image/jpeg', 0.8); mapContainer.appendChild(mapImg);
 
@@ -484,7 +668,7 @@
             pdf.addImage(imgData, 'JPEG', 0, pos, imgW, imgH);
             hLeft -= pageH;
             while (hLeft > 0) { pos = hLeft - imgH; pdf.addPage(); pdf.addImage(imgData, 'JPEG', 0, pos, imgW, imgH); hLeft -= pageH; }
-            pdf.save(`Rapport_Lean_${new Date().toISOString().split('T')[0]}.pdf`);
+            pdf.save(`Rapport_LPS_${appData.currentWeek}.pdf`);
         }
     </script>
 </body>
