@@ -46,7 +46,7 @@
     <div class="max-w-[1600px] mx-auto p-2 md:p-4">
         <header class="flex flex-col md:flex-row justify-between items-center mb-4 bg-white p-4 rounded-xl shadow-sm border-b-4 border-[#004587] gap-3">
             <div class="flex items-center gap-4">
-                <img src="Logo 1.jpg" alt="Logo BUILD-Lean" class="h-12 w-auto" onerror="this.style.display='none'"> 
+                <img src="logo2.png" alt="Logo BUILD-Lean" class="h-12 md:h-14 w-auto" onerror="this.style.display='none'"> 
                 <div class="flex items-center bg-slate-100 rounded-lg p-1 border border-slate-200">
                     <select id="weekSelector" onchange="switchWeek(this.value)" class="bg-transparent text-sm font-bold text-[#004587] outline-none pl-2 pr-4 cursor-pointer"></select>
                     <button onclick="createNewWeek()" class="bg-white text-slate-600 px-3 py-1 rounded shadow-sm text-[10px] font-black uppercase hover:bg-slate-200 ml-2">+ Nvlle Semaine</button>
@@ -163,90 +163,47 @@
 
     <!-- Modal Retard -->
     <div id="delayModal" class="fixed inset-0 bg-slate-900/90 backdrop-blur-md hidden z-[300] p-2 md:p-6 overflow-y-auto">
-        <div class="bg-white rounded-2xl w-full max-w-6xl mx-auto mt-4 mb-4 shadow-2xl overflow-hidden">
+        <div class="bg-white rounded-2xl w-full max-w-5xl mx-auto mt-4 mb-4 shadow-2xl overflow-hidden">
             <div class="bg-red-600 p-4 text-white flex justify-between items-center sticky top-0 z-10">
                 <h3 class="text-lg font-black uppercase italic">Causes du Report</h3>
                 <button onclick="closeModals()" class="text-2xl font-bold hover:text-red-200">&times;</button>
             </div>
-            <div class="p-4 md:p-6 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-                <!-- Colonne Gauche -->
-                <div class="space-y-6">
-                    <!-- PLANNING & MANAGEMENT -->
+            <div class="p-4 md:p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="space-y-4">
                     <div>
                         <h4 class="text-[11px] font-black bg-slate-100 p-2 mb-2 uppercase text-slate-700">Planning & Management</h4>
                         <div class="flex flex-col gap-2 text-xs font-bold text-slate-600">
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Planning initial irréaliste"> Planning initial irréaliste</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Planning initial irréaliste"> Planning irréaliste</label>
                             <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Tâche non planifiée"> Tâche non planifiée</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Séquencement des tâches incohérent"> Séquencement des tâches incohérent</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Séquencement incohérent"> Séquencement incohérent</label>
                             <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Priorités mal définies"> Priorités mal définies</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Coordination insuffisante entre intervenants"> Coordination insuffisante entre intervenants</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Absence de responsable clairement désigné"> Absence de responsable clairement désigné</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Coordination insuffisante"> Coordination insuffisante</label>
                         </div>
                     </div>
-
-                    <!-- PLANS & TECHNIQUE -->
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <h4 class="text-[11px] font-black bg-slate-100 p-2 mb-2 uppercase text-slate-700">Ressources & Matériel</h4>
+                        <div class="flex flex-col gap-2 text-xs font-bold text-slate-600">
+                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Manque main-d’œuvre"> Manque main-d’œuvre</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Sous-traitant absent"> Sous-traitant absent</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Matériaux non livrés"> Matériaux non livrés</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Matériel en panne"> Matériel en panne</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="space-y-4">
                     <div>
                         <h4 class="text-[11px] font-black bg-slate-100 p-2 mb-2 uppercase text-slate-700">Plans & Technique</h4>
                         <div class="flex flex-col gap-2 text-xs font-bold text-slate-600">
                             <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Plans non disponibles"> Plans non disponibles</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Plans erronés ou incomplets"> Plans erronés ou incomplets</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Attente de validation technique"> Attente de validation technique</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Problème de conception détecté sur chantier"> Problème de conception détecté sur chantier</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Non-conformité détectée sur la tâche précédente"> Non-conformité détectée sur la tâche précédente</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Plans erronés/incomplets"> Plans erronés</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Attente validation technique"> Attente validation technique</label>
                         </div>
                     </div>
-
-                    <!-- RESSOURCES HUMAINES -->
                     <div>
-                        <h4 class="text-[11px] font-black bg-slate-100 p-2 mb-2 uppercase text-slate-700">Ressources Humaines</h4>
-                        <div class="flex flex-col gap-2 text-xs font-bold text-slate-600">
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Manque de main-d'œuvre"> Manque de main-d'œuvre</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Compétences non adaptées"> Compétences non adaptées</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Sous-traitant absent"> Sous-traitant absent</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Conflit ou désaccord entre équipes"> Conflit ou désaccord entre équipes</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Consignes mal comprises"> Consignes mal comprises</label>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Colonne Droite -->
-                <div class="space-y-6">
-                    <!-- LOGISTIQUE & MATÉRIEL -->
-                    <div>
-                        <h4 class="text-[11px] font-black bg-slate-100 p-2 mb-2 uppercase text-slate-700">Logistique & Matériel</h4>
-                        <div class="flex flex-col gap-2 text-xs font-bold text-slate-600">
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Matériaux non livrés"> Matériaux non livrés</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Matériaux non conformes"> Matériaux non conformes</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Matériel manquant"> Matériel manquant</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Matériel en panne"> Matériel en panne</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Matériel affecté à un autre chantier"> Matériel affecté à un autre chantier</label>
-                        </div>
-                    </div>
-
-                    <!-- ADMINISTRATIF & CLIENT -->
-                    <div>
-                        <h4 class="text-[11px] font-black bg-slate-100 p-2 mb-2 uppercase text-slate-700">Administratif & Client</h4>
-                        <div class="flex flex-col gap-2 text-xs font-bold text-slate-600">
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Autorisations administratives manquantes"> Autorisations administratives manquantes</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Retard de validation du client / MOA"> Retard de validation du client / MOA</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Modification client non arbitré (variation)"> Modification client non arbitré (variation)</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Litige en cours sur le lot concerné"> Litige en cours sur le lot concerné</label>
-                        </div>
-                    </div>
-
-                    <!-- AUTRES -->
-                    <div>
-                        <h4 class="text-[11px] font-black bg-slate-100 p-2 mb-2 uppercase text-slate-700">Autres</h4>
-                        <div class="flex flex-col gap-2 text-xs font-bold text-slate-600">
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Causes « environnement / sécurité »"> Causes « environnement / sécurité »</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Causes « finance / trésorerie »"> Causes « finance / trésorerie »</label>
-                        </div>
-                    </div>
-
-                    <!-- DIVERS / COMMENTAIRES -->
-                    <div>
-                        <h4 class="text-[11px] font-black bg-slate-100 p-2 mb-2 uppercase text-slate-700">Divers / Commentaires</h4>
-                        <textarea id="delayComment" placeholder="Précisez la cause diverse ou ajoutez une observation..." class="w-full border-2 border-slate-200 rounded-xl p-3 h-20 text-xs outline-none focus:border-red-500"></textarea>
+                        <h4 class="text-[11px] font-black bg-slate-100 p-2 mb-2 uppercase text-slate-700">Observation libre</h4>
+                        <textarea id="delayComment" placeholder="Précisez..." class="w-full border-2 border-slate-200 rounded-xl p-3 h-20 text-xs outline-none focus:border-red-500"></textarea>
                     </div>
                 </div>
             </div>
@@ -265,7 +222,7 @@
                 <p id="reportDateLabel" style="color: #64748b; font-weight: bold; font-size: 14px; margin: 5px 0 0 0;"></p>
             </div>
             <div style="text-align: right;">
-                <img src="Logo 1.jpg" style="height: 50px; width: auto;" alt="Logo" onerror="this.style.display='none'">
+                <img src="logo2.png" style="height: 50px; width: auto;" alt="Logo" onerror="this.style.display='none'">
             </div>
         </div>
         <div id="reportMapContainer" style="width: 100%; border: 2px solid #e2e8f0; border-radius: 8px; margin-bottom: 20px; background: #fff;"></div>
