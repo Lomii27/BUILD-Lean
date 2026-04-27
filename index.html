@@ -37,13 +37,17 @@
             background: white; padding: 30px; box-sizing: border-box; 
         }
         .report-header { border-bottom: 4px solid #004587; padding-bottom: 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
-        .custom-checkbox { width: 18px; height: 18px; cursor: pointer; accent-color: #dc2626; }
+        
+        /* Custom Checkbox pour le style exact de l'image */
+        .custom-checkbox { width: 16px; height: 16px; cursor: pointer; accent-color: #dc2626; margin-top: 1px; }
+        
         #reportMapContainer img { width: 100%; height: auto; object-fit: contain; border-radius: 8px; }
     </style>
 </head>
 <body class="bg-slate-50 font-sans text-slate-900">
 
     <div class="max-w-[1600px] mx-auto p-2 md:p-4">
+        <!-- Header -->
         <header class="flex flex-col md:flex-row justify-between items-center mb-4 bg-white p-4 rounded-xl shadow-sm border-b-4 border-[#004587] gap-3">
             <div class="flex items-center gap-4">
                 <img src="logo2.png" alt="Logo BUILD-Lean" class="h-12 md:h-14 w-auto" onerror="this.style.display='none'"> 
@@ -59,6 +63,7 @@
             </div>
         </header>
 
+        <!-- Main Content -->
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
             <div class="lg:col-span-3 space-y-4">
                 <div class="bg-white p-1 rounded-xl shadow-sm border border-slate-200 relative">
@@ -69,7 +74,6 @@
 
                     <div id="canvasWrapper" class="pic-container rounded-lg">
                         <img id="picImage" src="" alt="" class="hidden" draggable="false">
-                        <!-- Calque SVG pour le dessin libre -->
                         <svg id="drawingOverlay"></svg>
                     </div>
                     
@@ -126,7 +130,7 @@
         </div>
     </div>
 
-    <!-- Modals (Création/Edition) -->
+    <!-- Modal Création/Edition -->
     <div id="createModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center z-[200] p-4">
         <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl">
             <h3 id="modalTitle" class="text-lg font-black mb-4 uppercase italic text-[#004587]">Nouvelle Zone</h3>
@@ -161,55 +165,99 @@
         </div>
     </div>
 
-    <!-- Modal Retard -->
-    <div id="delayModal" class="fixed inset-0 bg-slate-900/90 backdrop-blur-md hidden z-[300] p-2 md:p-6 overflow-y-auto">
-        <div class="bg-white rounded-2xl w-full max-w-5xl mx-auto mt-4 mb-4 shadow-2xl overflow-hidden">
-            <div class="bg-red-600 p-4 text-white flex justify-between items-center sticky top-0 z-10">
-                <h3 class="text-lg font-black uppercase italic">Causes du Report</h3>
-                <button onclick="closeModals()" class="text-2xl font-bold hover:text-red-200">&times;</button>
+    <!-- Modal Retard (Exactement comme l'image) -->
+    <div id="delayModal" class="fixed inset-0 bg-slate-900/90 backdrop-blur-md hidden z-[300] p-4 flex items-center justify-center overflow-y-auto">
+        <div class="bg-white rounded-xl w-full max-w-5xl shadow-2xl flex flex-col my-auto border border-slate-200">
+            <div class="bg-[#e1251b] p-4 text-white flex justify-between items-center rounded-t-xl">
+                <h3 class="text-lg font-black uppercase italic tracking-wide">CAUSES DU REPORT</h3>
+                <button onclick="closeModals()" class="text-2xl font-bold hover:text-red-200 leading-none">&times;</button>
             </div>
-            <div class="p-4 md:p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="space-y-4">
+            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
+                <!-- Colonne Gauche -->
+                <div class="space-y-6">
+                    <!-- PLANNING & MANAGEMENT -->
                     <div>
-                        <h4 class="text-[11px] font-black bg-slate-100 p-2 mb-2 uppercase text-slate-700">Planning & Management</h4>
-                        <div class="flex flex-col gap-2 text-xs font-bold text-slate-600">
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Planning initial irréaliste"> Planning irréaliste</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Tâche non planifiée"> Tâche non planifiée</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Séquencement incohérent"> Séquencement incohérent</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Priorités mal définies"> Priorités mal définies</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Coordination insuffisante"> Coordination insuffisante</label>
+                        <h4 class="text-[10px] font-black bg-slate-100 p-2 mb-3 uppercase text-slate-600 rounded">PLANNING & MANAGEMENT</h4>
+                        <div class="flex flex-col gap-2.5 text-[11px] font-bold text-slate-500">
+                            <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" class="cause-check custom-checkbox" value="Planning initial irréaliste"> <span>Planning initial irréaliste</span></label>
+                            <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" class="cause-check custom-checkbox" value="Tâche non planifiée"> <span>Tâche non planifiée</span></label>
+                            <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" class="cause-check custom-checkbox" value="Séquencement des tâches incohérent"> <span>Séquencement des tâches incohérent</span></label>
+                            <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" class="cause-check custom-checkbox" value="Priorités mal définies"> <span>Priorités mal définies</span></label>
+                            <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" class="cause-check custom-checkbox" value="Coordination insuffisante entre intervenants"> <span>Coordination insuffisante entre intervenants</span></label>
+                            <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" class="cause-check custom-checkbox" value="Absence de responsable clairement désigné"> <span>Absence de responsable clairement désigné</span></label>
+                        </div>
+                    </div>
+
+                    <!-- PLANS & TECHNIQUE -->
+                    <div>
+                        <h4 class="text-[10px] font-black bg-slate-100 p-2 mb-3 uppercase text-slate-600 rounded">PLANS & TECHNIQUE</h4>
+                        <div class="flex flex-col gap-2.5 text-[11px] font-bold text-slate-500">
+                            <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" class="cause-check custom-checkbox" value="Plans non disponibles"> <span>Plans non disponibles</span></label>
+                            <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" class="cause-check custom-checkbox" value="Plans erronés ou incomplets"> <span>Plans erronés ou incomplets</span></label>
+                            <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" class="cause-check custom-checkbox" value="Attente de validation technique"> <span>Attente de validation technique</span></label>
+                            <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" class="cause-check custom-checkbox" value="Problème de conception détecté sur chantier"> <span>Problème de conception détecté sur chantier</span></label>
+                            <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" class="cause-check custom-checkbox" value="Non-conformité détectée sur la tâche précédente"> <span>Non-conformité détectée sur la tâche précédente</span></label>
+                        </div>
+                    </div>
+
+                    <!-- RESSOURCES HUMAINES -->
+                    <div>
+                        <h4 class="text-[10px] font-black bg-slate-100 p-2 mb-3 uppercase text-slate-600 rounded">RESSOURCES HUMAINES</h4>
+                        <div class="flex flex-col gap-2.5 text-[11px] font-bold text-slate-500">
+                            <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" class="cause-check custom-checkbox" value="Manque de main-d'œuvre"> <span>Manque de main-d'œuvre</span></label>
+                            <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" class="cause-check custom-checkbox" value="Compétences non adaptées"> <span>Compétences non adaptées</span></label>
+                            <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" class="cause-check custom-checkbox" value="Sous-traitant absent"> <span>Sous-traitant absent</span></label>
+                            <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" class="cause-check custom-checkbox" value="Conflit ou désaccord entre équipes"> <span>Conflit ou désaccord entre équipes</span></label>
+                            <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" class="cause-check custom-checkbox" value="Consignes mal comprises"> <span>Consignes mal comprises</span></label>
                         </div>
                     </div>
                 </div>
-                <div class="space-y-4">
+
+                <!-- Colonne Droite -->
+                <div class="space-y-6">
+                    <!-- LOGISTIQUE & MATÉRIEL -->
                     <div>
-                        <h4 class="text-[11px] font-black bg-slate-100 p-2 mb-2 uppercase text-slate-700">Ressources & Matériel</h4>
-                        <div class="flex flex-col gap-2 text-xs font-bold text-slate-600">
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Manque main-d’œuvre"> Manque main-d’œuvre</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Sous-traitant absent"> Sous-traitant absent</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Matériaux non livrés"> Matériaux non livrés</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Matériel en panne"> Matériel en panne</label>
+                        <h4 class="text-[10px] font-black bg-slate-100 p-2 mb-3 uppercase text-slate-600 rounded">LOGISTIQUE & MATÉRIEL</h4>
+                        <div class="flex flex-col gap-2.5 text-[11px] font-bold text-slate-500">
+                            <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" class="cause-check custom-checkbox" value="Matériaux non livrés"> <span>Matériaux non livrés</span></label>
+                            <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" class="cause-check custom-checkbox" value="Matériaux non conformes"> <span>Matériaux non conformes</span></label>
+                            <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" class="cause-check custom-checkbox" value="Matériel manquant"> <span>Matériel manquant</span></label>
+                            <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" class="cause-check custom-checkbox" value="Matériel en panne"> <span>Matériel en panne</span></label>
+                            <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" class="cause-check custom-checkbox" value="Matériel affecté à un autre chantier"> <span>Matériel affecté à un autre chantier</span></label>
                         </div>
                     </div>
-                </div>
-                <div class="space-y-4">
+
+                    <!-- ADMINISTRATIF & CLIENT -->
                     <div>
-                        <h4 class="text-[11px] font-black bg-slate-100 p-2 mb-2 uppercase text-slate-700">Plans & Technique</h4>
-                        <div class="flex flex-col gap-2 text-xs font-bold text-slate-600">
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Plans non disponibles"> Plans non disponibles</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Plans erronés/incomplets"> Plans erronés</label>
-                            <label class="flex items-center gap-2"><input type="checkbox" class="cause-check custom-checkbox" value="Attente validation technique"> Attente validation technique</label>
+                        <h4 class="text-[10px] font-black bg-slate-100 p-2 mb-3 uppercase text-slate-600 rounded">ADMINISTRATIF & CLIENT</h4>
+                        <div class="flex flex-col gap-2.5 text-[11px] font-bold text-slate-500">
+                            <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" class="cause-check custom-checkbox" value="Autorisations administratives manquantes"> <span>Autorisations administratives manquantes</span></label>
+                            <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" class="cause-check custom-checkbox" value="Retard de validation du client / MOA"> <span>Retard de validation du client / MOA</span></label>
+                            <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" class="cause-check custom-checkbox" value="Modification client non arbitré (variation)"> <span>Modification client non arbitré (variation)</span></label>
+                            <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" class="cause-check custom-checkbox" value="Litige en cours sur le lot concerné"> <span>Litige en cours sur le lot concerné</span></label>
                         </div>
                     </div>
+
+                    <!-- AUTRES -->
                     <div>
-                        <h4 class="text-[11px] font-black bg-slate-100 p-2 mb-2 uppercase text-slate-700">Observation libre</h4>
-                        <textarea id="delayComment" placeholder="Précisez..." class="w-full border-2 border-slate-200 rounded-xl p-3 h-20 text-xs outline-none focus:border-red-500"></textarea>
+                        <h4 class="text-[10px] font-black bg-slate-100 p-2 mb-3 uppercase text-slate-600 rounded">AUTRES</h4>
+                        <div class="flex flex-col gap-2.5 text-[11px] font-bold text-slate-500">
+                            <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" class="cause-check custom-checkbox" value="Causes « environnement / sécurité »"> <span>Causes « environnement / sécurité »</span></label>
+                            <label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" class="cause-check custom-checkbox" value="Causes « finance / trésorerie »"> <span>Causes « finance / trésorerie »</span></label>
+                        </div>
+                    </div>
+
+                    <!-- DIVERS / COMMENTAIRES -->
+                    <div>
+                        <h4 class="text-[10px] font-black bg-slate-100 p-2 mb-3 uppercase text-slate-600 rounded">DIVERS / COMMENTAIRES</h4>
+                        <textarea id="delayComment" placeholder="Précisez la cause diverse ou ajoutez une observation..." class="w-full border border-slate-200 rounded p-3 h-20 text-xs outline-none focus:border-red-500 resize-none"></textarea>
                     </div>
                 </div>
             </div>
-            <div class="p-4 bg-slate-50 flex gap-3 sticky bottom-0 border-t border-slate-200">
-                <button onclick="closeModals()" class="flex-1 py-3 font-bold text-slate-400">ANNULER</button>
-                <button onclick="saveDelayReasons()" class="flex-1 py-3 bg-red-600 text-white rounded-xl font-black">VALIDER LE REPORT</button>
+            <!-- Footer de la modale -->
+            <div class="p-4 border-t border-slate-200 flex gap-4 bg-white rounded-b-xl">
+                <button onclick="closeModals()" class="flex-1 py-3 font-black text-slate-500 bg-white border border-slate-200 rounded-lg hover:bg-slate-50">ANNULER</button>
+                <button onclick="saveDelayReasons()" class="flex-1 py-3 bg-[#e1251b] text-white rounded-lg font-black shadow-md hover:bg-red-700">VALIDER</button>
             </div>
         </div>
     </div>
@@ -233,29 +281,17 @@
         <div id="reportTables"></div>
     </div>
 
+    <!-- Script Principal -->
     <script>
         const pdfjsLib = window['pdfjs-dist/build/pdf'];
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-        // --- GESTION DES SEMAINES ET DONNEES ---
+        // --- GESTION DES DONNÉES LOCALES ---
         let appData = JSON.parse(localStorage.getItem('build_lean_data'));
         
-        // Migration depuis l'ancienne version ou initialisation
         if (!appData) {
-            let oldTasks = JSON.parse(localStorage.getItem('build_lean_tasks')) || [];
-            // Conversion des anciens rectangles en polygones (points de path)
-            oldTasks.forEach(t => {
-                if(t.rect && !t.path) {
-                    t.path = [
-                        {x: t.rect.x, y: t.rect.y},
-                        {x: t.rect.x + t.rect.w, y: t.rect.y},
-                        {x: t.rect.x + t.rect.w, y: t.rect.y + t.rect.h},
-                        {x: t.rect.x, y: t.rect.y + t.rect.h}
-                    ];
-                }
-            });
             appData = {
-                weeks: { "Semaine Initiale": oldTasks },
+                weeks: { "Semaine Initiale": [] },
                 currentWeek: "Semaine Initiale"
             };
             localStorage.setItem('build_lean_data', JSON.stringify(appData));
@@ -265,9 +301,10 @@
         
         let ppcChart = null, isDrawing = false, currentPath = [];
         let activeTaskId = null, selectedColor = '#3b82f6', currentFilter = 'all', drawingMode = 'new', editingTaskId = null;
-        let tempPolyline = null; // Tracé en temps réel
+        let tempPolyline = null;
 
-        const wrapper = document.getElementById('canvasWrapper'), picImage = document.getElementById('picImage');
+        const wrapper = document.getElementById('canvasWrapper');
+        const picImage = document.getElementById('picImage');
         const svgOverlay = document.getElementById('drawingOverlay');
 
         window.onload = () => {
@@ -302,11 +339,11 @@
             let name = prompt("Nom de la nouvelle semaine de planning (ex: S45) :");
             if (!name || appData.weeks[name]) return;
             
-            // Reporter les tâches non terminées à la nouvelle semaine
+            // Reporter les tâches non terminées
             let carriedTasks = tasks.filter(t => t.status !== 'done').map(t => ({
                 ...t, 
-                id: Date.now() + Math.random(), // Nouvel ID
-                status: 'none', // Reset du statut pour la nouvelle semaine
+                id: Date.now() + Math.random(),
+                status: 'none',
                 progress: 0
             }));
             
@@ -333,7 +370,6 @@
             const coords = getCoords(e);
             currentPath = [{x: coords.x, y: coords.y}];
             
-            // Ligne de preview pendant le dessin
             tempPolyline = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
             tempPolyline.setAttribute("fill", "rgba(0, 69, 135, 0.2)");
             tempPolyline.setAttribute("stroke", "#004587");
@@ -386,17 +422,20 @@
             document.getElementById('statusMenu').classList.add('hidden'); 
             document.getElementById('modeBanner').classList.remove('hidden'); 
             document.getElementById('modeBannerText').innerText = "🔄 TRACEZ LE NOUVEAU CONTOUR SUR LE PLAN"; 
-            svgOverlay.style.pointerEvents = "none"; // Désactiver le clic sur les formes existantes pour redessiner
+            svgOverlay.style.pointerEvents = "none"; 
         }
         
         function resetDrawingMode() { 
             drawingMode = 'new'; 
             document.getElementById('modeBanner').classList.add('hidden'); 
-            svgOverlay.style.pointerEvents = "none"; // Reset, les polygones eux-mêmes reçoivent les events
-            renderUI(); // Pour réactiver les events sur les polygons
+            svgOverlay.style.pointerEvents = "none"; 
+            renderUI(); 
         }
 
-        function closeModals() { document.getElementById('createModal').classList.add('hidden'); document.getElementById('delayModal').classList.add('hidden'); }
+        function closeModals() { 
+            document.getElementById('createModal').classList.add('hidden'); 
+            document.getElementById('delayModal').classList.add('hidden'); 
+        }
         function closeStatusMenu() { document.getElementById('statusMenu').classList.add('hidden'); activeTaskId = null; }
 
         function getBoundingBox(path) {
@@ -419,7 +458,6 @@
                 c[task.status]++;
                 if (currentFilter === 'all' || task.status === currentFilter) {
                     
-                    // -- Rendu SVG (Dessin libre) --
                     if(task.path && task.path.length > 0) {
                         const poly = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
                         poly.setAttribute("points", task.path.map(p => `${p.x},${p.y}`).join(" "));
@@ -444,7 +482,6 @@
                         poly.onmousedown = handleSelect; poly.ontouchstart = handleSelect;
                         svgOverlay.appendChild(poly);
 
-                        // Texte au centre
                         const bbox = getBoundingBox(task.path);
                         const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
                         text.setAttribute("x", bbox.cx);
@@ -454,20 +491,18 @@
                         text.setAttribute("fill", "#000");
                         text.setAttribute("font-size", "11px");
                         text.setAttribute("font-weight", "900");
-                        text.setAttribute("pointer-events", "none"); // Passe au travers pour cliquer le polygone
+                        text.setAttribute("pointer-events", "none");
                         text.style.textShadow = "1px 1px 3px white, -1px -1px 3px white";
                         text.innerHTML = `<tspan x="${bbox.cx}" dy="-0.6em">${task.name}</tspan><tspan x="${bbox.cx}" dy="1.2em">${task.progress || 0}%</tspan>`;
                         svgOverlay.appendChild(text);
                     }
 
-                    // -- Ligne Tableau --
                     const row = document.createElement('tr');
-                    let detail = (task.status === 'delayed' && task.causes) ? `<br><span class="text-red-500 text-[9px]">• ${task.causes.join(', ')}</span>` : '';
+                    let detail = (task.status === 'delayed' && task.causes) ? `<br><span class="text-red-500 text-[9px] font-bold">• ${task.causes.join(', ')}</span>` : '';
                     let deadlineStr = task.deadline ? `<br><span class="text-blue-600 text-[9px]">Échéance: ${new Date(task.deadline).toLocaleDateString('fr-FR')}</span>` : '';
-                    
                     let statusLabel = task.status === 'done' ? 'Fait' : (task.status === 'ongoing' ? 'Cours' : (task.status === 'delayed' ? 'Report' : 'À faire'));
                     
-                    row.innerHTML = `<td class="p-3 font-bold">${task.name}${deadlineStr}${detail}</td><td class="p-3 text-slate-500">${task.owner}</td><td class="p-3 text-center">${task.progress || 0}%</td><td class="p-3 text-right uppercase text-[9px] font-black">${statusLabel}</td>`;
+                    row.innerHTML = `<td class="p-3 font-bold">${task.name}${deadlineStr}${detail}</td><td class="p-3 text-slate-500">${task.owner}</td><td class="p-3 text-center font-bold">${task.progress || 0}%</td><td class="p-3 text-right uppercase text-[9px] font-black">${statusLabel}</td>`;
                     table.appendChild(row);
                 }
             });
@@ -486,13 +521,11 @@
             const r = wrapper.getBoundingClientRect();
             const pageX = e.pageX || (e.touches ? e.touches[0].pageX : 0);
             const pageY = e.pageY || (e.touches ? e.touches[0].pageY : 0);
-            // Positionne le menu dans le container
             m.style.left = Math.min(pageX - r.left + wrapper.scrollLeft, wrapper.clientWidth - 210) + 'px';
             m.style.top = (pageY - r.top + wrapper.scrollTop) + 'px';
             m.classList.remove('hidden');
         }
 
-        // --- AVANCEMENT ET STATUT AUTO ---
         function setProgressPrompt() {
             const t = tasks.find(x => x.id === activeTaskId);
             if(!t) return;
@@ -501,12 +534,9 @@
                 let num = parseInt(val);
                 if (!isNaN(num)) {
                     t.progress = Math.min(100, Math.max(0, num));
-                    // Statut automatique basé sur l'avancement
                     if (t.progress === 100) t.status = 'done';
                     else if (t.progress > 0) t.status = 'ongoing';
-                    // Si on repasse de 100 à < 100
                     else if (t.progress < 100 && t.status === 'done') t.status = 'ongoing';
-                    
                     save();
                 }
             }
@@ -532,10 +562,15 @@
 
         function saveDelayReasons() {
             const t = tasks.find(x => x.id === activeTaskId);
-            const checks = document.querySelectorAll('.cause-check:checked');
-            t.status = 'delayed'; t.causes = Array.from(checks).map(c => c.value);
-            t.comment = document.getElementById('delayComment').value;
-            closeModals(); save();
+            if(t) {
+                const checks = document.querySelectorAll('.cause-check:checked');
+                t.status = 'delayed'; 
+                t.causes = Array.from(checks).map(c => c.value);
+                t.comment = document.getElementById('delayComment').value;
+            }
+            closeModals(); 
+            save();
+            closeStatusMenu();
         }
 
         function confirmTask() {
@@ -601,7 +636,6 @@
                 } else { picImage.src = ev.target.result; }
                 picImage.classList.remove('hidden');
                 
-                // Set SVG dimension to match image after it loads
                 picImage.onload = () => {
                     svgOverlay.setAttribute('width', picImage.width);
                     svgOverlay.setAttribute('height', picImage.height);
@@ -610,7 +644,7 @@
             file.type === 'application/pdf' ? reader.readAsArrayBuffer(file) : reader.readAsDataURL(file);
         };
 
-        // --- EXPORT ---
+        // --- EXPORT PDF ---
         async function generateFullReport() {
             const { jsPDF } = window.jspdf; const pdf = new jsPDF('p', 'mm', 'a4');
             const dateStr = new Date().toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
@@ -655,7 +689,6 @@
             document.getElementById('reportTables').innerHTML = tablesHtml;
             const mapContainer = document.getElementById('reportMapContainer'); mapContainer.innerHTML = '';
             
-            // Masquer temporairement le status menu si visible pour la capture
             document.getElementById('statusMenu').classList.add('hidden');
             const mapCanvas = await html2canvas(wrapper, { scale: 2 });
             const mapImg = document.createElement('img'); mapImg.src = mapCanvas.toDataURL('image/jpeg', 0.8); mapContainer.appendChild(mapImg);
