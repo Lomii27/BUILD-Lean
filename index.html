@@ -81,6 +81,7 @@
             <button onclick="switchMainView('lps')" id="btnViewLPS" class="flex-none px-6 py-3 bg-[#004587] text-white rounded-lg font-black uppercase text-xs shadow-md transition">Suivi Hebdo (LPS)</button>
             <button onclick="switchMainView('global')" id="btnViewGlobal" class="flex-none px-6 py-3 bg-white text-slate-500 hover:bg-slate-50 rounded-lg font-bold uppercase text-xs border border-slate-200 transition">Planning Global (Macro)</button>
             <button onclick="switchMainView('livraisons')" id="btnViewLivraisons" class="flex-none px-6 py-3 bg-white text-slate-500 hover:bg-slate-50 rounded-lg font-bold uppercase text-xs border border-slate-200 transition">Planning Livraisons</button>
+            <button onclick="switchMainView('resteafaire')" id="btnViewReste" class="flex-none px-6 py-3 bg-white text-slate-500 hover:bg-slate-50 rounded-lg font-bold uppercase text-xs border border-slate-200 transition">Reste à faire</button>
         </div>
 
         <!-- ================================================================= -->
@@ -273,6 +274,28 @@
             </div>
         </div>
 
+        <!-- ================================================================= -->
+        <!-- VUE 4 : RESTE À FAIRE -->
+        <!-- ================================================================= -->
+        <div id="view-resteafaire" class="hidden">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                <div class="flex justify-between items-center mb-6 border-b border-slate-200 pb-4">
+                    <div>
+                        <h2 class="text-lg font-black text-[#004587] uppercase tracking-wider">Reste à faire (Levée de réserves)</h2>
+                        <p class="text-xs text-slate-500 font-medium">Liste des tâches résiduelles ou points bloquants par niveau.</p>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+                    <div id="raf-container-SS1"></div>
+                    <div id="raf-container-RDC"></div>
+                    <div id="raf-container-R+1"></div>
+                    <div id="raf-container-Toiture"></div>
+                    <div id="raf-container-Cheneau"></div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <!-- ================================================================= -->
@@ -455,16 +478,20 @@
                 weeks: { "Semaine Initiale": [] },
                 currentWeek: "Semaine Initiale",
                 global: { tasks: [] },
-                deliveries: {} // Format: { "Semaine Initiale": [{id, day, zone, time, text, manager}] }
+                deliveries: {}, // Format: { "Semaine Initiale": [{id, day, zone, time, text, manager}] }
+                resteAFaire: []
             };
             localStorage.setItem('build_lean_data', JSON.stringify(appData));
         }
         if (!appData.global) appData.global = { tasks: [] };
         if (!appData.deliveries) appData.deliveries = {};
+        if (!appData.resteAFaire) appData.resteAFaire = [];
 
         let tasks = appData.weeks[appData.currentWeek] || [];
         let globalTasks = appData.global.tasks || [];
         let deliveries = appData.deliveries[appData.currentWeek] || [];
+        let rafTasks = appData.resteAFaire || [];
+        const rafLevels = ['SS1', 'RDC', 'R+1', 'Toiture', 'Cheneau'];
         
         let ppcChart = null, isDrawing = false, currentPath = [];
         let activeTaskId = null, selectedColor = '#3b82f6', currentFilter = 'all', drawingMode = 'new', editingTaskId = null;
@@ -514,10 +541,12 @@
             document.getElementById('view-lps').classList.toggle('hidden', view !== 'lps');
             document.getElementById('view-global').classList.toggle('hidden', view !== 'global');
             document.getElementById('view-livraisons').classList.toggle('hidden', view !== 'livraisons');
+            document.getElementById('view-resteafaire').classList.toggle('hidden', view !== 'resteafaire');
             
             const btnLps = document.getElementById('btnViewLPS');
             const btnGlobal = document.getElementById('btnViewGlobal');
             const btnLivraisons = document.getElementById('btnViewLivraisons');
+            const btnReste = document.getElementById('btnViewReste');
             
             const activeClass = "flex-none px-6 py-3 bg-[#004587] text-white rounded-lg font-black uppercase text-xs shadow-md transition";
             const inactiveClass = "flex-none px-6 py-3 bg-white text-slate-500 hover:bg-slate-50 rounded-lg font-bold uppercase text-xs border border-slate-200 transition";
@@ -525,6 +554,7 @@
             btnLps.className = view === 'lps' ? activeClass : inactiveClass;
             btnGlobal.className = view === 'global' ? activeClass : inactiveClass;
             btnLivraisons.className = view === 'livraisons' ? activeClass : inactiveClass;
+            btnReste.className = view === 'resteafaire' ? activeClass : inactiveClass;
             
             if(view === 'lps') {
                 document.getElementById('weekSelectorContainer').classList.remove('hidden');
@@ -535,6 +565,9 @@
             } else if(view === 'livraisons') {
                 document.getElementById('weekSelectorContainer').classList.remove('hidden');
                 renderLivraisonsUI();
+            } else if(view === 'resteafaire') {
+                document.getElementById('weekSelectorContainer').classList.add('hidden');
+                renderRafUI();
             }
         }
 
@@ -655,11 +688,13 @@
             appData.weeks[appData.currentWeek] = tasks;
             appData.global.tasks = globalTasks;
             appData.deliveries[appData.currentWeek] = deliveries;
+            appData.resteAFaire = rafTasks;
             localStorage.setItem('build_lean_data', JSON.stringify(appData)); 
             
             if(currentMainView === 'lps') renderUI();
             else if(currentMainView === 'global') renderGlobalUI();
-            else renderLivraisonsUI();
+            else if(currentMainView === 'livraisons') renderLivraisonsUI();
+            else renderRafUI();
         }
 
         function setDrawingMode(m) { 
@@ -1060,6 +1095,74 @@
                 closeDeliveryModal();
                 save();
             }
+        }
+
+        // ============================================================================
+        // VUE RESTE À FAIRE
+        // ============================================================================
+        function renderRafUI() {
+            rafLevels.forEach(level => {
+                const container = document.getElementById(`raf-container-${level}`);
+                if(!container) return;
+                
+                const levelTasks = rafTasks.filter(t => t.level === level);
+                
+                let html = `
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl overflow-hidden flex flex-col h-[500px]">
+                        <div class="bg-[#e2e8f0] text-[#0f172a] p-3 text-center font-black uppercase text-xs border-b border-slate-300 flex justify-center items-center">
+                            Niveau : ${level}
+                            <span class="ml-2 bg-white px-2 py-0.5 rounded-full text-[9px] text-[#004587] shadow-sm">${levelTasks.filter(t=>!t.done).length} restants</span>
+                        </div>
+                        <div class="flex-1 overflow-y-auto p-3 space-y-2">
+                `;
+                
+                if (levelTasks.length === 0) {
+                    html += `<p class="text-center text-xs text-slate-400 italic mt-6">Aucune tâche</p>`;
+                } else {
+                    levelTasks.forEach(t => {
+                        html += `
+                            <div class="flex items-start gap-2 bg-white p-2 rounded border border-slate-100 shadow-sm hover:border-slate-300 transition group">
+                                <input type="checkbox" class="mt-1 custom-checkbox flex-none" ${t.done ? 'checked' : ''} onchange="toggleRafTask('${t.id}', this.checked)">
+                                <span class="flex-1 text-xs break-words ${t.done ? 'line-through text-slate-400' : 'text-slate-700 font-bold'}">${t.text}</span>
+                                <button onclick="deleteRafTask('${t.id}')" class="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition flex-none" title="Supprimer">✖</button>
+                            </div>
+                        `;
+                    });
+                }
+                
+                html += `
+                        </div>
+                        <div class="p-3 bg-white border-t border-slate-200">
+                            <form onsubmit="event.preventDefault(); addRafTask('${level}')" class="flex gap-2">
+                                <input type="text" id="raf-input-${level}" class="flex-1 border border-slate-200 rounded p-2 text-xs outline-none focus:border-[#004587]" placeholder="Ajouter une tâche...">
+                                <button type="submit" class="bg-[#004587] text-white px-3 py-1.5 rounded font-black text-lg leading-none hover:bg-blue-900 shadow">+</button>
+                            </form>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML = html;
+            });
+        }
+
+        function addRafTask(level) {
+            const input = document.getElementById(`raf-input-${level}`);
+            if(!input) return;
+            const text = input.value.trim();
+            if (!text) return;
+            rafTasks.push({ id: Date.now().toString() + Math.random().toString(36).substr(2, 5), level, text, done: false });
+            input.value = '';
+            save();
+        }
+
+        function toggleRafTask(id, isDone) {
+            const t = rafTasks.find(x => x.id === id);
+            if (t) t.done = isDone;
+            save();
+        }
+
+        function deleteRafTask(id) {
+            rafTasks = rafTasks.filter(x => x.id !== id);
+            save();
         }
 
         // --- CHARGEMENT DES FICHIERS ---
