@@ -10,6 +10,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     
+    <!-- FIREBASE SDKs POUR LA SYNCHRONISATION CLOUD -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
     <style>
         body { touch-action: manipulation; }
         .pic-container { position: relative; overflow: auto; max-height: 65vh; border: 2px solid #e2e8f0; background: #f8fafc; min-height: 400px; touch-action: none; }
@@ -69,6 +73,11 @@
                 </div>
             </div>
             <div class="flex gap-2 w-full md:w-auto items-center">
+                <!-- Statut de synchronisation Cloud -->
+                <div id="cloudStatus" class="hidden md:flex items-center gap-2 mr-4 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                    <div class="w-2 h-2 rounded-full bg-slate-400" id="cloudDot"></div>
+                    <span id="cloudText">Local uniquement</span>
+                </div>
                 <button id="btnExport" onclick="generateFullReport()" class="bg-blue-700 text-white px-5 py-3 rounded-lg text-xs font-bold uppercase shadow-lg hover:bg-blue-800 transition">Exporter Rapport PDF</button>
             </div>
         </header>
@@ -228,11 +237,11 @@
                             </tr>
                             <tr>
                                 <th class="bg-slate-100 border-slate-300"></th>
-                                <!-- Lundi --><th class="del-header-zone w-[100px]">Rampe</th><th class="del-header-zone w-[100px]">Centre</th><th class="del-header-zone w-[100px]">Galieni</th>
-                                <!-- Mardi --><th class="del-header-zone w-[100px]">Rampe</th><th class="del-header-zone w-[100px]">Centre</th><th class="del-header-zone w-[100px]">Galieni</th>
-                                <!-- Mercredi --><th class="del-header-zone w-[100px]">Rampe</th><th class="del-header-zone w-[100px]">Centre</th><th class="del-header-zone w-[100px]">Galieni</th>
-                                <!-- Jeudi --><th class="del-header-zone w-[100px]">Rampe</th><th class="del-header-zone w-[100px]">Centre</th><th class="del-header-zone w-[100px]">Galieni</th>
-                                <!-- Vendredi --><th class="del-header-zone w-[100px]">Rampe</th><th class="del-header-zone w-[100px]">Centre</th><th class="del-header-zone w-[100px]">Galieni</th>
+                                <th class="del-header-zone w-[100px]">Rampe</th><th class="del-header-zone w-[100px]">Centre</th><th class="del-header-zone w-[100px]">Galieni</th>
+                                <th class="del-header-zone w-[100px]">Rampe</th><th class="del-header-zone w-[100px]">Centre</th><th class="del-header-zone w-[100px]">Galieni</th>
+                                <th class="del-header-zone w-[100px]">Rampe</th><th class="del-header-zone w-[100px]">Centre</th><th class="del-header-zone w-[100px]">Galieni</th>
+                                <th class="del-header-zone w-[100px]">Rampe</th><th class="del-header-zone w-[100px]">Centre</th><th class="del-header-zone w-[100px]">Galieni</th>
+                                <th class="del-header-zone w-[100px]">Rampe</th><th class="del-header-zone w-[100px]">Centre</th><th class="del-header-zone w-[100px]">Galieni</th>
                             </tr>
                         </thead>
                         <tbody id="livraisonsTableBody"></tbody>
@@ -270,7 +279,7 @@
 
     </div>
 
-    <!-- Modal Nouvelle Semaine -->
+    <!-- Modales -->
     <div id="weekModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center z-[500] p-4">
         <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl border-t-8 border-[#004587]">
             <h3 class="text-lg font-black mb-4 uppercase text-[#004587]">Nouvelle Semaine</h3>
@@ -282,7 +291,6 @@
         </div>
     </div>
 
-    <!-- Modal Avancement -->
     <div id="progressModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center z-[500] p-4">
         <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl border-t-8 border-indigo-500">
             <h3 class="text-lg font-black mb-2 uppercase text-indigo-600">Avancement (%)</h3>
@@ -295,7 +303,6 @@
         </div>
     </div>
 
-    <!-- Modal Nouvelle Tâche LPS -->
     <div id="createModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center z-[200] p-4">
         <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl border-t-8 border-[#004587]">
             <h3 id="modalTitle" class="text-lg font-black mb-4 uppercase italic text-[#004587]">Nouvelle Zone</h3>
@@ -320,7 +327,39 @@
         </div>
     </div>
 
-    <!-- Modal Retard LPS -->
+    <!-- Modal Edit RAF -->
+    <div id="editRafModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center z-[500] p-4">
+        <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl border-t-8 border-[#004587]">
+            <h3 class="text-lg font-black mb-4 uppercase text-[#004587]">Modifier la tâche</h3>
+            <label class="block text-[10px] font-black text-slate-400 uppercase mb-1">Corps d'état / Lot</label>
+            <select id="editRafLot" class="w-full border-2 border-slate-100 rounded-xl p-3 mb-3 text-xs font-bold outline-none focus:border-[#004587] bg-slate-50 text-slate-600">
+                <option value="GO - CMC">Gros œuvre - CMC</option>
+                <option value="ELEC - NEA">Électricité - NEA</option>
+                <option value="CVC - VARIANCE">Plomb/CVC - VARIANCE CLIM</option>
+                <option value="ARCHI">Architectural</option>
+                <option value="VRD - VALENTIN">VRD - VALENTIN</option>
+                <option value="BOIS - ARBONIS">Charpente bois - ARBONIS</option>
+                <option value="COUV - ECOBAT77">Couverture - ECOBAT77</option>
+                <option value="ETAN - SNA">Étanchéité - SNA</option>
+                <option value="SERR - VF METAL">Serrurerie - VF METAL</option>
+                <option value="SERR - FERALLIER">Serrurerie - FERALLIER</option>
+                <option value="CLOIS - EGIPP">Cloisons/Plafond - EGIPP</option>
+                <option value="PEINT - GPS">Peinture - GPS</option>
+                <option value="SPRINK - UXELLO">Sprinklage - UXELLO</option>
+                <option value="SOLS - VINET">Revêtements sols et murs - VINET</option>
+                <option value="MEN - AVA">Menuiseries ext. - AVA</option>
+                <option value="FIN - PROALLIANCE">Finitions - PROALLIANCE</option>
+                <option value="AUTRE">Autre</option>
+            </select>
+            <label class="block text-[10px] font-black text-slate-400 uppercase mb-1">Description</label>
+            <input type="text" id="editRafText" class="w-full border-2 border-slate-100 rounded-xl p-3 mb-5 text-sm outline-none focus:border-[#004587]">
+            <div class="flex gap-3">
+                <button onclick="document.getElementById('editRafModal').classList.add('hidden')" class="flex-1 py-3 font-bold text-slate-400 hover:text-slate-600">ANNULER</button>
+                <button onclick="saveEditRaf()" class="flex-1 py-3 bg-[#004587] text-white rounded-xl font-bold shadow-md">VALIDER</button>
+            </div>
+        </div>
+    </div>
+
     <div id="delayModal" class="fixed inset-0 bg-slate-900/90 backdrop-blur-md hidden z-[300] p-4 flex items-center justify-center overflow-y-auto">
         <div class="bg-white rounded-xl w-full max-w-5xl shadow-2xl flex flex-col my-auto border border-slate-200">
             <div class="bg-[#e1251b] p-4 text-white flex justify-between items-center rounded-t-xl">
@@ -401,7 +440,6 @@
         </div>
     </div>
 
-    <!-- Modal Global Task -->
     <div id="globalTaskModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center z-[200] p-4">
         <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl border-t-8 border-[#004587]">
             <h3 id="globalModalTitle" class="text-lg font-black mb-4 uppercase italic text-[#004587]">Détails Jalon Global</h3>
@@ -427,7 +465,6 @@
         </div>
     </div>
 
-    <!-- Modal Livraison -->
     <div id="deliveryModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center z-[200] p-4">
         <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl border-t-8 border-[#1e3a8a]">
             <h3 class="text-lg font-black mb-4 uppercase italic text-[#1e3a8a]">Planifier Livraison</h3>
@@ -478,66 +515,151 @@
         const pdfjsLib = window['pdfjs-dist/build/pdf'];
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-        let appData = JSON.parse(localStorage.getItem('build_lean_data'));
-        
-        if (!appData) {
-            appData = {
-                weeks: { "Semaine Initiale": [] },
-                currentWeek: "Semaine Initiale",
-                global: { tasks: [] },
-                deliveries: {},
-                resteAFaire: []
-            };
-            localStorage.setItem('build_lean_data', JSON.stringify(appData));
-        }
-        if (!appData.global) appData.global = { tasks: [] };
-        if (!appData.deliveries) appData.deliveries = {};
-        if (!appData.resteAFaire) appData.resteAFaire = [];
+        // --- SYSTEME DE SYNCHRONISATION (FIREBASE / LOCAL) ---
+        let useFirebase = false;
+        let db = null;
+        let docRef = null;
 
-        let tasks = appData.weeks[appData.currentWeek] || [];
-        let globalTasks = appData.global.tasks || [];
-        let deliveries = appData.deliveries[appData.currentWeek] || [];
-        let rafTasks = appData.resteAFaire || [];
+        // Configuration pour la synchronisation Cloud (GitHub)
+        // Remplacez ces valeurs par celles de votre propre projet Firebase pour activer la synchro PC <-> Téléphone
+        let firebaseConfig = {
+            apiKey: "VOTRE_CLE_API",
+            authDomain: "votre-projet.firebaseapp.com",
+            projectId: "votre-projet",
+            storageBucket: "votre-projet.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "VOTRE_APP_ID"
+        };
+
+        // Détection de l'environnement de développement Immersif (ne pas modifier)
+        try { if (typeof __firebase_config !== 'undefined') firebaseConfig = JSON.parse(__firebase_config); } catch(e) {}
+
+        let appData = null;
+        let tasks = []; let globalTasks = []; let deliveries = []; let rafTasks = [];
         const rafLevels = ['SS1', 'RDC', 'R+1', 'Toiture', 'Cheneau'];
         
         let ppcChart = null, isDrawing = false, currentPath = [];
         let activeTaskId = null, selectedColor = '#3b82f6', currentFilter = 'all', drawingMode = 'new', editingTaskId = null;
         let tempPolyline = null;
-        
         let currentMainView = 'lps';
-
         const timeSlots = ['8h - 8h45', '9h - 9h45', '10h - 10h45', '11h - 11h45', '12h - 12h45', '13h - 13h45', '14h - 14h45', '15h - 15h45', '16h - 16h45'];
         const days = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'];
         const zones = ['Rampe', 'Centre', 'Galieni'];
         let editingDeliveryId = null;
 
-        const wrapperLps = document.getElementById('canvasWrapper');
-        const picImageLps = document.getElementById('picImage');
-        const svgOverlayLps = document.getElementById('drawingOverlay');
-
-        const wrapperGlobal = document.getElementById('globalCanvasWrapper');
-        const picImageGlobal = document.getElementById('globalPicImage');
-        const svgOverlayGlobal = document.getElementById('globalDrawingOverlay');
+        const wrapperLps = document.getElementById('canvasWrapper'), picImageLps = document.getElementById('picImage'), svgOverlayLps = document.getElementById('drawingOverlay');
+        const wrapperGlobal = document.getElementById('globalCanvasWrapper'), picImageGlobal = document.getElementById('globalPicImage'), svgOverlayGlobal = document.getElementById('globalDrawingOverlay');
 
         window.onload = () => {
-            renderWeekSelector();
+            initApp();
             ppcChart = new Chart(document.getElementById('ppcChart').getContext('2d'), {
                 type: 'doughnut', data: { datasets: [{ data: [0, 0, 0], backgroundColor: ['#10b981', '#3b82f6', '#ef4444'], borderWidth: 0 }] },
                 options: { cutout: '80%', plugins: { tooltip: { enabled: false } } }
             });
-            renderUI();
-            
             const savedGlobalImg = localStorage.getItem('build_lean_global_img');
             if (savedGlobalImg) {
                 picImageGlobal.src = savedGlobalImg;
                 picImageGlobal.classList.remove('hidden');
                 document.getElementById('globalEmptyState').classList.add('hidden');
-                picImageGlobal.onload = () => {
-                    svgOverlayGlobal.setAttribute('width', picImageGlobal.width);
-                    svgOverlayGlobal.setAttribute('height', picImageGlobal.height);
-                };
+                picImageGlobal.onload = () => { svgOverlayGlobal.setAttribute('width', picImageGlobal.width); svgOverlayGlobal.setAttribute('height', picImageGlobal.height); };
             }
         };
+
+        function initApp() {
+            // Toujours initialiser en local en premier pour s'assurer que appData n'est jamais null
+            appData = JSON.parse(localStorage.getItem('build_lean_data'));
+            if (!appData) { 
+                initDefaultData(); 
+                localStorage.setItem('build_lean_data', JSON.stringify(appData)); 
+            }
+            updateLocalVariables();
+            triggerRender();
+            renderWeekSelector();
+
+            try {
+                if (firebaseConfig && firebaseConfig.apiKey && firebaseConfig.apiKey !== "VOTRE_CLE_API") {
+                    firebase.initializeApp(firebaseConfig);
+                    db = firebase.firestore();
+                    const appIdStr = typeof __app_id !== 'undefined' ? __app_id : 'build-lps-production';
+                    docRef = db.collection('artifacts').doc(appIdStr).collection('public').doc('appData');
+                    useFirebase = true;
+                    
+                    document.getElementById('cloudStatus').classList.remove('hidden');
+                    document.getElementById('cloudDot').classList.replace('bg-slate-400', 'bg-yellow-500');
+                    document.getElementById('cloudText').innerText = 'Connexion Cloud...';
+                }
+            } catch(e) { 
+                console.log("Firebase fallback to local"); 
+                useFirebase = false;
+            }
+
+            if (useFirebase) {
+                docRef.onSnapshot(doc => {
+                    if (doc.exists) {
+                        appData = doc.data();
+                    } else {
+                        // Pousse les données locales existantes vers le cloud s'il est vide
+                        docRef.set(appData);
+                    }
+                    updateLocalVariables();
+                    triggerRender();
+                    renderWeekSelector();
+                    
+                    document.getElementById('cloudDot').classList.remove('bg-yellow-500', 'bg-red-500');
+                    document.getElementById('cloudDot').classList.add('bg-green-500');
+                    document.getElementById('cloudText').innerText = 'Cloud Connecté';
+                }, error => {
+                    // Si Firebase refuse l'accès, on passe en mode local au lieu de crasher
+                    console.warn("Connexion cloud impossible, passage en mode local :", error.message);
+                    useFirebase = false;
+                    document.getElementById('cloudDot').classList.remove('bg-yellow-500', 'bg-green-500');
+                    document.getElementById('cloudDot').classList.add('bg-red-500');
+                    document.getElementById('cloudText').innerText = 'Mode Local (Cloud déconnecté)';
+                });
+            }
+        }
+
+        function initDefaultData() {
+            appData = { weeks: { "Semaine Initiale": [] }, currentWeek: "Semaine Initiale", global: { tasks: [] }, deliveries: {}, resteAFaire: [] };
+        }
+
+        function updateLocalVariables() {
+            if (!appData.global) appData.global = { tasks: [] };
+            if (!appData.deliveries) appData.deliveries = {};
+            if (!appData.resteAFaire) appData.resteAFaire = [];
+            tasks = appData.weeks[appData.currentWeek] || [];
+            globalTasks = appData.global.tasks || [];
+            deliveries = appData.deliveries[appData.currentWeek] || [];
+            rafTasks = appData.resteAFaire || [];
+        }
+
+        function saveData() { 
+            if (!appData) initDefaultData(); // Sécurité supplémentaire anti-crash
+            
+            appData.weeks[appData.currentWeek] = tasks;
+            appData.global.tasks = globalTasks;
+            appData.deliveries[appData.currentWeek] = deliveries;
+            appData.resteAFaire = rafTasks;
+            
+            if (useFirebase && docRef) {
+                docRef.set(appData).catch(e => {
+                    console.error("Firebase save error", e);
+                    // Sauvegarde locale de secours
+                    localStorage.setItem('build_lean_data', JSON.stringify(appData));
+                });
+            } else {
+                localStorage.setItem('build_lean_data', JSON.stringify(appData)); 
+            }
+            
+            triggerRender();
+        }
+
+        function triggerRender() {
+            if(currentMainView === 'lps') renderUI();
+            else if(currentMainView === 'global') renderGlobalUI();
+            else if(currentMainView === 'livraisons') renderLivraisonsUI();
+            else renderRafUI();
+        }
 
         function switchMainView(view) {
             currentMainView = view;
@@ -546,11 +668,7 @@
             document.getElementById('view-livraisons').classList.toggle('hidden', view !== 'livraisons');
             document.getElementById('view-resteafaire').classList.toggle('hidden', view !== 'resteafaire');
             
-            const btnLps = document.getElementById('btnViewLPS');
-            const btnGlobal = document.getElementById('btnViewGlobal');
-            const btnLivraisons = document.getElementById('btnViewLivraisons');
-            const btnReste = document.getElementById('btnViewReste');
-            
+            const btnLps = document.getElementById('btnViewLPS'), btnGlobal = document.getElementById('btnViewGlobal'), btnLivraisons = document.getElementById('btnViewLivraisons'), btnReste = document.getElementById('btnViewReste');
             const activeClass = "flex-none px-6 py-3 bg-[#004587] text-white rounded-lg font-black uppercase text-xs shadow-md transition";
             const inactiveClass = "flex-none px-6 py-3 bg-white text-slate-500 hover:bg-slate-50 rounded-lg font-bold uppercase text-xs border border-slate-200 transition";
             
@@ -559,28 +677,17 @@
             btnLivraisons.className = view === 'livraisons' ? activeClass : inactiveClass;
             btnReste.className = view === 'resteafaire' ? activeClass : inactiveClass;
             
-            if(view === 'lps') {
-                document.getElementById('weekSelectorContainer').classList.remove('hidden');
-                renderUI();
-            } else if(view === 'global') {
-                document.getElementById('weekSelectorContainer').classList.add('hidden');
-                renderGlobalUI();
-            } else if(view === 'livraisons') {
-                document.getElementById('weekSelectorContainer').classList.remove('hidden');
-                renderLivraisonsUI();
-            } else if(view === 'resteafaire') {
-                document.getElementById('weekSelectorContainer').classList.add('hidden');
-                renderRafUI();
-            }
+            document.getElementById('weekSelectorContainer').classList.toggle('hidden', view === 'global' || view === 'resteafaire');
+            triggerRender();
         }
 
         function renderWeekSelector() {
+            if(!appData) return;
             const selector = document.getElementById('weekSelector');
             selector.innerHTML = '';
             Object.keys(appData.weeks).forEach(week => {
                 const opt = document.createElement('option');
-                opt.value = week;
-                opt.text = week;
+                opt.value = week; opt.text = week;
                 if(week === appData.currentWeek) opt.selected = true;
                 selector.appendChild(opt);
             });
@@ -592,7 +699,7 @@
             tasks = appData.weeks[weekName];
             deliveries = appData.deliveries[weekName] || [];
             document.getElementById('livraisonsDateRange').innerText = weekName;
-            save();
+            saveData();
         }
 
         function openWeekModal() {
@@ -615,10 +722,11 @@
             tasks = appData.weeks[name];
             deliveries = [];
             renderWeekSelector();
-            save();
+            saveData();
             document.getElementById('weekModal').classList.add('hidden');
         }
 
+        // --- MOTEUR DE DESSIN ---
         function getCoords(e, wrapper) {
             const r = wrapper.getBoundingClientRect();
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -655,9 +763,8 @@
         const handleEndDraw = (isGlobal) => {
             if(isDrawing && currentPath.length > 3) {
                 if (drawingMode === 'new') {
-                    if (isGlobal) {
-                        openGlobalModal(null);
-                    } else {
+                    if (isGlobal) openGlobalModal(null);
+                    else {
                         document.getElementById('modalTitle').innerText = "Nouvelle Zone";
                         document.getElementById('modalBtn').innerText = "CRÉER";
                         document.getElementById('newTaskName').value = "";
@@ -668,7 +775,7 @@
                 } else if (drawingMode === 'redraw' && !isGlobal) {
                     const t = tasks.find(x => x.id === activeTaskId);
                     if (t) { t.path = [...currentPath]; t.progress = 0; }
-                    save(); resetDrawingMode();
+                    saveData(); resetDrawingMode();
                 }
             }
             isDrawing = false;
@@ -677,34 +784,13 @@
 
         wrapperLps.addEventListener('mousedown', (e) => { if(currentMainView==='lps') handleStartDraw(e, false); });
         wrapperLps.addEventListener('touchstart', (e) => { if (currentMainView==='lps' && (drawingMode !== 'new' || e.target.tagName !== 'polygon')) e.preventDefault(); if(currentMainView==='lps') handleStartDraw(e, false); }, { passive: false });
-        
         wrapperGlobal.addEventListener('mousedown', (e) => { if(currentMainView==='global') handleStartDraw(e, true); });
         wrapperGlobal.addEventListener('touchstart', (e) => { if(currentMainView==='global' && e.target.tagName !== 'polygon') e.preventDefault(); if(currentMainView==='global') handleStartDraw(e, true); }, { passive: false });
 
-        window.addEventListener('mousemove', (e) => {
-            if (!isDrawing) return;
-            if(currentMainView === 'lps') handleMoveDraw(e, false);
-            else if(currentMainView === 'global') handleMoveDraw(e, true);
-        });
-        window.addEventListener('touchmove', (e) => { 
-            if (!isDrawing) return; e.preventDefault();
-            if(currentMainView === 'lps') handleMoveDraw(e, false); else if(currentMainView === 'global') handleMoveDraw(e, true);
-        }, { passive: false });
+        window.addEventListener('mousemove', (e) => { if (!isDrawing) return; if(currentMainView === 'lps') handleMoveDraw(e, false); else if(currentMainView === 'global') handleMoveDraw(e, true); });
+        window.addEventListener('touchmove', (e) => { if (!isDrawing) return; e.preventDefault(); if(currentMainView === 'lps') handleMoveDraw(e, false); else if(currentMainView === 'global') handleMoveDraw(e, true); }, { passive: false });
         window.addEventListener('mouseup', () => { if(isDrawing) handleEndDraw(currentMainView === 'global'); });
         window.addEventListener('touchend', () => { if(isDrawing) handleEndDraw(currentMainView === 'global'); });
-
-        function save() { 
-            appData.weeks[appData.currentWeek] = tasks;
-            appData.global.tasks = globalTasks;
-            appData.deliveries[appData.currentWeek] = deliveries;
-            appData.resteAFaire = rafTasks;
-            localStorage.setItem('build_lean_data', JSON.stringify(appData)); 
-            
-            if(currentMainView === 'lps') renderUI();
-            else if(currentMainView === 'global') renderGlobalUI();
-            else if(currentMainView === 'livraisons') renderLivraisonsUI();
-            else renderRafUI();
-        }
 
         function setDrawingMode(m) { 
             drawingMode = m; 
@@ -724,7 +810,6 @@
             document.getElementById('createModal').classList.add('hidden'); 
             document.getElementById('delayModal').classList.add('hidden'); 
             document.getElementById('globalTaskModal').classList.add('hidden');
-            document.getElementById('progressModal').classList.add('hidden');
         }
         function closeStatusMenu() { document.getElementById('statusMenu').classList.add('hidden'); activeTaskId = null; }
 
@@ -741,13 +826,11 @@
             svgOverlayLps.innerHTML = ''; 
             const table = document.getElementById('taskTableBody');
             table.innerHTML = '';
-            
             const c = { done: 0, ongoing: 0, delayed: 0, none: 0, total: tasks.length };
             
             tasks.forEach(task => {
                 c[task.status]++;
                 if (currentFilter === 'all' || task.status === currentFilter) {
-                    
                     if(task.path && task.path.length > 0) {
                         const poly = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
                         poly.setAttribute("points", task.path.map(p => `${p.x},${p.y}`).join(" "));
@@ -779,13 +862,11 @@
                     let detail = (task.status === 'delayed' && task.causes) ? `<br><span class="text-red-500 text-[9px] font-bold">• ${task.causes.join(', ')}</span>` : '';
                     let deadlineStr = task.deadline ? `<br><span class="text-blue-600 text-[9px]">Échéance: ${new Date(task.deadline).toLocaleDateString('fr-FR')}</span>` : '';
                     let statusLabel = task.status === 'done' ? 'Fait' : (task.status === 'ongoing' ? 'Cours' : (task.status === 'delayed' ? 'Report' : 'À faire'));
-                    
                     row.innerHTML = `<td class="p-3 font-bold">${task.name}${deadlineStr}${detail}</td><td class="p-3 text-slate-500">${task.owner}</td><td class="p-3 text-center font-bold">${task.progress || 0}%</td><td class="p-3 text-right uppercase text-[9px] font-black">${statusLabel}</td>`;
                     table.appendChild(row);
                 }
             });
             updateStats(c);
-            
             ['all', 'done', 'ongoing', 'none', 'delayed'].forEach(k => {
                 const el = document.getElementById(`count-${k}`);
                 if (el) el.innerText = k==='all' ? c.total : c[k];
@@ -839,7 +920,7 @@
                 if (t.progress === 100) t.status = 'done';
                 else if (t.progress > 0) t.status = 'ongoing';
                 else if (t.progress < 100 && t.status === 'done') t.status = 'ongoing';
-                save();
+                saveData();
             }
             document.getElementById('progressModal').classList.add('hidden');
         }
@@ -847,7 +928,7 @@
         function setStatus(s) {
             const t = tasks.find(x => x.id === activeTaskId);
             if(t) { t.status = s; if (s === 'done') t.progress = 100; else if (s === 'none') t.progress = 0; }
-            closeStatusMenu(); save();
+            closeStatusMenu(); saveData();
         }
 
         function openDelayModal() { 
@@ -864,7 +945,7 @@
                 t.status = 'delayed'; t.causes = Array.from(checks).map(c => c.value);
                 t.comment = document.getElementById('delayComment').value;
             }
-            closeModals(); save(); closeStatusMenu();
+            closeModals(); saveData(); closeStatusMenu();
         }
 
         function confirmTask() {
@@ -878,10 +959,10 @@
             } else {
                 tasks.push({ id: Date.now(), name, owner: document.getElementById('newTaskOwner').value, deadline: deadline, color: selectedColor, path: [...currentPath], status: 'none', progress: 0 });
             }
-            save(); closeModals();
+            saveData(); closeModals();
         }
 
-        function deleteActiveTask() { tasks = tasks.filter(x => x.id !== activeTaskId); closeStatusMenu(); save(); }
+        function deleteActiveTask() { tasks = tasks.filter(x => x.id !== activeTaskId); closeStatusMenu(); saveData(); }
         function switchTab(t) { currentFilter = t; document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.getElementById('tab-' + t).classList.add('active'); renderUI(); }
         function selectColor(c, el) { selectedColor = c; document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('selected')); el.classList.add('selected'); }
         
@@ -994,13 +1075,13 @@
             } else {
                 globalTasks.push({ id: Date.now(), name, status: tempGlobalStatus, comment, path: [...currentPath] });
             }
-            closeGlobalModal(); save();
+            closeGlobalModal(); saveData();
         }
 
         function deleteGlobalTask() {
-            if(editingTaskId) {
+            if(editingTaskId && confirm("Supprimer ce jalon global ?")) {
                 globalTasks = globalTasks.filter(x => x.id !== editingTaskId);
-                closeGlobalModal(); save();
+                closeGlobalModal(); saveData();
             }
         }
 
@@ -1091,17 +1172,20 @@
             }
             
             closeDeliveryModal();
-            save();
+            saveData();
         }
 
         function deleteDelivery() {
             if (editingDeliveryId) {
                 deliveries = deliveries.filter(x => x.id !== editingDeliveryId);
                 closeDeliveryModal();
-                save();
+                saveData();
             }
         }
 
+        // ============================================================================
+        // VUE RESTE À FAIRE
+        // ============================================================================
         function renderRafUI() {
             rafLevels.forEach(level => {
                 const container = document.getElementById(`raf-container-${level}`);
@@ -1125,10 +1209,11 @@
                         html += `
                             <div class="flex items-start gap-2 bg-white p-2 rounded border border-slate-100 shadow-sm hover:border-slate-300 transition group">
                                 <input type="checkbox" class="mt-1 custom-checkbox flex-none" ${t.done ? 'checked' : ''} onchange="toggleRafTask('${t.id}', this.checked)">
-                                <div class="flex-1 flex flex-col">
+                                <div class="flex-1 flex flex-col cursor-pointer" onclick="editRafTask('${t.id}')">
                                     ${t.lot ? `<span class="text-[9px] font-black uppercase text-slate-400 tracking-wider mb-0.5">${t.lot}</span>` : ''}
                                     <span class="text-xs break-words ${t.done ? 'line-through text-slate-400' : 'text-slate-700 font-bold'}">${t.text}</span>
                                 </div>
+                                <button onclick="editRafTask('${t.id}')" class="text-blue-400 hover:text-blue-600 opacity-0 group-hover:opacity-100 transition flex-none" title="Modifier">✏️</button>
                                 <button onclick="deleteRafTask('${t.id}')" class="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition flex-none" title="Supprimer">✖</button>
                             </div>
                         `;
@@ -1189,20 +1274,52 @@
             });
             
             input.value = '';
-            save();
+            saveData();
+        }
+
+        let currentEditRafId = null;
+        function editRafTask(id) {
+            const t = rafTasks.find(x => x.id === id);
+            if(!t) return;
+            currentEditRafId = id;
+            
+            const select = document.getElementById('editRafLot');
+            for(let i=0; i<select.options.length; i++) {
+                if(select.options[i].text === t.lot) {
+                    select.selectedIndex = i;
+                    break;
+                }
+            }
+            
+            document.getElementById('editRafText').value = t.text;
+            document.getElementById('editRafModal').classList.remove('hidden');
+        }
+
+        function saveEditRaf() {
+            const t = rafTasks.find(x => x.id === currentEditRafId);
+            if(t) {
+                const select = document.getElementById('editRafLot');
+                t.lot = select.options[select.selectedIndex].text;
+                t.text = document.getElementById('editRafText').value.trim();
+                saveData();
+            }
+            document.getElementById('editRafModal').classList.add('hidden');
         }
 
         function toggleRafTask(id, isDone) {
             const t = rafTasks.find(x => x.id === id);
             if (t) t.done = isDone;
-            save();
+            saveData();
         }
 
         function deleteRafTask(id) {
-            rafTasks = rafTasks.filter(x => x.id !== id);
-            save();
+            if(confirm('Supprimer cette réserve ?')) {
+                rafTasks = rafTasks.filter(x => x.id !== id);
+                saveData();
+            }
         }
 
+        // --- CHARGEMENT DES FICHIERS ---
         function handleImageUpload(e, imgEl, overlayEl, isGlobal) {
             const file = e.target.files[0]; const reader = new FileReader();
             reader.onload = async (ev) => {
@@ -1230,6 +1347,7 @@
         document.getElementById('picUpload').onchange = (e) => handleImageUpload(e, picImageLps, svgOverlayLps, false);
         document.getElementById('globalPicUpload').onchange = (e) => handleImageUpload(e, picImageGlobal, svgOverlayGlobal, true);
 
+        // --- EXPORT PDF ---
         async function generateFullReport() {
             const btn = document.getElementById('btnExport');
             const originalText = btn.innerText;
