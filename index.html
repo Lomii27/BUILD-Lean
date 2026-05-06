@@ -35,7 +35,6 @@
         .custom-checkbox { width: 16px; height: 16px; cursor: pointer; accent-color: #dc2626; margin-top: 1px; }
         #reportMapContainer img { width: 100%; height: auto; object-fit: contain; border-radius: 8px; }
 
-        /* Styles spécifiques pour le planning de livraisons */
         .del-table { width: 100%; border-collapse: collapse; min-width: 1200px; }
         .del-table th, .del-table td { border: 1px solid #475569; }
         .del-header-top { background-color: #1e3a8a; color: white; text-align: center; padding: 8px; font-weight: bold; }
@@ -61,22 +60,19 @@
 <body class="bg-slate-50 font-sans text-slate-900">
 
     <div class="max-w-[1600px] mx-auto p-2 md:p-4">
-        <!-- Header -->
         <header class="flex flex-col md:flex-row justify-between items-center mb-4 bg-white p-4 rounded-xl shadow-sm border-b-4 border-[#004587] gap-3">
             <div class="flex items-center gap-4">
                 <img src="Logo%202.png" alt="Logo BUILD-Lean" class="h-12 md:h-14 w-auto" onerror="this.style.display='none'"> 
                 <div class="flex items-center bg-slate-100 rounded-lg p-1 border border-slate-200" id="weekSelectorContainer">
                     <select id="weekSelector" onchange="switchWeek(this.value)" class="bg-transparent text-sm font-bold text-[#004587] outline-none pl-2 pr-4 cursor-pointer"></select>
-                    <button onclick="createNewWeek()" class="bg-white text-slate-600 px-3 py-1 rounded shadow-sm text-[10px] font-black uppercase hover:bg-slate-200 ml-2">+ Nvlle Semaine</button>
+                    <button onclick="openWeekModal()" class="bg-white text-slate-600 px-3 py-1 rounded shadow-sm text-[10px] font-black uppercase hover:bg-slate-200 ml-2">+ Nvlle Semaine</button>
                 </div>
             </div>
             <div class="flex gap-2 w-full md:w-auto items-center">
-                <div id="authStatus" class="text-[10px] font-bold text-slate-400 mr-2 uppercase tracking-widest hidden md:block">Connexion...</div>
-                <button onclick="generateFullReport()" class="bg-blue-700 text-white px-5 py-3 rounded-lg text-xs font-bold uppercase shadow-lg hover:bg-blue-800 transition">Exporter Rapport PDF</button>
+                <button id="btnExport" onclick="generateFullReport()" class="bg-blue-700 text-white px-5 py-3 rounded-lg text-xs font-bold uppercase shadow-lg hover:bg-blue-800 transition">Exporter Rapport PDF</button>
             </div>
         </header>
 
-        <!-- Bascule de Vues Principales -->
         <div class="flex gap-2 mb-4 bg-white p-1.5 rounded-xl shadow-sm border border-slate-200 overflow-x-auto">
             <button onclick="switchMainView('lps')" id="btnViewLPS" class="flex-none px-6 py-3 bg-[#004587] text-white rounded-lg font-black uppercase text-xs shadow-md transition">Suivi Hebdo (LPS)</button>
             <button onclick="switchMainView('global')" id="btnViewGlobal" class="flex-none px-6 py-3 bg-white text-slate-500 hover:bg-slate-50 rounded-lg font-bold uppercase text-xs border border-slate-200 transition">Planning Global (Macro)</button>
@@ -84,9 +80,6 @@
             <button onclick="switchMainView('resteafaire')" id="btnViewReste" class="flex-none px-6 py-3 bg-white text-slate-500 hover:bg-slate-50 rounded-lg font-bold uppercase text-xs border border-slate-200 transition">Reste à faire</button>
         </div>
 
-        <!-- ================================================================= -->
-        <!-- VUE 1 : SUIVI HEBDO (LPS) -->
-        <!-- ================================================================= -->
         <div id="view-lps" class="grid grid-cols-1 lg:grid-cols-4 gap-4">
             <div class="lg:col-span-3 space-y-4">
                 <div class="bg-white p-1 rounded-xl shadow-sm border border-slate-200 relative">
@@ -117,7 +110,7 @@
                             <button onclick="editTaskInfo()" class="flex-1 text-[9px] uppercase font-black text-slate-600 bg-white border p-2 rounded shadow-sm hover:bg-slate-100">Infos ✏️</button>
                             <button onclick="setDrawingMode('redraw')" class="flex-1 text-[9px] uppercase font-black text-slate-600 bg-white border p-2 rounded shadow-sm hover:bg-slate-100">Tracé 🔄</button>
                         </div>
-                        <button onclick="setProgressPrompt()" class="text-left px-5 py-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-800 font-black text-xs border-b">Définir Avancement (%) 📏</button>
+                        <button onclick="openProgressModal()" class="text-left px-5 py-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-800 font-black text-xs border-b">Définir Avancement (%) 📏</button>
                         <button onclick="setStatus('done')" class="text-left px-5 py-3 hover:bg-green-50 text-green-700 font-bold text-sm border-b">Réalisée ✅</button>
                         <button onclick="setStatus('ongoing')" class="text-left px-5 py-3 hover:bg-blue-50 text-blue-700 font-bold text-sm border-b">En cours 🏗️</button>
                         <button onclick="openDelayModal()" class="text-left px-5 py-3 hover:bg-red-50 text-red-700 font-bold text-sm border-b">Reportée ⚠️</button>
@@ -158,15 +151,10 @@
                     </div>
                 </div>
                 
-                <div class="w-full space-y-4 text-left" id="statBars">
-                    <!-- Généré dynamiquement -->
-                </div>
+                <div class="w-full space-y-4 text-left" id="statBars"></div>
             </div>
         </div>
 
-        <!-- ================================================================= -->
-        <!-- VUE 2 : PLANNING GLOBAL (MACRO) -->
-        <!-- ================================================================= -->
         <div id="view-global" class="grid grid-cols-1 lg:grid-cols-4 gap-4 hidden">
             <div class="lg:col-span-3 space-y-4">
                 <div class="bg-white p-1 rounded-xl shadow-sm border border-slate-200 relative">
@@ -220,18 +208,13 @@
             </div>
         </div>
 
-        <!-- ================================================================= -->
-        <!-- VUE 3 : PLANNING LIVRAISONS -->
-        <!-- ================================================================= -->
         <div id="view-livraisons" class="hidden">
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                <!-- En-tête Livraisons -->
                 <div class="del-header-top">
                     PLANNING DE LIVRAISONS<br>
                     <span class="text-xs font-normal" id="livraisonsDateRange">Semaine en cours</span>
                 </div>
                 
-                <!-- Grille -->
                 <div class="overflow-x-auto">
                     <table class="del-table">
                         <thead>
@@ -245,25 +228,17 @@
                             </tr>
                             <tr>
                                 <th class="bg-slate-100 border-slate-300"></th>
-                                <!-- Lundi -->
-                                <th class="del-header-zone w-[100px]">Rampe</th><th class="del-header-zone w-[100px]">Centre</th><th class="del-header-zone w-[100px]">Galieni</th>
-                                <!-- Mardi -->
-                                <th class="del-header-zone w-[100px]">Rampe</th><th class="del-header-zone w-[100px]">Centre</th><th class="del-header-zone w-[100px]">Galieni</th>
-                                <!-- Mercredi -->
-                                <th class="del-header-zone w-[100px]">Rampe</th><th class="del-header-zone w-[100px]">Centre</th><th class="del-header-zone w-[100px]">Galieni</th>
-                                <!-- Jeudi -->
-                                <th class="del-header-zone w-[100px]">Rampe</th><th class="del-header-zone w-[100px]">Centre</th><th class="del-header-zone w-[100px]">Galieni</th>
-                                <!-- Vendredi -->
-                                <th class="del-header-zone w-[100px]">Rampe</th><th class="del-header-zone w-[100px]">Centre</th><th class="del-header-zone w-[100px]">Galieni</th>
+                                <!-- Lundi --><th class="del-header-zone w-[100px]">Rampe</th><th class="del-header-zone w-[100px]">Centre</th><th class="del-header-zone w-[100px]">Galieni</th>
+                                <!-- Mardi --><th class="del-header-zone w-[100px]">Rampe</th><th class="del-header-zone w-[100px]">Centre</th><th class="del-header-zone w-[100px]">Galieni</th>
+                                <!-- Mercredi --><th class="del-header-zone w-[100px]">Rampe</th><th class="del-header-zone w-[100px]">Centre</th><th class="del-header-zone w-[100px]">Galieni</th>
+                                <!-- Jeudi --><th class="del-header-zone w-[100px]">Rampe</th><th class="del-header-zone w-[100px]">Centre</th><th class="del-header-zone w-[100px]">Galieni</th>
+                                <!-- Vendredi --><th class="del-header-zone w-[100px]">Rampe</th><th class="del-header-zone w-[100px]">Centre</th><th class="del-header-zone w-[100px]">Galieni</th>
                             </tr>
                         </thead>
-                        <tbody id="livraisonsTableBody">
-                            <!-- Généré par JavaScript -->
-                        </tbody>
+                        <tbody id="livraisonsTableBody"></tbody>
                     </table>
                 </div>
 
-                <!-- Légende Livraisons -->
                 <div class="p-6 bg-white border-t flex flex-wrap gap-6 items-center">
                     <div class="flex items-center gap-2"><div class="w-6 h-4 del-victor border"></div> <span class="text-xs font-bold uppercase">Victor</span></div>
                     <div class="flex items-center gap-2"><div class="w-6 h-4 del-othmane border"></div> <span class="text-xs font-bold uppercase">Othmane / Camilo</span></div>
@@ -274,9 +249,6 @@
             </div>
         </div>
 
-        <!-- ================================================================= -->
-        <!-- VUE 4 : RESTE À FAIRE -->
-        <!-- ================================================================= -->
         <div id="view-resteafaire" class="hidden">
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                 <div class="flex justify-between items-center mb-6 border-b border-slate-200 pb-4">
@@ -298,11 +270,34 @@
 
     </div>
 
-    <!-- ================================================================= -->
-    <!-- MODALES LPS -->
-    <!-- ================================================================= -->
+    <!-- Modal Nouvelle Semaine -->
+    <div id="weekModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center z-[500] p-4">
+        <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl border-t-8 border-[#004587]">
+            <h3 class="text-lg font-black mb-4 uppercase text-[#004587]">Nouvelle Semaine</h3>
+            <input type="text" id="newWeekInput" placeholder="Nom de la semaine (Ex: S45)" class="w-full border-2 border-slate-100 rounded-xl p-3 mb-4 text-sm outline-none focus:border-[#004587] font-bold">
+            <div class="flex gap-3">
+                <button onclick="document.getElementById('weekModal').classList.add('hidden')" class="flex-1 py-3 font-bold text-slate-400 hover:text-slate-600">ANNULER</button>
+                <button onclick="confirmNewWeek()" class="flex-1 py-3 bg-[#004587] text-white rounded-xl font-bold shadow-md">VALIDER</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Avancement -->
+    <div id="progressModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center z-[500] p-4">
+        <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl border-t-8 border-indigo-500">
+            <h3 class="text-lg font-black mb-2 uppercase text-indigo-600">Avancement (%)</h3>
+            <p class="text-xs text-slate-500 mb-4">Mettez 100% pour passer la tâche en réalisée.</p>
+            <input type="number" id="progressInput" min="0" max="100" placeholder="Ex: 50" class="w-full border-2 border-slate-100 rounded-xl p-3 mb-4 text-lg outline-none focus:border-indigo-500 font-bold text-center">
+            <div class="flex gap-3">
+                <button onclick="document.getElementById('progressModal').classList.add('hidden')" class="flex-1 py-3 font-bold text-slate-400 hover:text-slate-600">ANNULER</button>
+                <button onclick="confirmProgress()" class="flex-1 py-3 bg-indigo-600 text-white rounded-xl font-bold shadow-md">METTRE A JOUR</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Nouvelle Tâche LPS -->
     <div id="createModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center z-[200] p-4">
-        <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl">
+        <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl border-t-8 border-[#004587]">
             <h3 id="modalTitle" class="text-lg font-black mb-4 uppercase italic text-[#004587]">Nouvelle Zone</h3>
             <label class="block text-[10px] font-black text-slate-400 uppercase mb-1">Désignation</label>
             <input type="text" id="newTaskName" class="w-full border-2 border-slate-100 rounded-xl p-3 mb-3 text-sm outline-none focus:border-[#004587]">
@@ -406,9 +401,7 @@
         </div>
     </div>
 
-    <!-- ================================================================= -->
-    <!-- MODALES GLOBAL PLANNING -->
-    <!-- ================================================================= -->
+    <!-- Modal Global Task -->
     <div id="globalTaskModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center z-[200] p-4">
         <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl border-t-8 border-[#004587]">
             <h3 id="globalModalTitle" class="text-lg font-black mb-4 uppercase italic text-[#004587]">Détails Jalon Global</h3>
@@ -434,9 +427,7 @@
         </div>
     </div>
 
-    <!-- ================================================================= -->
-    <!-- MODALE LIVRAISON -->
-    <!-- ================================================================= -->
+    <!-- Modal Livraison -->
     <div id="deliveryModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center z-[200] p-4">
         <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl border-t-8 border-[#1e3a8a]">
             <h3 class="text-lg font-black mb-4 uppercase italic text-[#1e3a8a]">Planifier Livraison</h3>
@@ -465,12 +456,28 @@
         </div>
     </div>
 
+    <div id="reportTemplate">
+        <div class="report-header">
+            <div>
+                <h1 style="font-size: 24px; font-weight: 900; color: #004587; margin:0; text-transform: uppercase;">Rapport de Production</h1>
+                <p id="reportDateLabel" style="color: #64748b; font-weight: bold; font-size: 14px; margin: 5px 0 0 0;"></p>
+            </div>
+            <div style="text-align: right;">
+                <img src="Logo%202.png" style="height: 50px; width: auto;" alt="Logo" onerror="this.style.display='none'">
+            </div>
+        </div>
+        <div id="reportMapContainer" style="width: 100%; border: 2px solid #e2e8f0; border-radius: 8px; margin-bottom: 20px; background: #fff;"></div>
+        <div style="background: #f8fafc; padding: 15px; border-radius: 12px; text-align: center; margin-bottom: 25px; border: 1px solid #f1f5f9;">
+            <p style="font-size: 14px; color: #64748b; font-weight: 800; margin: 0; text-transform: uppercase; letter-spacing: 1px;">Indice de Performance (PPC)</p>
+            <h2 style="font-size: 32px; font-weight: 900; color: #004587; margin: 5px 0 0 0;"><span id="reportPpcValueLabel">0%</span></h2>
+        </div>
+        <div id="reportTables"></div>
+    </div>
 
     <script>
         const pdfjsLib = window['pdfjs-dist/build/pdf'];
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-        // --- GESTION DES DONNÉES LOCALES ---
         let appData = JSON.parse(localStorage.getItem('build_lean_data'));
         
         if (!appData) {
@@ -478,7 +485,7 @@
                 weeks: { "Semaine Initiale": [] },
                 currentWeek: "Semaine Initiale",
                 global: { tasks: [] },
-                deliveries: {}, // Format: { "Semaine Initiale": [{id, day, zone, time, text, manager}] }
+                deliveries: {},
                 resteAFaire: []
             };
             localStorage.setItem('build_lean_data', JSON.stringify(appData));
@@ -497,16 +504,13 @@
         let activeTaskId = null, selectedColor = '#3b82f6', currentFilter = 'all', drawingMode = 'new', editingTaskId = null;
         let tempPolyline = null;
         
-        // Vue Management
         let currentMainView = 'lps';
 
-        // Constantes Livraisons
         const timeSlots = ['8h - 8h45', '9h - 9h45', '10h - 10h45', '11h - 11h45', '12h - 12h45', '13h - 13h45', '14h - 14h45', '15h - 15h45', '16h - 16h45'];
         const days = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'];
         const zones = ['Rampe', 'Centre', 'Galieni'];
         let editingDeliveryId = null;
 
-        // --- ELEMENTS DOM ---
         const wrapperLps = document.getElementById('canvasWrapper');
         const picImageLps = document.getElementById('picImage');
         const svgOverlayLps = document.getElementById('drawingOverlay');
@@ -535,7 +539,6 @@
             }
         };
 
-        // --- NAVIGATION PRINCIPALE ---
         function switchMainView(view) {
             currentMainView = view;
             document.getElementById('view-lps').classList.toggle('hidden', view !== 'lps');
@@ -571,7 +574,6 @@
             }
         }
 
-        // --- GESTION DES SEMAINES ---
         function renderWeekSelector() {
             const selector = document.getElementById('weekSelector');
             selector.innerHTML = '';
@@ -593,22 +595,30 @@
             save();
         }
 
-        function createNewWeek() {
-            let name = prompt("Nom de la nouvelle semaine de planning (ex: S45) :");
-            if (!name || appData.weeks[name]) return;
+        function openWeekModal() {
+            document.getElementById('newWeekInput').value = '';
+            document.getElementById('weekModal').classList.remove('hidden');
+        }
+
+        function confirmNewWeek() {
+            let name = document.getElementById('newWeekInput').value.trim();
+            if (!name || appData.weeks[name]) {
+                document.getElementById('weekModal').classList.add('hidden');
+                return;
+            }
             let carriedTasks = tasks.filter(t => t.status !== 'done').map(t => ({
                 ...t, id: Date.now() + Math.random(), status: 'none', progress: 0
             }));
             appData.weeks[name] = carriedTasks;
-            appData.deliveries[name] = []; // Nouvelle grille de livraison vide
+            appData.deliveries[name] = [];
             appData.currentWeek = name;
             tasks = appData.weeks[name];
             deliveries = [];
             renderWeekSelector();
             save();
+            document.getElementById('weekModal').classList.add('hidden');
         }
 
-        // --- MOTEUR DE DESSIN GENERIQUE ---
         function getCoords(e, wrapper) {
             const r = wrapper.getBoundingClientRect();
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -683,7 +693,6 @@
         window.addEventListener('mouseup', () => { if(isDrawing) handleEndDraw(currentMainView === 'global'); });
         window.addEventListener('touchend', () => { if(isDrawing) handleEndDraw(currentMainView === 'global'); });
 
-        // --- SAUVEGARDE & UTILITAIRES ---
         function save() { 
             appData.weeks[appData.currentWeek] = tasks;
             appData.global.tasks = globalTasks;
@@ -715,6 +724,7 @@
             document.getElementById('createModal').classList.add('hidden'); 
             document.getElementById('delayModal').classList.add('hidden'); 
             document.getElementById('globalTaskModal').classList.add('hidden');
+            document.getElementById('progressModal').classList.add('hidden');
         }
         function closeStatusMenu() { document.getElementById('statusMenu').classList.add('hidden'); activeTaskId = null; }
 
@@ -727,9 +737,6 @@
             return { cx: minX + (maxX - minX)/2, cy: minY + (maxY - minY)/2 };
         }
 
-        // ============================================================================
-        // VUE LPS : RENDU ET LOGIQUE
-        // ============================================================================
         function renderUI() {
             svgOverlayLps.innerHTML = ''; 
             const table = document.getElementById('taskTableBody');
@@ -814,21 +821,27 @@
             m.classList.remove('hidden');
         }
 
-        function setProgressPrompt() {
+        function openProgressModal() {
             const t = tasks.find(x => x.id === activeTaskId);
             if(!t) return;
-            let val = prompt(`Avancement actuel pour "${t.name}" (%) :`, t.progress || 0);
-            if (val !== null) {
-                let num = parseInt(val);
-                if (!isNaN(num)) {
-                    t.progress = Math.min(100, Math.max(0, num));
-                    if (t.progress === 100) t.status = 'done';
-                    else if (t.progress > 0) t.status = 'ongoing';
-                    else if (t.progress < 100 && t.status === 'done') t.status = 'ongoing';
-                    save();
-                }
-            }
+            document.getElementById('progressInput').value = t.progress || 0;
+            document.getElementById('progressModal').classList.remove('hidden');
             closeStatusMenu();
+        }
+
+        function confirmProgress() {
+            const t = tasks.find(x => x.id === activeTaskId);
+            if(!t) return;
+            let val = document.getElementById('progressInput').value;
+            let num = parseInt(val);
+            if (!isNaN(num)) {
+                t.progress = Math.min(100, Math.max(0, num));
+                if (t.progress === 100) t.status = 'done';
+                else if (t.progress > 0) t.status = 'ongoing';
+                else if (t.progress < 100 && t.status === 'done') t.status = 'ongoing';
+                save();
+            }
+            document.getElementById('progressModal').classList.add('hidden');
         }
 
         function setStatus(s) {
@@ -838,7 +851,7 @@
         }
 
         function openDelayModal() { 
-            document.getElementById('statusMenu').classList.add('hidden'); 
+            closeStatusMenu(); 
             document.querySelectorAll('.cause-check').forEach(c => c.checked = false);
             document.getElementById('delayComment').value = "";
             document.getElementById('delayModal').classList.remove('hidden'); 
@@ -890,9 +903,6 @@
             closeStatusMenu(); 
         }
 
-        // ============================================================================
-        // VUE GLOBAL PLANNING : RENDU ET LOGIQUE
-        // ============================================================================
         let tempGlobalStatus = 'ok';
 
         function renderGlobalUI() {
@@ -988,7 +998,7 @@
         }
 
         function deleteGlobalTask() {
-            if(editingTaskId && confirm("Supprimer ce jalon global ?")) {
+            if(editingTaskId) {
                 globalTasks = globalTasks.filter(x => x.id !== editingTaskId);
                 closeGlobalModal(); save();
             }
@@ -999,9 +1009,6 @@
             editingTaskId = null;
         }
 
-        // ============================================================================
-        // VUE PLANNING LIVRAISONS
-        // ============================================================================
         function renderLivraisonsUI() {
             const tbody = document.getElementById('livraisonsTableBody');
             tbody.innerHTML = '';
@@ -1016,7 +1023,6 @@
                         td.className = "del-cell";
                         td.onclick = () => openDeliveryModal(dIdx, zIdx, tIdx, null);
                         
-                        // Cherche la livraison pour cette case
                         const d = deliveries.find(x => x.day === dIdx && x.zone === zIdx && x.time === tIdx);
                         if (d) {
                             const div = document.createElement('div');
@@ -1080,7 +1086,6 @@
                 const d = deliveries.find(x => x.id === editingDeliveryId);
                 d.name = name; d.manager = manager;
             } else {
-                // Remove existing in same slot if any
                 deliveries = deliveries.filter(x => !(x.day === day && x.zone === zone && x.time === time));
                 deliveries.push({ id: Date.now(), day, zone, time, name, manager });
             }
@@ -1097,9 +1102,6 @@
             }
         }
 
-        // ============================================================================
-        // VUE RESTE À FAIRE
-        // ============================================================================
         function renderRafUI() {
             rafLevels.forEach(level => {
                 const container = document.getElementById(`raf-container-${level}`);
@@ -1123,7 +1125,10 @@
                         html += `
                             <div class="flex items-start gap-2 bg-white p-2 rounded border border-slate-100 shadow-sm hover:border-slate-300 transition group">
                                 <input type="checkbox" class="mt-1 custom-checkbox flex-none" ${t.done ? 'checked' : ''} onchange="toggleRafTask('${t.id}', this.checked)">
-                                <span class="flex-1 text-xs break-words ${t.done ? 'line-through text-slate-400' : 'text-slate-700 font-bold'}">${t.text}</span>
+                                <div class="flex-1 flex flex-col">
+                                    ${t.lot ? `<span class="text-[9px] font-black uppercase text-slate-400 tracking-wider mb-0.5">${t.lot}</span>` : ''}
+                                    <span class="text-xs break-words ${t.done ? 'line-through text-slate-400' : 'text-slate-700 font-bold'}">${t.text}</span>
+                                </div>
                                 <button onclick="deleteRafTask('${t.id}')" class="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition flex-none" title="Supprimer">✖</button>
                             </div>
                         `;
@@ -1133,9 +1138,30 @@
                 html += `
                         </div>
                         <div class="p-3 bg-white border-t border-slate-200">
-                            <form onsubmit="event.preventDefault(); addRafTask('${level}')" class="flex gap-2">
-                                <input type="text" id="raf-input-${level}" class="flex-1 border border-slate-200 rounded p-2 text-xs outline-none focus:border-[#004587]" placeholder="Ajouter une tâche...">
-                                <button type="submit" class="bg-[#004587] text-white px-3 py-1.5 rounded font-black text-lg leading-none hover:bg-blue-900 shadow">+</button>
+                            <form onsubmit="event.preventDefault(); addRafTask('${level}')" class="flex flex-col gap-2">
+                                <div class="flex gap-2">
+                                    <select id="raf-lot-${level}" class="w-1/3 border border-slate-200 rounded p-2 text-[10px] font-bold outline-none focus:border-[#004587] bg-slate-50 text-slate-600 truncate">
+                                        <option value="GO - CMC">Gros œuvre - CMC</option>
+                                        <option value="ELEC - NEA">Électricité - NEA</option>
+                                        <option value="CVC - VARIANCE">Plomb/CVC - VARIANCE CLIM</option>
+                                        <option value="ARCHI">Architectural</option>
+                                        <option value="VRD - VALENTIN">VRD - VALENTIN</option>
+                                        <option value="BOIS - ARBONIS">Charpente bois - ARBONIS</option>
+                                        <option value="COUV - ECOBAT77">Couverture - ECOBAT77</option>
+                                        <option value="ETAN - SNA">Étanchéité - SNA</option>
+                                        <option value="SERR - VF METAL">Serrurerie - VF METAL</option>
+                                        <option value="SERR - FERALLIER">Serrurerie - FERALLIER</option>
+                                        <option value="CLOIS - EGIPP">Cloisons/Plafond - EGIPP</option>
+                                        <option value="PEINT - GPS">Peinture - GPS</option>
+                                        <option value="SPRINK - UXELLO">Sprinklage - UXELLO</option>
+                                        <option value="SOLS - VINET">Revêtements sols et murs - VINET</option>
+                                        <option value="MEN - AVA">Menuiseries ext. - AVA</option>
+                                        <option value="FIN - PROALLIANCE">Finitions - PROALLIANCE</option>
+                                        <option value="AUTRE">Autre</option>
+                                    </select>
+                                    <input type="text" id="raf-input-${level}" class="flex-1 border border-slate-200 rounded p-2 text-xs outline-none focus:border-[#004587]" placeholder="Ajouter une tâche...">
+                                    <button type="submit" class="bg-[#004587] text-white px-3 py-1.5 rounded font-black text-lg leading-none hover:bg-blue-900 shadow">+</button>
+                                </div>
                             </form>
                         </div>
                     </div>
@@ -1146,10 +1172,22 @@
 
         function addRafTask(level) {
             const input = document.getElementById(`raf-input-${level}`);
+            const lotSelect = document.getElementById(`raf-lot-${level}`);
             if(!input) return;
+            
             const text = input.value.trim();
+            const lot = lotSelect ? lotSelect.options[lotSelect.selectedIndex].text : '';
+            
             if (!text) return;
-            rafTasks.push({ id: Date.now().toString() + Math.random().toString(36).substr(2, 5), level, text, done: false });
+            
+            rafTasks.push({ 
+                id: Date.now().toString() + Math.random().toString(36).substr(2, 5), 
+                level, 
+                lot, 
+                text, 
+                done: false 
+            });
+            
             input.value = '';
             save();
         }
@@ -1165,7 +1203,6 @@
             save();
         }
 
-        // --- CHARGEMENT DES FICHIERS ---
         function handleImageUpload(e, imgEl, overlayEl, isGlobal) {
             const file = e.target.files[0]; const reader = new FileReader();
             reader.onload = async (ev) => {
@@ -1193,64 +1230,76 @@
         document.getElementById('picUpload').onchange = (e) => handleImageUpload(e, picImageLps, svgOverlayLps, false);
         document.getElementById('globalPicUpload').onchange = (e) => handleImageUpload(e, picImageGlobal, svgOverlayGlobal, true);
 
-        // --- EXPORT PDF ---
         async function generateFullReport() {
-            alert("Export en cours (Veuillez patienter)...");
-            const { jsPDF } = window.jspdf; const pdf = new jsPDF('p', 'mm', 'a4');
-            const dateStr = new Date().toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-            document.getElementById('reportDateLabel').innerText = "Planning : " + appData.currentWeek + " - Édité le " + dateStr;
-            const done = tasks.filter(t => t.status === 'done');
-            const ppc = tasks.length > 0 ? Math.round((done.length / tasks.length) * 100) : 0;
-            document.getElementById('reportPpcValueLabel').innerText = ppc + '%';
+            const btn = document.getElementById('btnExport');
+            const originalText = btn.innerText;
+            btn.innerText = "EXPORT EN COURS...";
+            btn.classList.add('opacity-50', 'cursor-not-allowed');
 
-            let tablesHtml = '';
-            const categories = [
-                { title: "✅ TÂCHES RÉUSSIES", color: "#10b981", data: tasks.filter(t => t.status === 'done'), showCauses: false },
-                { title: "🏗️ TÂCHES EN COURS", color: "#3b82f6", data: tasks.filter(t => t.status === 'ongoing'), showCauses: false },
-                { title: "⚠️ TÂCHES REPORTÉES", color: "#ef4444", data: tasks.filter(t => t.status === 'delayed'), showCauses: true }
-            ];
+            setTimeout(async () => {
+                try {
+                    const { jsPDF } = window.jspdf; const pdf = new jsPDF('p', 'mm', 'a4');
+                    const dateStr = new Date().toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                    document.getElementById('reportDateLabel').innerText = "Planning : " + appData.currentWeek + " - Édité le " + dateStr;
+                    const done = tasks.filter(t => t.status === 'done');
+                    const ppc = tasks.length > 0 ? Math.round((done.length / tasks.length) * 100) : 0;
+                    document.getElementById('reportPpcValueLabel').innerText = ppc + '%';
 
-            categories.forEach(cat => {
-                if (cat.data.length > 0) {
-                    tablesHtml += `
-                    <div style="margin-bottom: 20px;">
-                        <h3 style="color: ${cat.color}; font-size: 14px; font-weight: bold; border-bottom: 2px solid ${cat.color}; padding-bottom: 3px; margin-bottom: 8px;">${cat.title}</h3>
-                        <table style="width: 100%; border-collapse: collapse; font-size: 10px;">
-                            <tr style="background: #f8fafc; text-align: left;">
-                                <th style="padding: 6px; border: 1px solid #e2e8f0; width:30%;">Tâche</th>
-                                <th style="padding: 6px; border: 1px solid #e2e8f0; width:20%;">Équipe</th>
-                                <th style="padding: 6px; border: 1px solid #e2e8f0; text-align: center; width:10%;">%</th>
-                                <th style="padding: 6px; border: 1px solid #e2e8f0;">${cat.showCauses ? 'Causes / Observations' : 'Statut'}</th>
-                            </tr>
-                            ${cat.data.map(t => `
-                                <tr>
-                                    <td style="padding: 6px; border: 1px solid #e2e8f0; font-weight: bold;">${t.name}<br><i style="font-size:8px;color:#64748b">Échéance: ${t.deadline || '-'}</i></td>
-                                    <td style="padding: 6px; border: 1px solid #e2e8f0;">${t.owner}</td>
-                                    <td style="padding: 6px; border: 1px solid #e2e8f0; text-align: center;">${t.progress}%</td>
-                                    <td style="padding: 6px; border: 1px solid #e2e8f0;">
-                                        ${cat.showCauses ? (t.causes || []).join(' • ') + (t.comment ? ' <br><small>' + t.comment + '</small>' : '') : 'OK'}
-                                    </td>
-                                </tr>
-                            `).join('')}
-                        </table>
-                    </div>`;
+                    let tablesHtml = '';
+                    const categories = [
+                        { title: "✅ TÂCHES RÉUSSIES", color: "#10b981", data: tasks.filter(t => t.status === 'done'), showCauses: false },
+                        { title: "🏗️ TÂCHES EN COURS", color: "#3b82f6", data: tasks.filter(t => t.status === 'ongoing'), showCauses: false },
+                        { title: "⚠️ TÂCHES REPORTÉES", color: "#ef4444", data: tasks.filter(t => t.status === 'delayed'), showCauses: true }
+                    ];
+
+                    categories.forEach(cat => {
+                        if (cat.data.length > 0) {
+                            tablesHtml += `
+                            <div style="margin-bottom: 20px;">
+                                <h3 style="color: ${cat.color}; font-size: 14px; font-weight: bold; border-bottom: 2px solid ${cat.color}; padding-bottom: 3px; margin-bottom: 8px;">${cat.title}</h3>
+                                <table style="width: 100%; border-collapse: collapse; font-size: 10px;">
+                                    <tr style="background: #f8fafc; text-align: left;">
+                                        <th style="padding: 6px; border: 1px solid #e2e8f0; width:30%;">Tâche</th>
+                                        <th style="padding: 6px; border: 1px solid #e2e8f0; width:20%;">Équipe</th>
+                                        <th style="padding: 6px; border: 1px solid #e2e8f0; text-align: center; width:10%;">%</th>
+                                        <th style="padding: 6px; border: 1px solid #e2e8f0;">${cat.showCauses ? 'Causes / Observations' : 'Statut'}</th>
+                                    </tr>
+                                    ${cat.data.map(t => `
+                                        <tr>
+                                            <td style="padding: 6px; border: 1px solid #e2e8f0; font-weight: bold;">${t.name}<br><i style="font-size:8px;color:#64748b">Échéance: ${t.deadline || '-'}</i></td>
+                                            <td style="padding: 6px; border: 1px solid #e2e8f0;">${t.owner}</td>
+                                            <td style="padding: 6px; border: 1px solid #e2e8f0; text-align: center;">${t.progress}%</td>
+                                            <td style="padding: 6px; border: 1px solid #e2e8f0;">
+                                                ${cat.showCauses ? (t.causes || []).join(' • ') + (t.comment ? ' <br><small>' + t.comment + '</small>' : '') : 'OK'}
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </table>
+                            </div>`;
+                        }
+                    });
+                    document.getElementById('reportTables').innerHTML = tablesHtml;
+                    const mapContainer = document.getElementById('reportMapContainer'); mapContainer.innerHTML = '';
+                    
+                    document.getElementById('statusMenu').classList.add('hidden');
+                    const mapCanvas = await html2canvas(wrapperLps, { scale: 2 });
+                    const mapImg = document.createElement('img'); mapImg.src = mapCanvas.toDataURL('image/jpeg', 0.8); mapContainer.appendChild(mapImg);
+
+                    const canvas = await html2canvas(document.getElementById('reportTemplate'), { scale: 2, useCORS: true });
+                    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+                    const imgW = 210, pageH = 297, imgH = (canvas.height * imgW) / canvas.width;
+                    let hLeft = imgH, pos = 0;
+                    pdf.addImage(imgData, 'JPEG', 0, pos, imgW, imgH);
+                    hLeft -= pageH;
+                    while (hLeft > 0) { pos = hLeft - imgH; pdf.addPage(); pdf.addImage(imgData, 'JPEG', 0, pos, imgW, imgH); hLeft -= pageH; }
+                    pdf.save(`Rapport_LPS_${appData.currentWeek}.pdf`);
+                } catch(e) {
+                    console.error(e);
+                } finally {
+                    btn.innerText = originalText;
+                    btn.classList.remove('opacity-50', 'cursor-not-allowed');
                 }
-            });
-            document.getElementById('reportTables').innerHTML = tablesHtml;
-            const mapContainer = document.getElementById('reportMapContainer'); mapContainer.innerHTML = '';
-            
-            document.getElementById('statusMenu').classList.add('hidden');
-            const mapCanvas = await html2canvas(wrapperLps, { scale: 2 });
-            const mapImg = document.createElement('img'); mapImg.src = mapCanvas.toDataURL('image/jpeg', 0.8); mapContainer.appendChild(mapImg);
-
-            const canvas = await html2canvas(document.getElementById('reportTemplate'), { scale: 2, useCORS: true });
-            const imgData = canvas.toDataURL('image/jpeg', 0.95);
-            const imgW = 210, pageH = 297, imgH = (canvas.height * imgW) / canvas.width;
-            let hLeft = imgH, pos = 0;
-            pdf.addImage(imgData, 'JPEG', 0, pos, imgW, imgH);
-            hLeft -= pageH;
-            while (hLeft > 0) { pos = hLeft - imgH; pdf.addPage(); pdf.addImage(imgData, 'JPEG', 0, pos, imgW, imgH); hLeft -= pageH; }
-            pdf.save(`Rapport_LPS_${appData.currentWeek}.pdf`);
+            }, 100);
         }
     </script>
 </body>
