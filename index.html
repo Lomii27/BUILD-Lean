@@ -39,6 +39,7 @@
         .custom-checkbox { width: 16px; height: 16px; cursor: pointer; accent-color: #dc2626; margin-top: 1px; }
         #reportMapContainer img { width: 100%; height: auto; object-fit: contain; border-radius: 8px; }
 
+        /* Styles spécifiques pour le planning de livraisons */
         .del-table { width: 100%; border-collapse: collapse; min-width: 1200px; }
         .del-table th, .del-table td { border: 1px solid #475569; }
         .del-header-top { background-color: #1e3a8a; color: white; text-align: center; padding: 8px; font-weight: bold; }
@@ -64,6 +65,7 @@
 <body class="bg-slate-50 font-sans text-slate-900">
 
     <div class="max-w-[1600px] mx-auto p-2 md:p-4">
+        <!-- Header -->
         <header class="flex flex-col md:flex-row justify-between items-center mb-4 bg-white p-4 rounded-xl shadow-sm border-b-4 border-[#004587] gap-3">
             <div class="flex items-center gap-4">
                 <img src="Logo%202.png" alt="Logo BUILD-Lean" class="h-12 md:h-14 w-auto" onerror="this.style.display='none'"> 
@@ -82,6 +84,7 @@
             </div>
         </header>
 
+        <!-- Bascule de Vues Principales -->
         <div class="flex gap-2 mb-4 bg-white p-1.5 rounded-xl shadow-sm border border-slate-200 overflow-x-auto">
             <button onclick="switchMainView('lps')" id="btnViewLPS" class="flex-none px-6 py-3 bg-[#004587] text-white rounded-lg font-black uppercase text-xs shadow-md transition">Suivi Hebdo (LPS)</button>
             <button onclick="switchMainView('global')" id="btnViewGlobal" class="flex-none px-6 py-3 bg-white text-slate-500 hover:bg-slate-50 rounded-lg font-bold uppercase text-xs border border-slate-200 transition">Planning Global (Macro)</button>
@@ -89,6 +92,9 @@
             <button onclick="switchMainView('resteafaire')" id="btnViewReste" class="flex-none px-6 py-3 bg-white text-slate-500 hover:bg-slate-50 rounded-lg font-bold uppercase text-xs border border-slate-200 transition">Reste à faire</button>
         </div>
 
+        <!-- ================================================================= -->
+        <!-- VUE 1 : SUIVI HEBDO (LPS) -->
+        <!-- ================================================================= -->
         <div id="view-lps" class="grid grid-cols-1 lg:grid-cols-4 gap-4">
             <div class="lg:col-span-3 space-y-4">
                 <div class="bg-white p-1 rounded-xl shadow-sm border border-slate-200 relative">
@@ -160,10 +166,15 @@
                     </div>
                 </div>
                 
-                <div class="w-full space-y-4 text-left" id="statBars"></div>
+                <div class="w-full space-y-4 text-left" id="statBars">
+                    <!-- Généré dynamiquement -->
+                </div>
             </div>
         </div>
 
+        <!-- ================================================================= -->
+        <!-- VUE 2 : PLANNING GLOBAL (MACRO) -->
+        <!-- ================================================================= -->
         <div id="view-global" class="grid grid-cols-1 lg:grid-cols-4 gap-4 hidden">
             <div class="lg:col-span-3 space-y-4">
                 <div class="bg-white p-1 rounded-xl shadow-sm border border-slate-200 relative">
@@ -217,6 +228,9 @@
             </div>
         </div>
 
+        <!-- ================================================================= -->
+        <!-- VUE 3 : PLANNING LIVRAISONS -->
+        <!-- ================================================================= -->
         <div id="view-livraisons" class="hidden">
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                 <div class="del-header-top">
@@ -258,6 +272,9 @@
             </div>
         </div>
 
+        <!-- ================================================================= -->
+        <!-- VUE 4 : RESTE À FAIRE -->
+        <!-- ================================================================= -->
         <div id="view-resteafaire" class="hidden">
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                 <div class="flex justify-between items-center mb-6 border-b border-slate-200 pb-4">
@@ -521,14 +538,13 @@
         let docRef = null;
 
         // Configuration pour la synchronisation Cloud (GitHub)
-        // Remplacez ces valeurs par celles de votre propre projet Firebase pour activer la synchro PC <-> Téléphone
         let firebaseConfig = {
-            apiKey: "VOTRE_CLE_API",
-            authDomain: "votre-projet.firebaseapp.com",
-            projectId: "votre-projet",
-            storageBucket: "votre-projet.appspot.com",
-            messagingSenderId: "123456789",
-            appId: "VOTRE_APP_ID"
+          apiKey: "AIzaSyBdGD-oEwyQ60r4ajKOrUaBWmaHUf9O2R4",
+          authDomain: "build--lean.firebaseapp.com",
+          projectId: "build--lean",
+          storageBucket: "build--lean.firebasestorage.app",
+          messagingSenderId: "460161720414",
+          appId: "1:460161720414:web:401dbe03b2e1b3af7b94cf"
         };
 
         // Détection de l'environnement de développement Immersif (ne pas modifier)
@@ -1183,9 +1199,6 @@
             }
         }
 
-        // ============================================================================
-        // VUE RESTE À FAIRE
-        // ============================================================================
         function renderRafUI() {
             rafLevels.forEach(level => {
                 const container = document.getElementById(`raf-container-${level}`);
@@ -1319,7 +1332,6 @@
             }
         }
 
-        // --- CHARGEMENT DES FICHIERS ---
         function handleImageUpload(e, imgEl, overlayEl, isGlobal) {
             const file = e.target.files[0]; const reader = new FileReader();
             reader.onload = async (ev) => {
@@ -1347,7 +1359,6 @@
         document.getElementById('picUpload').onchange = (e) => handleImageUpload(e, picImageLps, svgOverlayLps, false);
         document.getElementById('globalPicUpload').onchange = (e) => handleImageUpload(e, picImageGlobal, svgOverlayGlobal, true);
 
-        // --- EXPORT PDF ---
         async function generateFullReport() {
             const btn = document.getElementById('btnExport');
             const originalText = btn.innerText;
