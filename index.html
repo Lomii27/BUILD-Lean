@@ -80,7 +80,7 @@
                     <div class="w-2 h-2 rounded-full bg-slate-400" id="cloudDot"></div>
                     <span id="cloudText">Local uniquement</span>
                 </div>
-                <button id="btnExport" onclick="generateFullReport()" class="bg-blue-700 text-white px-5 py-3 rounded-lg text-xs font-bold uppercase shadow-lg hover:bg-blue-800 transition">Exporter Rapport PDF</button>
+                <button id="btnExport" onclick="openExportModal()" class="bg-blue-700 text-white px-5 py-3 rounded-lg text-xs font-bold uppercase shadow-lg hover:bg-blue-800 transition">Exporter Rapport PDF</button>
             </div>
         </header>
 
@@ -251,11 +251,11 @@
                             </tr>
                             <tr>
                                 <th class="bg-slate-100 border-slate-300"></th>
-                                <th class="del-header-zone w-[100px]">Rampe</th><th class="del-header-zone w-[100px]">Centre</th><th class="del-header-zone w-[100px]">Gallieni</th>
-                                <th class="del-header-zone w-[100px]">Rampe</th><th class="del-header-zone w-[100px]">Centre</th><th class="del-header-zone w-[100px]">Gallieni</th>
-                                <th class="del-header-zone w-[100px]">Rampe</th><th class="del-header-zone w-[100px]">Centre</th><th class="del-header-zone w-[100px]">Gallieni</th>
-                                <th class="del-header-zone w-[100px]">Rampe</th><th class="del-header-zone w-[100px]">Centre</th><th class="del-header-zone w-[100px]">Gallieni</th>
-                                <th class="del-header-zone w-[100px]">Rampe</th><th class="del-header-zone w-[100px]">Centre</th><th class="del-header-zone w-[100px]">Gallieni</th>
+                                <th class="del-header-zone w-[100px]">Rampe</th><th class="del-header-zone w-[100px]">Centre</th><th class="del-header-zone w-[100px]">Galieni</th>
+                                <th class="del-header-zone w-[100px]">Rampe</th><th class="del-header-zone w-[100px]">Centre</th><th class="del-header-zone w-[100px]">Galieni</th>
+                                <th class="del-header-zone w-[100px]">Rampe</th><th class="del-header-zone w-[100px]">Centre</th><th class="del-header-zone w-[100px]">Galieni</th>
+                                <th class="del-header-zone w-[100px]">Rampe</th><th class="del-header-zone w-[100px]">Centre</th><th class="del-header-zone w-[100px]">Galieni</th>
+                                <th class="del-header-zone w-[100px]">Rampe</th><th class="del-header-zone w-[100px]">Centre</th><th class="del-header-zone w-[100px]">Galieni</th>
                             </tr>
                         </thead>
                         <tbody id="livraisonsTableBody"></tbody>
@@ -510,23 +510,48 @@
         </div>
     </div>
 
-    <div id="reportTemplate">
-        <div class="report-header">
-            <div>
-                <h1 style="font-size: 24px; font-weight: 900; color: #004587; margin:0; text-transform: uppercase;">Rapport de Production</h1>
-                <p id="reportDateLabel" style="color: #64748b; font-weight: bold; font-size: 14px; margin: 5px 0 0 0;"></p>
+    <!-- Modal Export PDF -->
+    <div id="exportModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center z-[500] p-4">
+        <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl border-t-8 border-blue-700">
+            <h3 class="text-lg font-black mb-4 uppercase text-blue-700 text-center">Choix de l'Export PDF</h3>
+            <p class="text-xs text-slate-500 mb-6 text-center">Sélectionnez les éléments à inclure dans votre rapport.</p>
+            
+            <div class="space-y-3 mb-6">
+                <button onclick="generateReport('lps')" class="w-full p-4 border-2 border-slate-100 rounded-xl hover:border-[#004587] hover:bg-slate-50 transition text-left flex items-center gap-3">
+                    <span class="text-2xl">🏗️</span>
+                    <div>
+                        <div class="font-bold text-[#004587] text-sm uppercase">Suivi Hebdo (LPS)</div>
+                        <div class="text-[10px] text-slate-500">Plan de la semaine, tableau d'avancement et PPC.</div>
+                    </div>
+                </button>
+                <button onclick="generateReport('livraisons')" class="w-full p-4 border-2 border-slate-100 rounded-xl hover:border-[#004587] hover:bg-slate-50 transition text-left flex items-center gap-3">
+                    <span class="text-2xl">🚚</span>
+                    <div>
+                        <div class="font-bold text-[#004587] text-sm uppercase">Planning Livraisons</div>
+                        <div class="text-[10px] text-slate-500">Grille hebdomadaire des livraisons par zone.</div>
+                    </div>
+                </button>
+                <button onclick="generateReport('raf')" class="w-full p-4 border-2 border-slate-100 rounded-xl hover:border-[#004587] hover:bg-slate-50 transition text-left flex items-center gap-3">
+                    <span class="text-2xl">📋</span>
+                    <div>
+                        <div class="font-bold text-[#004587] text-sm uppercase">Reste à faire (Levée réserves)</div>
+                        <div class="text-[10px] text-slate-500">Tâches restantes groupées par niveau et par lot.</div>
+                    </div>
+                </button>
+                <button onclick="generateReport('all')" class="w-full p-4 bg-[#004587] text-white rounded-xl shadow-md hover:bg-blue-900 transition text-left flex items-center gap-3">
+                    <span class="text-2xl">📑</span>
+                    <div>
+                        <div class="font-black text-sm uppercase tracking-wide">Rapport Complet (Les 3)</div>
+                        <div class="text-[10px] text-blue-200">Génère un seul PDF contenant tous les éléments.</div>
+                    </div>
+                </button>
             </div>
-            <div style="text-align: right;">
-                <img src="Logo%202.png" style="height: 50px; width: auto;" alt="Logo" onerror="this.style.display='none'">
-            </div>
+            
+            <button onclick="closeExportModal()" class="w-full py-3 font-bold text-slate-400 hover:text-slate-600">ANNULER</button>
         </div>
-        <div id="reportMapContainer" style="width: 100%; border: 2px solid #e2e8f0; border-radius: 8px; margin-bottom: 20px; background: #fff;"></div>
-        <div style="background: #f8fafc; padding: 15px; border-radius: 12px; text-align: center; margin-bottom: 25px; border: 1px solid #f1f5f9;">
-            <p style="font-size: 14px; color: #64748b; font-weight: 800; margin: 0; text-transform: uppercase; letter-spacing: 1px;">Indice de Performance (PPC)</p>
-            <h2 style="font-size: 32px; font-weight: 900; color: #004587; margin: 5px 0 0 0;"><span id="reportPpcValueLabel">0%</span></h2>
-        </div>
-        <div id="reportTables"></div>
     </div>
+
+    <div id="reportTemplate"></div>
 
     <script>
         const pdfjsLib = window['pdfjs-dist/build/pdf'];
@@ -562,7 +587,7 @@
         let currentMainView = 'lps';
         const timeSlots = ['8h - 8h45', '9h - 9h45', '10h - 10h45', '11h - 11h45', '12h - 12h45', '13h - 13h45', '14h - 14h45', '15h - 15h45', '16h - 16h45'];
         const days = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'];
-        const zones = ['Rampe', 'Centre', 'Gallieni'];
+        const zones = ['Rampe', 'Centre', 'Galieni'];
         let editingDeliveryId = null;
 
         const wrapperLps = document.getElementById('canvasWrapper'), picImageLps = document.getElementById('picImage'), svgOverlayLps = document.getElementById('drawingOverlay');
@@ -1360,7 +1385,11 @@
         document.getElementById('picUpload').onchange = (e) => handleImageUpload(e, picImageLps, svgOverlayLps, false);
         document.getElementById('globalPicUpload').onchange = (e) => handleImageUpload(e, picImageGlobal, svgOverlayGlobal, true);
 
-        async function generateFullReport() {
+        function openExportModal() { document.getElementById('exportModal').classList.remove('hidden'); }
+        function closeExportModal() { document.getElementById('exportModal').classList.add('hidden'); }
+
+        async function generateReport(type) {
+            closeExportModal();
             const btn = document.getElementById('btnExport');
             const originalText = btn.innerText;
             btn.innerText = "EXPORT EN COURS...";
@@ -1368,63 +1397,204 @@
 
             setTimeout(async () => {
                 try {
-                    const { jsPDF } = window.jspdf; const pdf = new jsPDF('p', 'mm', 'a4');
+                    const { jsPDF } = window.jspdf; 
+                    const pdf = new jsPDF('p', 'mm', 'a4');
                     const dateStr = new Date().toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-                    document.getElementById('reportDateLabel').innerText = "Planning : " + appData.currentWeek + " - Édité le " + dateStr;
-                    const done = tasks.filter(t => t.status === 'done');
-                    const ppc = tasks.length > 0 ? Math.round((done.length / tasks.length) * 100) : 0;
-                    document.getElementById('reportPpcValueLabel').innerText = ppc + '%';
+                    let isFirstPage = true;
 
-                    let tablesHtml = '';
-                    const categories = [
-                        { title: "✅ TÂCHES RÉUSSIES", color: "#10b981", data: tasks.filter(t => t.status === 'done'), showCauses: false },
-                        { title: "🏗️ TÂCHES EN COURS", color: "#3b82f6", data: tasks.filter(t => t.status === 'ongoing'), showCauses: false },
-                        { title: "⚠️ TÂCHES REPORTÉES", color: "#ef4444", data: tasks.filter(t => t.status === 'delayed'), showCauses: true }
-                    ];
+                    // Fonction générique pour créer une section dans le PDF
+                    const addSection = async (title, contentHtml, addMap = false) => {
+                        if (!isFirstPage) pdf.addPage();
+                        isFirstPage = false;
+                        
+                        document.getElementById('reportTemplate').innerHTML = `
+                            <div style="border-bottom: 4px solid #004587; padding-bottom: 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <h1 style="font-size: 24px; font-weight: 900; color: #004587; margin:0; text-transform: uppercase;">${title}</h1>
+                                    <p style="color: #64748b; font-weight: bold; font-size: 14px; margin: 5px 0 0 0;">Semaine : ${appData.currentWeek} - Édité le ${dateStr}</p>
+                                </div>
+                                <div style="text-align: right;">
+                                    <img src="Logo%202.png" style="height: 50px; width: auto;" alt="Logo" onerror="this.style.display='none'">
+                                </div>
+                            </div>
+                            ${addMap ? '<div id="tempMapHolder" style="width: 100%; border: 2px solid #e2e8f0; border-radius: 8px; margin-bottom: 20px; background: #fff;"></div>' : ''}
+                            ${contentHtml}
+                        `;
+                        
+                        if (addMap) {
+                            document.getElementById('statusMenu').classList.add('hidden');
+                            const mapCanvas = await html2canvas(wrapperLps, { scale: 2 });
+                            const mapImg = document.createElement('img'); 
+                            mapImg.src = mapCanvas.toDataURL('image/jpeg', 0.8); 
+                            mapImg.style.width = '100%'; 
+                            mapImg.style.height = 'auto'; 
+                            mapImg.style.borderRadius = '8px';
+                            document.getElementById('tempMapHolder').appendChild(mapImg);
+                        }
 
-                    categories.forEach(cat => {
-                        if (cat.data.length > 0) {
-                            tablesHtml += `
-                            <div style="margin-bottom: 20px;">
-                                <h3 style="color: ${cat.color}; font-size: 14px; font-weight: bold; border-bottom: 2px solid ${cat.color}; padding-bottom: 3px; margin-bottom: 8px;">${cat.title}</h3>
-                                <table style="width: 100%; border-collapse: collapse; font-size: 10px;">
-                                    <tr style="background: #f8fafc; text-align: left;">
-                                        <th style="padding: 6px; border: 1px solid #e2e8f0; width:30%;">Tâche</th>
-                                        <th style="padding: 6px; border: 1px solid #e2e8f0; width:20%;">Équipe</th>
-                                        <th style="padding: 6px; border: 1px solid #e2e8f0; text-align: center; width:10%;">%</th>
-                                        <th style="padding: 6px; border: 1px solid #e2e8f0;">${cat.showCauses ? 'Causes / Observations' : 'Statut'}</th>
+                        const canvas = await html2canvas(document.getElementById('reportTemplate'), { scale: 2, useCORS: true });
+                        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+                        const imgW = 210, pageH = 297, imgH = (canvas.height * imgW) / canvas.width;
+                        let hLeft = imgH, pos = 0;
+                        
+                        pdf.addImage(imgData, 'JPEG', 0, pos, imgW, imgH);
+                        hLeft -= pageH;
+                        while (hLeft > 0) { 
+                            pos = hLeft - imgH; 
+                            pdf.addPage(); 
+                            pdf.addImage(imgData, 'JPEG', 0, pos, imgW, imgH); 
+                            hLeft -= pageH; 
+                        }
+                    };
+
+                    // ==========================================
+                    // 1. SECTION LPS
+                    // ==========================================
+                    if (type === 'lps' || type === 'all') {
+                        const done = tasks.filter(t => t.status === 'done');
+                        const ppc = tasks.length > 0 ? Math.round((done.length / tasks.length) * 100) : 0;
+                        
+                        let lpsContent = `
+                            <div style="background: #f8fafc; padding: 15px; border-radius: 12px; text-align: center; margin-bottom: 25px; border: 1px solid #f1f5f9;">
+                                <p style="font-size: 14px; color: #64748b; font-weight: 800; margin: 0; text-transform: uppercase; letter-spacing: 1px;">Indice de Performance (PPC)</p>
+                                <h2 style="font-size: 32px; font-weight: 900; color: #004587; margin: 5px 0 0 0;">${ppc}%</h2>
+                            </div>
+                        `;
+                        
+                        const categories = [
+                            { title: "✅ TÂCHES RÉUSSIES", color: "#10b981", data: tasks.filter(t => t.status === 'done'), showCauses: false },
+                            { title: "🏗️ TÂCHES EN COURS", color: "#3b82f6", data: tasks.filter(t => t.status === 'ongoing'), showCauses: false },
+                            { title: "⚠️ TÂCHES REPORTÉES", color: "#ef4444", data: tasks.filter(t => t.status === 'delayed'), showCauses: true }
+                        ];
+
+                        categories.forEach(cat => {
+                            if (cat.data.length > 0) {
+                                lpsContent += `
+                                <div style="margin-bottom: 20px;">
+                                    <h3 style="color: ${cat.color}; font-size: 14px; font-weight: bold; border-bottom: 2px solid ${cat.color}; padding-bottom: 3px; margin-bottom: 8px;">${cat.title}</h3>
+                                    <table style="width: 100%; border-collapse: collapse; font-size: 10px;">
+                                        <tr style="background: #f8fafc; text-align: left;">
+                                            <th style="padding: 6px; border: 1px solid #e2e8f0; width:30%;">Tâche</th>
+                                            <th style="padding: 6px; border: 1px solid #e2e8f0; width:20%;">Équipe</th>
+                                            <th style="padding: 6px; border: 1px solid #e2e8f0; text-align: center; width:10%;">%</th>
+                                            <th style="padding: 6px; border: 1px solid #e2e8f0;">${cat.showCauses ? 'Causes / Observations' : 'Statut'}</th>
+                                        </tr>
+                                        ${cat.data.map(t => `
+                                            <tr>
+                                                <td style="padding: 6px; border: 1px solid #e2e8f0; font-weight: bold;">${t.name}<br><i style="font-size:8px;color:#64748b">Échéance: ${t.deadline || '-'}</i></td>
+                                                <td style="padding: 6px; border: 1px solid #e2e8f0;">${t.owner}</td>
+                                                <td style="padding: 6px; border: 1px solid #e2e8f0; text-align: center;">${t.progress}%</td>
+                                                <td style="padding: 6px; border: 1px solid #e2e8f0;">
+                                                    ${cat.showCauses ? (t.causes || []).join(' • ') + (t.comment ? ' <br><small>' + t.comment + '</small>' : '') : 'OK'}
+                                                </td>
+                                            </tr>
+                                        `).join('')}
+                                    </table>
+                                </div>`;
+                            }
+                        });
+                        
+                        await addSection('Rapport Suivi LPS', lpsContent, true);
+                    }
+
+                    // ==========================================
+                    // 2. SECTION LIVRAISONS
+                    // ==========================================
+                    if (type === 'livraisons' || type === 'all') {
+                        let livHtml = `
+                            <h3 style="color: #1e3a8a; font-size: 16px; margin-bottom: 15px; text-transform: uppercase; font-weight: 900;">Grille de la semaine</h3>
+                            <table style="width: 100%; border-collapse: collapse; font-size: 8px; text-align: center; font-family: sans-serif; table-layout: fixed;">
+                                <thead>
+                                    <tr>
+                                        <th style="border: 1px solid #475569; background: #475569; color: white; padding: 4px; width: 10%;">Heures</th>
+                                        ${days.map(d => `<th colspan="3" style="border: 1px solid #475569; background: #64748b; color: white; padding: 4px; width: 18%;">${d}</th>`).join('')}
                                     </tr>
-                                    ${cat.data.map(t => `
+                                    <tr>
+                                        <th style="border: 1px solid #475569; background: #f1f5f9;"></th>
+                                        ${days.map(d => zones.map(z => `<th style="border: 1px solid #475569; background: #f1f5f9; padding: 2px; font-size: 7px;">${z}</th>`).join('')).join('')}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${timeSlots.map((time, tIdx) => `
                                         <tr>
-                                            <td style="padding: 6px; border: 1px solid #e2e8f0; font-weight: bold;">${t.name}<br><i style="font-size:8px;color:#64748b">Échéance: ${t.deadline || '-'}</i></td>
-                                            <td style="padding: 6px; border: 1px solid #e2e8f0;">${t.owner}</td>
-                                            <td style="padding: 6px; border: 1px solid #e2e8f0; text-align: center;">${t.progress}%</td>
-                                            <td style="padding: 6px; border: 1px solid #e2e8f0;">
-                                                ${cat.showCauses ? (t.causes || []).join(' • ') + (t.comment ? ' <br><small>' + t.comment + '</small>' : '') : 'OK'}
-                                            </td>
+                                            <td style="border: 1px solid #475569; background: #f8fafc; font-weight: bold; padding: 4px;">${time}</td>
+                                            ${days.map((day, dIdx) => zones.map((zone, zIdx) => {
+                                                const d = deliveries.find(x => x.day === dIdx && x.zone === zIdx && x.time === tIdx);
+                                                if(d) {
+                                                    let bg = '#f1f5f9', color = '#334155', border = '#94a3b8';
+                                                    if (d.manager === 'Victor') { bg = '#d1fae5'; color = '#065f46'; border = '#10b981'; }
+                                                    else if (d.manager === 'Othmane/Camilo') { bg = '#fef08a'; color = '#854d0e'; border = '#eab308'; }
+                                                    else if (d.manager === 'Alexandre') { bg = '#fee2e2'; color = '#991b1b'; border = '#ef4444'; }
+                                                    else if (d.manager === 'Benne') { bg = '#1e293b'; color = 'white'; border = '#0f172a'; }
+                                                    
+                                                    return `<td style="border: 1px solid #475569; padding: 1px; vertical-align: middle;">
+                                                                <div style="background: ${bg}; color: ${color}; border: 1px solid ${border}; padding: 2px; font-weight: bold; border-radius: 2px; font-size: 7px; line-height: 1.1; overflow: hidden; text-overflow: ellipsis;">${d.name}</div>
+                                                            </td>`;
+                                                }
+                                                return `<td style="border: 1px solid #475569; padding: 2px; height: 25px;"></td>`;
+                                            }).join('')).join('')}
                                         </tr>
                                     `).join('')}
-                                </table>
-                            </div>`;
-                        }
-                    });
-                    document.getElementById('reportTables').innerHTML = tablesHtml;
-                    const mapContainer = document.getElementById('reportMapContainer'); mapContainer.innerHTML = '';
-                    
-                    document.getElementById('statusMenu').classList.add('hidden');
-                    const mapCanvas = await html2canvas(wrapperLps, { scale: 2 });
-                    const mapImg = document.createElement('img'); mapImg.src = mapCanvas.toDataURL('image/jpeg', 0.8); mapContainer.appendChild(mapImg);
+                                </tbody>
+                            </table>
+                            <div style="margin-top: 15px; font-size: 10px; color: #64748b; font-weight: bold;">
+                                <strong>Légende: </strong> 
+                                <span style="display:inline-block; width:10px; height:10px; background:#d1fae5; border:1px solid #10b981; margin:0 2px 0 10px;"></span> Victor
+                                <span style="display:inline-block; width:10px; height:10px; background:#fef08a; border:1px solid #eab308; margin:0 2px 0 10px;"></span> Othmane / Camilo
+                                <span style="display:inline-block; width:10px; height:10px; background:#fee2e2; border:1px solid #ef4444; margin:0 2px 0 10px;"></span> Alexandre
+                                <span style="display:inline-block; width:10px; height:10px; background:#1e293b; border:1px solid #0f172a; margin:0 2px 0 10px;"></span> Benne
+                            </div>
+                        `;
+                        await addSection('Planning Livraisons', livHtml, false);
+                    }
 
-                    const canvas = await html2canvas(document.getElementById('reportTemplate'), { scale: 2, useCORS: true });
-                    const imgData = canvas.toDataURL('image/jpeg', 0.95);
-                    const imgW = 210, pageH = 297, imgH = (canvas.height * imgW) / canvas.width;
-                    let hLeft = imgH, pos = 0;
-                    pdf.addImage(imgData, 'JPEG', 0, pos, imgW, imgH);
-                    hLeft -= pageH;
-                    while (hLeft > 0) { pos = hLeft - imgH; pdf.addPage(); pdf.addImage(imgData, 'JPEG', 0, pos, imgW, imgH); hLeft -= pageH; }
-                    pdf.save(`Rapport_LPS_${appData.currentWeek}.pdf`);
+                    // ==========================================
+                    // 3. SECTION RESTE À FAIRE
+                    // ==========================================
+                    if (type === 'raf' || type === 'all') {
+                        let rafHtml = '';
+                        rafLevels.forEach(level => {
+                            const levelTasks = rafTasks.filter(t => t.level === level);
+                            if(levelTasks.length > 0) {
+                                rafHtml += `
+                                <div style="margin-bottom: 25px;">
+                                    <h2 style="font-size: 18px; font-weight: 900; color: #0f172a; border-bottom: 3px solid #cbd5e1; padding-bottom: 5px; margin-bottom: 15px; background: #f8fafc; padding: 8px;">NIVEAU : ${level}</h2>`;
+                                
+                                const lotsInLevel = [...new Set(levelTasks.map(t => t.lot || 'Autre'))];
+                                lotsInLevel.forEach(lot => {
+                                    const lotTasks = levelTasks.filter(t => (t.lot || 'Autre') === lot);
+                                    rafHtml += `
+                                    <div style="margin-bottom: 15px; margin-left: 15px; border-left: 3px solid #004587; padding-left: 10px;">
+                                        <h3 style="font-size: 14px; font-weight: bold; color: #004587; margin-bottom: 8px; text-transform: uppercase;">▶ ${lot}</h3>
+                                        <ul style="list-style: none; padding: 0; margin: 0;">
+                                            ${lotTasks.map(t => `
+                                                <li style="font-size: 12px; margin-bottom: 6px; color: ${t.done ? '#94a3b8' : '#334155'}; display: flex; align-items: start; gap: 8px; background: ${t.done ? '#f8fafc' : '#ffffff'}; padding: 4px; border-radius: 4px; border: 1px solid #f1f5f9;">
+                                                    <span style="font-family: monospace; font-size: 14px; font-weight: bold; color: ${t.done ? '#10b981' : '#cbd5e1'};">[${t.done ? '✓' : ' '}]</span>
+                                                    <span style="${t.done ? 'text-decoration: line-through;' : ''}">${t.text}</span>
+                                                </li>
+                                            `).join('')}
+                                        </ul>
+                                    </div>`;
+                                });
+                                rafHtml += `</div>`;
+                            }
+                        });
+                        
+                        if(rafHtml === '') {
+                            rafHtml = `<p style="font-style: italic; color: #64748b; font-size: 14px;">Aucun reste à faire identifié pour cette semaine.</p>`;
+                        }
+                        
+                        await addSection('Reste à Faire (Réserves)', rafHtml, false);
+                    }
+
+                    // Sauvegarde finale du PDF
+                    const fileNameStr = type === 'all' ? 'COMPLET' : type.toUpperCase();
+                    pdf.save(`Rapport_${fileNameStr}_${appData.currentWeek}.pdf`);
+                    document.getElementById('reportTemplate').innerHTML = ''; // Nettoyage de la zone cachée
+
                 } catch(e) {
                     console.error(e);
+                    alert("Erreur lors de la génération de l'export.");
                 } finally {
                     btn.innerText = originalText;
                     btn.classList.remove('opacity-50', 'cursor-not-allowed');
