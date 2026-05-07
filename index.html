@@ -553,6 +553,8 @@
         let appData = null;
         let tasks = []; let globalTasks = []; let deliveries = []; let rafTasks = [];
         const rafLevels = ['SS1', 'RDC', 'R+1', 'Toiture', 'Cheneau'];
+        let rafFilters = { 'SS1': 'TOUS', 'RDC': 'TOUS', 'R+1': 'TOUS', 'Toiture': 'TOUS', 'Cheneau': 'TOUS' };
+        const RAF_LOTS = ["Gros œuvre - CMC", "Électricité - NEA", "Plomb/CVC - VARIANCE CLIM", "Architectural", "VRD - VALENTIN", "Charpente bois - ARBONIS", "Couverture - ECOBAT77", "Étanchéité - SNA", "Serrurerie - VF METAL", "Serrurerie - FERALLIER", "Cloisons/Plafond - EGIPP", "Peinture - GPS", "Sprinklage - UXELLO", "Revêtements sols et murs - VINET", "Menuiseries ext. - AVA", "Finitions - PROALLIANCE", "Autre"];
         
         let ppcChart = null, isDrawing = false, currentPath = [];
         let activeTaskId = null, selectedColor = '#3b82f6', currentFilter = 'all', drawingMode = 'new', editingTaskId = null;
@@ -1204,21 +1206,31 @@
                 const container = document.getElementById(`raf-container-${level}`);
                 if(!container) return;
                 
+                const currentFilter = rafFilters[level] || 'TOUS';
                 const levelTasks = rafTasks.filter(t => t.level === level);
+                const filteredTasks = currentFilter === 'TOUS' ? levelTasks : levelTasks.filter(t => t.lot === currentFilter);
+                
+                let lotOptionsHTML = RAF_LOTS.map(lot => `<option value="${lot}">${lot}</option>`).join('');
+                let filterOptionsHTML = `<option value="TOUS">Tous les lots</option>` + RAF_LOTS.map(lot => `<option value="${lot}" ${currentFilter === lot ? 'selected' : ''}>${lot}</option>`).join('');
                 
                 let html = `
                     <div class="bg-slate-50 border border-slate-200 rounded-xl overflow-hidden flex flex-col h-[500px]">
-                        <div class="bg-[#e2e8f0] text-[#0f172a] p-3 text-center font-black uppercase text-xs border-b border-slate-300 flex justify-center items-center">
-                            Niveau : ${level}
-                            <span class="ml-2 bg-white px-2 py-0.5 rounded-full text-[9px] text-[#004587] shadow-sm">${levelTasks.filter(t=>!t.done).length} restants</span>
+                        <div class="bg-[#e2e8f0] text-[#0f172a] p-3 border-b border-slate-300 flex flex-col gap-2">
+                            <div class="text-center font-black uppercase text-xs flex justify-center items-center">
+                                Niveau : ${level}
+                                <span class="ml-2 bg-white px-2 py-0.5 rounded-full text-[9px] text-[#004587] shadow-sm">${levelTasks.filter(t=>!t.done).length} restants</span>
+                            </div>
+                            <select onchange="setRafFilter('${level}', this.value)" class="w-full text-[10px] font-bold p-1.5 rounded border border-slate-300 outline-none text-slate-700 bg-white cursor-pointer shadow-sm">
+                                ${filterOptionsHTML}
+                            </select>
                         </div>
                         <div class="flex-1 overflow-y-auto p-3 space-y-2">
                 `;
                 
-                if (levelTasks.length === 0) {
+                if (filteredTasks.length === 0) {
                     html += `<p class="text-center text-xs text-slate-400 italic mt-6">Aucune tâche</p>`;
                 } else {
-                    levelTasks.forEach(t => {
+                    filteredTasks.forEach(t => {
                         html += `
                             <div class="flex items-start gap-2 bg-white p-2 rounded border border-slate-100 shadow-sm hover:border-slate-300 transition group">
                                 <input type="checkbox" class="mt-1 custom-checkbox flex-none" ${t.done ? 'checked' : ''} onchange="toggleRafTask('${t.id}', this.checked)">
@@ -1239,23 +1251,7 @@
                             <form onsubmit="event.preventDefault(); addRafTask('${level}')" class="flex flex-col gap-2">
                                 <div class="flex gap-2">
                                     <select id="raf-lot-${level}" class="w-1/3 border border-slate-200 rounded p-2 text-[10px] font-bold outline-none focus:border-[#004587] bg-slate-50 text-slate-600 truncate">
-                                        <option value="GO - CMC">Gros œuvre - CMC</option>
-                                        <option value="ELEC - NEA">Électricité - NEA</option>
-                                        <option value="CVC - VARIANCE">Plomb/CVC - VARIANCE CLIM</option>
-                                        <option value="ARCHI">Architectural</option>
-                                        <option value="VRD - VALENTIN">VRD - VALENTIN</option>
-                                        <option value="BOIS - ARBONIS">Charpente bois - ARBONIS</option>
-                                        <option value="COUV - ECOBAT77">Couverture - ECOBAT77</option>
-                                        <option value="ETAN - SNA">Étanchéité - SNA</option>
-                                        <option value="SERR - VF METAL">Serrurerie - VF METAL</option>
-                                        <option value="SERR - FERALLIER">Serrurerie - FERALLIER</option>
-                                        <option value="CLOIS - EGIPP">Cloisons/Plafond - EGIPP</option>
-                                        <option value="PEINT - GPS">Peinture - GPS</option>
-                                        <option value="SPRINK - UXELLO">Sprinklage - UXELLO</option>
-                                        <option value="SOLS - VINET">Revêtements sols et murs - VINET</option>
-                                        <option value="MEN - AVA">Menuiseries ext. - AVA</option>
-                                        <option value="FIN - PROALLIANCE">Finitions - PROALLIANCE</option>
-                                        <option value="AUTRE">Autre</option>
+                                        ${lotOptionsHTML}
                                     </select>
                                     <input type="text" id="raf-input-${level}" class="flex-1 border border-slate-200 rounded p-2 text-xs outline-none focus:border-[#004587]" placeholder="Ajouter une tâche...">
                                     <button type="submit" class="bg-[#004587] text-white px-3 py-1.5 rounded font-black text-lg leading-none hover:bg-blue-900 shadow">+</button>
@@ -1266,6 +1262,11 @@
                 `;
                 container.innerHTML = html;
             });
+        }
+
+        function setRafFilter(level, val) {
+            rafFilters[level] = val;
+            renderRafUI();
         }
 
         function addRafTask(level) {
