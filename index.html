@@ -62,9 +62,24 @@
         .del-autre { background-color: #f1f5f9; border-color: #94a3b8; color: #334155; }
     </style>
 </head>
-<body class="bg-slate-50 font-sans text-slate-900">
+<body class="bg-slate-50 font-sans text-slate-900 overflow-hidden" id="mainBody">
 
-    <div class="max-w-[1600px] mx-auto p-2 md:p-4">
+    <!-- ÉCRAN DE VERROUILLAGE -->
+    <div id="loginScreen" class="fixed inset-0 bg-[#004587] z-[1000] flex flex-col items-center justify-center p-4 transition-opacity duration-500">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-sm text-center">
+            <h1 class="text-2xl font-black text-[#004587] mb-2 uppercase tracking-wide">BUILD Lean</h1>
+            <p class="text-sm text-slate-500 mb-6 font-medium">Veuillez saisir le code d'accès pour accéder au chantier.</p>
+            
+            <input type="password" id="accessCodeInput" placeholder="Code d'accès" class="w-full border-2 border-slate-200 rounded-xl p-4 text-center text-lg tracking-widest font-bold outline-none focus:border-[#004587] mb-4">
+            
+            <p id="loginError" class="text-red-500 text-xs font-bold mb-4 hidden">Code d'accès incorrect.</p>
+            
+            <button onclick="checkAccess()" class="w-full bg-[#004587] hover:bg-blue-900 text-white font-black py-4 rounded-xl shadow-lg transition-all text-lg">ACCÉDER</button>
+        </div>
+    </div>
+
+    <!-- CONTENU DE L'APPLICATION (Caché par défaut) -->
+    <div id="appContainer" class="max-w-[1600px] mx-auto p-2 md:p-4 opacity-0 pointer-events-none transition-opacity duration-500">
         <!-- Header -->
         <header class="flex flex-col md:flex-row justify-between items-center mb-4 bg-white p-4 rounded-xl shadow-sm border-b-4 border-[#004587] gap-3">
             <div class="flex items-center gap-4">
@@ -251,11 +266,11 @@
                             </tr>
                             <tr>
                                 <th class="bg-slate-100 border-slate-300"></th>
-                                <th class="del-header-zone w-[100px]">Rampe</th><th class="del-header-zone w-[100px]">Centre</th><th class="del-header-zone w-[100px]">Gallieni</th>
-                                <th class="del-header-zone w-[100px]">Rampe</th><th class="del-header-zone w-[100px]">Centre</th><th class="del-header-zone w-[100px]">Gallieni</th>
-                                <th class="del-header-zone w-[100px]">Rampe</th><th class="del-header-zone w-[100px]">Centre</th><th class="del-header-zone w-[100px]">Gallieni</th>
-                                <th class="del-header-zone w-[100px]">Rampe</th><th class="del-header-zone w-[100px]">Centre</th><th class="del-header-zone w-[100px]">Gallieni</th>
-                                <th class="del-header-zone w-[100px]">Rampe</th><th class="del-header-zone w-[100px]">Centre</th><th class="del-header-zone w-[100px]">Gallieni</th>
+                                <th class="del-header-zone w-[100px]">Rampe</th><th class="del-header-zone w-[100px]">Centre</th><th class="del-header-zone w-[100px]">Galieni</th>
+                                <th class="del-header-zone w-[100px]">Rampe</th><th class="del-header-zone w-[100px]">Centre</th><th class="del-header-zone w-[100px]">Galieni</th>
+                                <th class="del-header-zone w-[100px]">Rampe</th><th class="del-header-zone w-[100px]">Centre</th><th class="del-header-zone w-[100px]">Galieni</th>
+                                <th class="del-header-zone w-[100px]">Rampe</th><th class="del-header-zone w-[100px]">Centre</th><th class="del-header-zone w-[100px]">Galieni</th>
+                                <th class="del-header-zone w-[100px]">Rampe</th><th class="del-header-zone w-[100px]">Centre</th><th class="del-header-zone w-[100px]">Galieni</th>
                             </tr>
                         </thead>
                         <tbody id="livraisonsTableBody"></tbody>
@@ -350,23 +365,23 @@
             <h3 class="text-lg font-black mb-4 uppercase text-[#004587]">Modifier la tâche</h3>
             <label class="block text-[10px] font-black text-slate-400 uppercase mb-1">Corps d'état / Lot</label>
             <select id="editRafLot" class="w-full border-2 border-slate-100 rounded-xl p-3 mb-3 text-xs font-bold outline-none focus:border-[#004587] bg-slate-50 text-slate-600">
-                <option value="GO - CMC">Gros œuvre - CMC</option>
-                <option value="ELEC - NEA">Électricité - NEA</option>
-                <option value="CVC - VARIANCE">Plomb/CVC - VARIANCE CLIM</option>
-                <option value="ARCHI">Architectural</option>
+                <option value="Gros œuvre - CMC">Gros œuvre - CMC</option>
+                <option value="Électricité - NEA">Électricité - NEA</option>
+                <option value="Plomb/CVC - VARIANCE CLIM">Plomb/CVC - VARIANCE CLIM</option>
+                <option value="Architectural">Architectural</option>
                 <option value="VRD - VALENTIN">VRD - VALENTIN</option>
-                <option value="BOIS - ARBONIS">Charpente bois - ARBONIS</option>
-                <option value="COUV - ECOBAT77">Couverture - ECOBAT77</option>
-                <option value="ETAN - SNA">Étanchéité - SNA</option>
-                <option value="SERR - VF METAL">Serrurerie - VF METAL</option>
-                <option value="SERR - FERALLIER">Serrurerie - FERALLIER</option>
-                <option value="CLOIS - EGIPP">Cloisons/Plafond - EGIPP</option>
-                <option value="PEINT - GPS">Peinture - GPS</option>
-                <option value="SPRINK - UXELLO">Sprinklage - UXELLO</option>
-                <option value="SOLS - VINET">Revêtements sols et murs - VINET</option>
-                <option value="MEN - AVA">Menuiseries ext. - AVA</option>
-                <option value="FIN - PROALLIANCE">Finitions - PROALLIANCE</option>
-                <option value="AUTRE">Autre</option>
+                <option value="Charpente bois - ARBONIS">Charpente bois - ARBONIS</option>
+                <option value="Couverture - ECOBAT77">Couverture - ECOBAT77</option>
+                <option value="Étanchéité - SNA">Étanchéité - SNA</option>
+                <option value="Serrurerie - VF METAL">Serrurerie - VF METAL</option>
+                <option value="Serrurerie - FERALLIER">Serrurerie - FERALLIER</option>
+                <option value="Cloisons/Plafond - EGIPP">Cloisons/Plafond - EGIPP</option>
+                <option value="Peinture - GPS">Peinture - GPS</option>
+                <option value="Sprinklage - UXELLO">Sprinklage - UXELLO</option>
+                <option value="Revêtements sols et murs - VINET">Revêtements sols et murs - VINET</option>
+                <option value="Menuiseries ext. - AVA">Menuiseries ext. - AVA</option>
+                <option value="Finitions - PROALLIANCE">Finitions - PROALLIANCE</option>
+                <option value="Autre">Autre</option>
             </select>
             <label class="block text-[10px] font-black text-slate-400 uppercase mb-1">Description</label>
             <input type="text" id="editRafText" class="w-full border-2 border-slate-100 rounded-xl p-3 mb-5 text-sm outline-none focus:border-[#004587]">
@@ -554,15 +569,52 @@
     <div id="reportTemplate"></div>
 
     <script>
+        // ==========================================
+        // 1. GESTION DE L'ACCÈS / MOT DE PASSE
+        // ==========================================
+        const APP_PASSWORD = "CHANTIER2026"; // <-- MODIFIEZ LE MOT DE PASSE ICI
+
+        function checkAccess() {
+            const input = document.getElementById('accessCodeInput').value;
+            const errorText = document.getElementById('loginError');
+            
+            if (input === APP_PASSWORD) {
+                // Mot de passe correct
+                localStorage.setItem('build_lean_access', 'granted');
+                unlockApp();
+            } else {
+                // Mot de passe incorrect
+                errorText.classList.remove('hidden');
+                document.getElementById('accessCodeInput').classList.add('border-red-500');
+                setTimeout(() => { document.getElementById('accessCodeInput').classList.remove('border-red-500'); }, 1000);
+            }
+        }
+
+        function unlockApp() {
+            document.getElementById('loginScreen').style.opacity = '0';
+            setTimeout(() => { 
+                document.getElementById('loginScreen').style.display = 'none'; 
+                document.getElementById('mainBody').classList.remove('overflow-hidden');
+                
+                const appContainer = document.getElementById('appContainer');
+                appContainer.style.opacity = '1';
+                appContainer.style.pointerEvents = 'auto';
+                
+                // Lancement de l'application seulement après déverrouillage
+                initApp();
+            }, 500);
+        }
+
+        // ==========================================
+        // 2. INITIALISATION PRINCIPALE
+        // ==========================================
         const pdfjsLib = window['pdfjs-dist/build/pdf'];
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-        // --- SYSTEME DE SYNCHRONISATION (FIREBASE / LOCAL) ---
         let useFirebase = false;
         let db = null;
         let docRef = null;
 
-        // Configuration pour la synchronisation Cloud (GitHub)
         let firebaseConfig = {
           apiKey: "AIzaSyBdGD-oEwyQ60r4ajKOrUaBWmaHUf9O2R4",
           authDomain: "build--lean.firebaseapp.com",
@@ -572,7 +624,6 @@
           appId: "1:460161720414:web:401dbe03b2e1b3af7b94cf"
         };
 
-        // Détection de l'environnement de développement Immersif (ne pas modifier)
         try { if (typeof __firebase_config !== 'undefined') firebaseConfig = JSON.parse(__firebase_config); } catch(e) {}
 
         let appData = null;
@@ -587,14 +638,24 @@
         let currentMainView = 'lps';
         const timeSlots = ['8h - 8h45', '9h - 9h45', '10h - 10h45', '11h - 11h45', '12h - 12h45', '13h - 13h45', '14h - 14h45', '15h - 15h45', '16h - 16h45'];
         const days = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'];
-        const zones = ['Rampe', 'Centre', 'Gallieni'];
+        const zones = ['Rampe', 'Centre', 'Galieni'];
         let editingDeliveryId = null;
 
         const wrapperLps = document.getElementById('canvasWrapper'), picImageLps = document.getElementById('picImage'), svgOverlayLps = document.getElementById('drawingOverlay');
         const wrapperGlobal = document.getElementById('globalCanvasWrapper'), picImageGlobal = document.getElementById('globalPicImage'), svgOverlayGlobal = document.getElementById('globalDrawingOverlay');
 
+        // Gestion de l'appui sur "Entrée" pour le mot de passe
+        document.getElementById('accessCodeInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') checkAccess();
+        });
+
         window.onload = () => {
-            initApp();
+            // Vérification de l'accès mémorisé
+            if (localStorage.getItem('build_lean_access') === 'granted') {
+                unlockApp();
+            }
+            
+            // Préparation Graphique et Images (Ne nécessite pas les données)
             ppcChart = new Chart(document.getElementById('ppcChart').getContext('2d'), {
                 type: 'doughnut', data: { datasets: [{ data: [0, 0, 0], backgroundColor: ['#10b981', '#3b82f6', '#ef4444'], borderWidth: 0 }] },
                 options: { cutout: '80%', plugins: { tooltip: { enabled: false } } }
@@ -610,11 +671,15 @@
 
         function initApp() {
             // Toujours initialiser en local en premier pour s'assurer que appData n'est jamais null
-            appData = JSON.parse(localStorage.getItem('build_lean_data'));
-            if (!appData) { 
+            const localRawData = localStorage.getItem('build_lean_data');
+            
+            if (localRawData) {
+                appData = JSON.parse(localRawData);
+            } else {
                 initDefaultData(); 
                 localStorage.setItem('build_lean_data', JSON.stringify(appData)); 
             }
+            
             updateLocalVariables();
             triggerRender();
             renderWeekSelector();
@@ -637,13 +702,23 @@
             }
 
             if (useFirebase) {
-                docRef.onSnapshot(doc => {
+                docRef.get().then(doc => {
                     if (doc.exists) {
-                        appData = doc.data();
+                        const cloudData = doc.data();
+                        const cloudHasData = Object.keys(cloudData.weeks || {}).length > 1 || (cloudData.weeks && cloudData.weeks["Semaine Initiale"] && cloudData.weeks["Semaine Initiale"].length > 0) || (cloudData.resteAFaire && cloudData.resteAFaire.length > 0);
+                        const localHasData = Object.keys(appData.weeks || {}).length > 1 || (appData.weeks && appData.weeks["Semaine Initiale"] && appData.weeks["Semaine Initiale"].length > 0) || (appData.resteAFaire && appData.resteAFaire.length > 0);
+
+                        if (!cloudHasData && localHasData) {
+                            console.warn("Cloud vide. Restauration locale -> Cloud...");
+                            docRef.set(appData);
+                        } else {
+                            appData = cloudData;
+                            localStorage.setItem('build_lean_data', JSON.stringify(appData));
+                        }
                     } else {
-                        // Pousse les données locales existantes vers le cloud s'il est vide
                         docRef.set(appData);
                     }
+                    
                     updateLocalVariables();
                     triggerRender();
                     renderWeekSelector();
@@ -651,8 +726,23 @@
                     document.getElementById('cloudDot').classList.remove('bg-yellow-500', 'bg-red-500');
                     document.getElementById('cloudDot').classList.add('bg-green-500');
                     document.getElementById('cloudText').innerText = 'Cloud Connecté';
-                }, error => {
-                    // Si Firebase refuse l'accès, on passe en mode local au lieu de crasher
+                    
+                    docRef.onSnapshot(snap => {
+                       if (snap.exists) {
+                           const incomingData = snap.data();
+                           const incomingHasData = Object.keys(incomingData.weeks || {}).length > 1 || (incomingData.weeks && incomingData.weeks["Semaine Initiale"] && incomingData.weeks["Semaine Initiale"].length > 0) || (incomingData.resteAFaire && incomingData.resteAFaire.length > 0);
+                           
+                           if(incomingHasData || Object.keys(appData.weeks || {}).length <= 1) {
+                               appData = incomingData;
+                               localStorage.setItem('build_lean_data', JSON.stringify(appData));
+                               updateLocalVariables();
+                               triggerRender();
+                               renderWeekSelector();
+                           }
+                       }
+                    });
+
+                }).catch(error => {
                     console.warn("Connexion cloud impossible, passage en mode local :", error.message);
                     useFirebase = false;
                     document.getElementById('cloudDot').classList.remove('bg-yellow-500', 'bg-green-500');
@@ -677,7 +767,7 @@
         }
 
         function saveData() { 
-            if (!appData) initDefaultData(); // Sécurité supplémentaire anti-crash
+            if (!appData) initDefaultData(); 
             
             appData.weeks[appData.currentWeek] = tasks;
             appData.global.tasks = globalTasks;
@@ -687,7 +777,6 @@
             if (useFirebase && docRef) {
                 docRef.set(appData).catch(e => {
                     console.error("Firebase save error", e);
-                    // Sauvegarde locale de secours
                     localStorage.setItem('build_lean_data', JSON.stringify(appData));
                 });
             } else {
@@ -853,6 +942,7 @@
             document.getElementById('createModal').classList.add('hidden'); 
             document.getElementById('delayModal').classList.add('hidden'); 
             document.getElementById('globalTaskModal').classList.add('hidden');
+            document.getElementById('exportModal').classList.add('hidden');
         }
         function closeStatusMenu() { document.getElementById('statusMenu').classList.add('hidden'); activeTaskId = null; }
 
@@ -1402,7 +1492,6 @@
                     const dateStr = new Date().toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
                     let isFirstPage = true;
 
-                    // Fonction générique pour créer une section dans le PDF
                     const addSection = async (title, contentHtml, addMap = false) => {
                         if (!isFirstPage) pdf.addPage();
                         isFirstPage = false;
@@ -1447,9 +1536,6 @@
                         }
                     };
 
-                    // ==========================================
-                    // 1. SECTION LPS
-                    // ==========================================
                     if (type === 'lps' || type === 'all') {
                         const done = tasks.filter(t => t.status === 'done');
                         const ppc = tasks.length > 0 ? Math.round((done.length / tasks.length) * 100) : 0;
@@ -1497,9 +1583,6 @@
                         await addSection('Rapport Suivi LPS', lpsContent, true);
                     }
 
-                    // ==========================================
-                    // 2. SECTION LIVRAISONS
-                    // ==========================================
                     if (type === 'livraisons' || type === 'all') {
                         let livHtml = `
                             <h3 style="color: #1e3a8a; font-size: 16px; margin-bottom: 15px; text-transform: uppercase; font-weight: 900;">Grille de la semaine</h3>
@@ -1548,9 +1631,6 @@
                         await addSection('Planning Livraisons', livHtml, false);
                     }
 
-                    // ==========================================
-                    // 3. SECTION RESTE À FAIRE
-                    // ==========================================
                     if (type === 'raf' || type === 'all') {
                         let rafHtml = '';
                         rafLevels.forEach(level => {
@@ -1587,10 +1667,9 @@
                         await addSection('Reste à Faire (Réserves)', rafHtml, false);
                     }
 
-                    // Sauvegarde finale du PDF
                     const fileNameStr = type === 'all' ? 'COMPLET' : type.toUpperCase();
                     pdf.save(`Rapport_${fileNameStr}_${appData.currentWeek}.pdf`);
-                    document.getElementById('reportTemplate').innerHTML = ''; // Nettoyage de la zone cachée
+                    document.getElementById('reportTemplate').innerHTML = ''; 
 
                 } catch(e) {
                     console.error(e);
