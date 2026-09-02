@@ -170,7 +170,7 @@
                         <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-center items-center text-center">
                             <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Indice de Perf. (PPC)</div>
                             <div id="dashPpc" class="text-4xl md:text-5xl font-black text-[#004587]">0%</div>
-                            <div class="text-[9px] text-slate-400 mt-2">Tâches réalisées / Tâches prévues</div>
+                            <div id="dashPpcDetails" class="text-[10px] font-bold text-slate-500 mt-2 bg-slate-100 px-3 py-1 rounded-full">0/0</div>
                         </div>
 
                         <!-- KPI 2 : Tâches LPS -->
@@ -227,9 +227,17 @@
                 <div id="view-lps" class="hidden grid grid-cols-1 lg:grid-cols-4 gap-4">
                     <div class="lg:col-span-3 space-y-4">
                         <div class="bg-white p-1 rounded-xl shadow-sm border border-slate-200 relative">
-                            <div class="absolute top-4 left-4 z-50">
+                            
+                            <div class="absolute top-4 left-4 z-50 flex gap-2 flex-wrap">
                                 <input type="file" id="picUpload" accept="image/*,application/pdf" class="hidden">
-                                <button onclick="document.getElementById('picUpload').click()" class="bg-slate-800 text-white px-3 py-2 rounded-lg text-[10px] font-bold uppercase hover:bg-slate-700 shadow-md">📁 Importer PIC (Plan)</button>
+                                <button onclick="document.getElementById('picUpload').click()" class="bg-slate-800 text-white px-3 py-2 rounded-lg text-[10px] font-bold uppercase hover:bg-slate-700 shadow-md">📁 Importer PIC</button>
+                                
+                                <!-- BARRE D'OUTILS DE FORMES -->
+                                <div class="flex bg-white rounded-lg shadow-md border border-slate-200 overflow-hidden">
+                                    <button onclick="setShapeTool('freehand')" id="tool-freehand" class="px-3 py-2 text-[10px] font-bold bg-[#004587] text-white">✏️ Libre</button>
+                                    <button onclick="setShapeTool('rectangle')" id="tool-rectangle" class="px-3 py-2 text-[10px] font-bold text-slate-500 hover:bg-slate-50 bg-white">⬜ Rect.</button>
+                                    <button onclick="setShapeTool('circle')" id="tool-circle" class="px-3 py-2 text-[10px] font-bold text-slate-500 hover:bg-slate-50 bg-white">⭕ Cercle</button>
+                                </div>
                             </div>
 
                             <div id="modeBanner" class="hidden absolute top-0 left-0 w-full bg-indigo-600 text-white text-[10px] font-black text-center py-2 z-50 rounded-t-lg shadow-md uppercase tracking-wider">
@@ -288,11 +296,15 @@
 
                     <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 text-center flex flex-col items-center h-fit sticky top-4">
                         <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">PPC Hebdo</h3>
-                        <div class="relative h-44 w-44 mb-6">
+                        <div class="relative h-44 w-44 mb-2">
                             <canvas id="ppcChart"></canvas>
                             <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                                 <span id="ppcPercentage" class="text-4xl font-black text-[#004587]">0%</span>
                             </div>
+                        </div>
+                        
+                        <div id="lpsPpcDetails" class="text-[11px] bg-slate-100 text-slate-600 px-3 py-1 rounded-full font-bold mb-6">
+                            0 tâche sur 0
                         </div>
                         
                         <div class="w-full space-y-4 text-left" id="statBars">
@@ -404,7 +416,8 @@
         <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl border-t-8 border-indigo-500">
             <h3 class="text-lg font-black mb-2 uppercase text-indigo-600">Avancement (%)</h3>
             <p class="text-xs text-slate-500 mb-4">Mettez 100% pour passer la tâche en réalisée.</p>
-            <input type="number" id="progressInput" min="0" max="100" placeholder="Ex: 50" class="w-full border-2 border-slate-100 rounded-xl p-3 mb-4 text-lg outline-none focus:border-indigo-500 font-bold text-center">
+            <!-- Correction d'accessibilité mobile (type text au lieu de number) -->
+            <input type="text" inputmode="numeric" pattern="[0-9]*" id="progressInput" placeholder="Ex: 50" class="w-full border-2 border-slate-100 rounded-xl p-3 mb-4 text-lg outline-none focus:border-indigo-500 font-bold text-center">
             <div class="flex gap-3">
                 <button onclick="document.getElementById('progressModal').classList.add('hidden')" class="flex-1 py-3 font-bold text-slate-400 hover:text-slate-600">ANNULER</button>
                 <button onclick="confirmProgress()" class="flex-1 py-3 bg-indigo-600 text-white rounded-xl font-bold shadow-md">METTRE A JOUR</button>
@@ -422,12 +435,20 @@
             <label class="block text-[10px] font-black text-slate-400 uppercase mb-1">Date d'achèvement prévue</label>
             <input type="date" id="newTaskDeadline" class="w-full border-2 border-slate-100 rounded-xl p-3 mb-5 text-sm outline-none focus:border-[#004587]">
             <label class="block text-[10px] font-black text-slate-400 uppercase mb-2">Couleur Métier</label>
-            <div class="grid grid-cols-5 gap-2 mb-6">
+            <div class="grid grid-cols-6 gap-2 mb-6">
+                <!-- Palette de couleurs élargie -->
                 <div onclick="selectColor('#3b82f6', this)" class="color-dot bg-blue-500 selected" data-color="#3b82f6"></div>
                 <div onclick="selectColor('#ef4444', this)" class="color-dot bg-red-500" data-color="#ef4444"></div>
                 <div onclick="selectColor('#f59e0b', this)" class="color-dot bg-amber-500" data-color="#f59e0b"></div>
                 <div onclick="selectColor('#10b981', this)" class="color-dot bg-emerald-500" data-color="#10b981"></div>
                 <div onclick="selectColor('#8b5cf6', this)" class="color-dot bg-purple-500" data-color="#8b5cf6"></div>
+                <div onclick="selectColor('#ec4899', this)" class="color-dot bg-pink-500" data-color="#ec4899"></div>
+                <div onclick="selectColor('#06b6d4', this)" class="color-dot bg-cyan-500" data-color="#06b6d4"></div>
+                <div onclick="selectColor('#84cc16', this)" class="color-dot bg-lime-500" data-color="#84cc16"></div>
+                <div onclick="selectColor('#6366f1', this)" class="color-dot bg-indigo-500" data-color="#6366f1"></div>
+                <div onclick="selectColor('#f43f5e', this)" class="color-dot bg-rose-500" data-color="#f43f5e"></div>
+                <div onclick="selectColor('#64748b', this)" class="color-dot bg-slate-500" data-color="#64748b"></div>
+                <div onclick="selectColor('#000000', this)" class="color-dot bg-black" data-color="#000000"></div>
             </div>
             <div class="flex gap-3">
                 <button onclick="closeModals()" class="flex-1 py-3 font-bold text-slate-400 hover:text-slate-600">ANNULER</button>
@@ -624,14 +645,15 @@
         // ==========================================
         // 1. GESTION DE L'ACCÈS / MOT DE PASSE
         // ==========================================
-        const APP_PASSWORD = "CHANTIER2026"; // <-- MODIFIEZ LE MOT DE PASSE ICI
+        const APP_PASSWORD = "NOGENT26"; // <-- NOUVEAU MOT DE PASSE
 
         function checkAccess() {
             const input = document.getElementById('accessCodeInput').value;
             const errorText = document.getElementById('loginError');
             
             if (input === APP_PASSWORD) {
-                localStorage.setItem('build_lean_access', 'granted');
+                // On sauvegarde le mot de passe actuel pour forcer la reconnexion s'il change
+                localStorage.setItem('build_lean_access_code', APP_PASSWORD);
                 unlockApp();
             } else {
                 errorText.classList.remove('hidden');
@@ -687,6 +709,7 @@
         const RAF_LOTS = ["Gros œuvre - CMC", "Électricité - NEA", "Plomb/CVC - VARIANCE CLIM", "Architectural", "VRD - VALENTIN", "Charpente bois - ARBONIS", "Couverture - ECOBAT77", "Étanchéité - SNA", "Serrurerie - VF METAL", "Serrurerie - FERALLIER", "Cloisons/Plafond - EGIPP", "Peinture - GPS", "Sprinklage - UXELLO", "Revêtements sols et murs - VINET", "Menuiseries ext. - AVA", "Finitions - PROALLIANCE", "Autre"];
         
         let ppcChart = null, isDrawing = false, currentPath = [];
+        let currentShapeTool = 'freehand'; // Outil de forme actuel
         let activeTaskId = null, selectedColor = '#3b82f6', currentFilter = 'all', drawingMode = 'new', editingTaskId = null;
         let tempPolyline = null;
         let currentMainView = 'accueil'; // Vue par défaut
@@ -699,13 +722,18 @@
         const wrapperLps = document.getElementById('canvasWrapper'), picImageLps = document.getElementById('picImage'), svgOverlayLps = document.getElementById('drawingOverlay');
 
         window.onload = () => {
-            if (localStorage.getItem('build_lean_access') === 'granted') {
+            // Vérifie que le mot de passe sauvegardé est bien le NOUVEAU mot de passe
+            if (localStorage.getItem('build_lean_access_code') === APP_PASSWORD) {
                 unlockApp();
+            } else {
+                // Si ce n'est pas le bon, on s'assure d'afficher l'écran de login
+                document.getElementById('loginScreen').style.display = 'flex';
+                document.getElementById('loginScreen').style.opacity = '1';
             }
             
             // Préparation Graphique (Ne nécessite pas les données)
             ppcChart = new Chart(document.getElementById('ppcChart').getContext('2d'), {
-                type: 'doughnut', data: { datasets: [{ data: [0, 0, 0], backgroundColor: ['#10b981', '#3b82f6', '#ef4444'], borderWidth: 0 }] },
+                type: 'doughnut', data: { datasets: [{ data: [0, 0, 0, 0], backgroundColor: ['#10b981', '#3b82f6', '#ef4444', '#cbd5e1'], borderWidth: 0 }] },
                 options: { cutout: '80%', plugins: { tooltip: { enabled: false } } }
             });
         };
@@ -867,6 +895,11 @@
             if(ppc >= 80) ppcEl.className = "text-4xl md:text-5xl font-black text-green-600";
             else if(ppc >= 50) ppcEl.className = "text-4xl md:text-5xl font-black text-amber-500";
             else ppcEl.className = "text-4xl md:text-5xl font-black text-red-600";
+            
+            const dashDetails = document.getElementById('dashPpcDetails');
+            if(dashDetails) {
+                dashDetails.innerText = `${doneTasks} tâche${doneTasks > 1 ? 's' : ''} réalisée${doneTasks > 1 ? 's' : ''} sur ${totalTasks} planifiée${totalTasks > 1 ? 's' : ''}`;
+            }
 
             document.getElementById('dashLpsDone').innerText = doneTasks;
             document.getElementById('dashLpsOngoing').innerText = ongoingTasks;
@@ -894,6 +927,14 @@
             tasks = appData.weeks[weekName];
             deliveries = appData.deliveries[weekName] || [];
             document.getElementById('livraisonsDateRange').innerText = weekName;
+            
+            // Re-hide image explicitly when switching weeks (pas de stockage automatique)
+            picImageLps.src = "";
+            picImageLps.classList.add('hidden');
+            document.getElementById('emptyState').classList.remove('hidden');
+            svgOverlayLps.setAttribute('width', '100%'); 
+            svgOverlayLps.setAttribute('height', '100%');
+            
             saveData();
         }
 
@@ -908,6 +949,7 @@
                 document.getElementById('weekModal').classList.add('hidden');
                 return;
             }
+
             let carriedTasks = tasks.filter(t => t.status !== 'done').map(t => ({
                 ...t, id: Date.now() + Math.random(), status: 'none', progress: 0
             }));
@@ -916,9 +958,30 @@
             appData.currentWeek = name;
             tasks = appData.weeks[name];
             deliveries = [];
+            
+            // L'image n'est pas copiée vers la nouvelle semaine
+            picImageLps.src = "";
+            picImageLps.classList.add('hidden');
+            document.getElementById('emptyState').classList.remove('hidden');
+            svgOverlayLps.setAttribute('width', '100%'); 
+            svgOverlayLps.setAttribute('height', '100%');
+
             renderWeekSelector();
             saveData();
             document.getElementById('weekModal').classList.add('hidden');
+        }
+
+        // --- GESTION DES OUTILS DE FORME ---
+        function setShapeTool(tool) {
+            currentShapeTool = tool;
+            ['freehand', 'rectangle', 'circle'].forEach(t => {
+                const el = document.getElementById(`tool-${t}`);
+                if(t === tool) {
+                    el.className = "px-3 py-2 text-[10px] font-bold bg-[#004587] text-white";
+                } else {
+                    el.className = "px-3 py-2 text-[10px] font-bold text-slate-500 hover:bg-slate-50 bg-white";
+                }
+            });
         }
 
         // --- MOTEUR DE DESSIN ---
@@ -929,6 +992,8 @@
             return { x: clientX - r.left + wrapper.scrollLeft, y: clientY - r.top + wrapper.scrollTop };
         }
 
+        let startDrawCoords = null;
+        
         const handleStartDraw = (e) => {
             const img = picImageLps;
             const overlay = svgOverlayLps;
@@ -937,8 +1002,8 @@
             isDrawing = true;
             closeStatusMenu();
             
-            const coords = getCoords(e, wrapperLps);
-            currentPath = [{x: coords.x, y: coords.y}];
+            startDrawCoords = getCoords(e, wrapperLps);
+            currentPath = [{x: startDrawCoords.x, y: startDrawCoords.y}];
             
             tempPolyline = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
             tempPolyline.setAttribute("fill", "rgba(0, 69, 135, 0.2)");
@@ -950,8 +1015,35 @@
 
         const handleMoveDraw = (e) => {
             if (!isDrawing) return;
-            const coords = getCoords(e, wrapperLps);
-            currentPath.push({x: coords.x, y: coords.y});
+            const currentCoords = getCoords(e, wrapperLps);
+            
+            if (currentShapeTool === 'freehand') {
+                currentPath.push({x: currentCoords.x, y: currentCoords.y});
+            } 
+            else if (currentShapeTool === 'rectangle') {
+                currentPath = [
+                    {x: startDrawCoords.x, y: startDrawCoords.y},
+                    {x: currentCoords.x, y: startDrawCoords.y},
+                    {x: currentCoords.x, y: currentCoords.y},
+                    {x: startDrawCoords.x, y: currentCoords.y}
+                ];
+            }
+            else if (currentShapeTool === 'circle') {
+                const dx = currentCoords.x - startDrawCoords.x;
+                const dy = currentCoords.y - startDrawCoords.y;
+                const radius = Math.sqrt(dx*dx + dy*dy);
+                
+                currentPath = [];
+                const steps = 32; // Nombre de points pour dessiner un cercle fluide
+                for(let i=0; i<steps; i++) {
+                    const angle = (i / steps) * Math.PI * 2;
+                    currentPath.push({
+                        x: startDrawCoords.x + radius * Math.cos(angle),
+                        y: startDrawCoords.y + radius * Math.sin(angle)
+                    });
+                }
+            }
+            
             tempPolyline.setAttribute("points", currentPath.map(p => `${p.x},${p.y}`).join(" "));
         };
 
@@ -1024,15 +1116,34 @@
                     if(task.path && task.path.length > 0) {
                         const poly = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
                         poly.setAttribute("points", task.path.map(p => `${p.x},${p.y}`).join(" "));
-                        poly.setAttribute("fill", task.color + "44");
-                        poly.setAttribute("stroke", task.color);
-                        poly.setAttribute("stroke-width", "2");
+                        
+                        // Application des couleurs de cadre selon le statut
+                        if (task.status === 'ongoing') { 
+                            poly.setAttribute("stroke", "#3b82f6"); // Bleu
+                            poly.setAttribute("stroke-width", "4"); 
+                            poly.setAttribute("stroke-dasharray", "6,6"); 
+                            poly.setAttribute("fill", "rgba(59, 130, 246, 0.3)");
+                        } 
+                        else if (task.status === 'delayed') { 
+                            poly.setAttribute("stroke", "#ef4444"); // Rouge
+                            poly.setAttribute("stroke-width", "4"); 
+                            poly.classList.add('pulse-red-svg'); 
+                            poly.setAttribute("fill", "rgba(239, 68, 68, 0.3)");
+                        } 
+                        else if (task.status === 'done') { 
+                            poly.setAttribute("stroke", "#10b981"); // Vert
+                            poly.setAttribute("fill", "rgba(16, 185, 129, 0.4)"); 
+                            poly.setAttribute("stroke-width", "3");
+                        } 
+                        else {
+                            // "À faire" garde la couleur par défaut du métier choisi
+                            poly.setAttribute("stroke", task.color);
+                            poly.setAttribute("fill", task.color + "44");
+                            poly.setAttribute("stroke-width", "2");
+                        }
+                        
                         poly.style.pointerEvents = drawingMode === 'new' ? "all" : "none";
                         poly.style.cursor = "pointer";
-
-                        if (task.status === 'ongoing') { poly.setAttribute("stroke-width", "4"); poly.setAttribute("stroke-dasharray", "6,6"); } 
-                        else if (task.status === 'delayed') { poly.setAttribute("stroke", "#ef4444"); poly.classList.add('pulse-red-svg'); } 
-                        else if (task.status === 'done') { poly.setAttribute("fill", "rgba(34, 197, 94, 0.5)"); poly.setAttribute("stroke", "#16a34a"); }
 
                         const handleSelect = (e) => { e.preventDefault(); e.stopPropagation(); if(drawingMode === 'new') showMenu(e, task.id); };
                         poly.onmousedown = handleSelect; poly.ontouchstart = handleSelect;
@@ -1066,7 +1177,12 @@
         function updateStats(c) {
             const ppc = c.total > 0 ? Math.round((c.done / c.total) * 100) : 0;
             document.getElementById('ppcPercentage').innerText = ppc + '%';
-            if (ppcChart) { ppcChart.data.datasets[0].data = [c.done, c.ongoing, c.delayed]; ppcChart.update(); }
+            if (ppcChart) { ppcChart.data.datasets[0].data = [c.done, c.ongoing, c.delayed, c.none]; ppcChart.update(); }
+            
+            const lpsDetails = document.getElementById('lpsPpcDetails');
+            if(lpsDetails) {
+                lpsDetails.innerText = `${c.done} tâche${c.done > 1 ? 's' : ''} réalisée${c.done > 1 ? 's' : ''} sur ${c.total} planifiée${c.total > 1 ? 's' : ''}`;
+            }
 
             const barsContainer = document.getElementById('statBars');
             barsContainer.innerHTML = '';
@@ -1095,9 +1211,12 @@
         function openProgressModal() {
             const t = tasks.find(x => x.id === activeTaskId);
             if(!t) return;
-            document.getElementById('progressInput').value = t.progress || 0;
+            const input = document.getElementById('progressInput');
+            input.value = t.progress || 0;
             document.getElementById('progressModal').classList.remove('hidden');
             closeStatusMenu();
+            // Force focus to keyboard on mobile easily
+            setTimeout(() => { input.focus(); }, 100);
         }
 
         function confirmProgress() {
@@ -1396,24 +1515,34 @@
             }
         }
 
-        function handleImageUpload(e, imgEl, overlayEl, isGlobal) {
-            const file = e.target.files[0]; const reader = new FileReader();
+        function handleImageUpload(e) {
+            const file = e.target.files[0]; if(!file) return;
+            const reader = new FileReader();
+            
             reader.onload = async (ev) => {
                 if (file.type === 'application/pdf') {
                     const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(ev.target.result) }).promise;
                     const page = await pdf.getPage(1); const vp = page.getViewport({ scale: 2 });
                     const canvas = document.createElement('canvas'); canvas.height = vp.height; canvas.width = vp.width;
                     await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
-                    imgEl.src = canvas.toDataURL();
-                } else { imgEl.src = ev.target.result; }
-                imgEl.classList.remove('hidden');
+                    picImageLps.src = canvas.toDataURL();
+                } else { 
+                    picImageLps.src = ev.target.result;
+                }
+                
+                picImageLps.classList.remove('hidden');
                 document.getElementById('emptyState').classList.add('hidden');
-                imgEl.onload = () => { overlayEl.setAttribute('width', imgEl.width); overlayEl.setAttribute('height', imgEl.height); };
+                
+                setTimeout(() => {
+                    svgOverlayLps.setAttribute('width', picImageLps.width); 
+                    svgOverlayLps.setAttribute('height', picImageLps.height);
+                }, 100);
             };
-            if(file) file.type === 'application/pdf' ? reader.readAsArrayBuffer(file) : reader.readAsDataURL(file);
+            if(file.type === 'application/pdf') reader.readAsArrayBuffer(file);
+            else reader.readAsDataURL(file);
         }
 
-        document.getElementById('picUpload').onchange = (e) => handleImageUpload(e, picImageLps, svgOverlayLps, false);
+        document.getElementById('picUpload').onchange = handleImageUpload;
 
         function openExportModal() { document.getElementById('exportModal').classList.remove('hidden'); }
         function closeExportModal() { document.getElementById('exportModal').classList.add('hidden'); }
