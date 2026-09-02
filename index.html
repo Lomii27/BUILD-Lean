@@ -423,6 +423,7 @@
                 <button onclick="document.getElementById('progressInput').value = 25" class="flex-1 bg-slate-100 p-2 rounded text-xs font-bold text-slate-600 hover:bg-slate-200">25%</button>
                 <button onclick="document.getElementById('progressInput').value = 50" class="flex-1 bg-slate-100 p-2 rounded text-xs font-bold text-slate-600 hover:bg-slate-200">50%</button>
                 <button onclick="document.getElementById('progressInput').value = 75" class="flex-1 bg-slate-100 p-2 rounded text-xs font-bold text-slate-600 hover:bg-slate-200">75%</button>
+                <button onclick="document.getElementById('progressInput').value = 100" class="flex-1 bg-slate-100 p-2 rounded text-xs font-bold text-slate-600 hover:bg-slate-200">100%</button>
             </div>
 
             <div class="flex gap-3">
@@ -1100,7 +1101,7 @@
             document.getElementById('delayModal').classList.add('hidden'); 
             document.getElementById('exportModal').classList.add('hidden');
         }
-        function closeStatusMenu() { document.getElementById('statusMenu').classList.add('hidden'); activeTaskId = null; }
+        function closeStatusMenu() { document.getElementById('statusMenu').classList.add('hidden'); }
 
         function getBoundingBox(path) {
             let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
@@ -1253,7 +1254,7 @@
                 t.progress = Math.min(100, Math.max(0, num));
                 if (t.progress === 100) t.status = 'done';
                 else if (t.progress > 0) t.status = 'ongoing';
-                else if (t.progress < 100 && t.status === 'done') t.status = 'ongoing';
+                else if (t.progress === 0) t.status = 'none';
                 saveData();
             }
             document.getElementById('progressModal').classList.add('hidden');
