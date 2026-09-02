@@ -1645,10 +1645,13 @@
 
         async function generateReport(type) {
             closeExportModal();
-            const btn = document.getElementById('btnExport');
-            const originalText = btn.innerText;
-            btn.innerText = "EXPORT EN COURS...";
-            btn.classList.add('opacity-50', 'cursor-not-allowed');
+            
+            // Création d'un écran de chargement (le bouton btnExport n'existe plus dans le nouveau design)
+            const loadingOverlay = document.createElement('div');
+            loadingOverlay.id = 'pdfLoadingOverlay';
+            loadingOverlay.className = 'fixed inset-0 bg-[#004587]/90 backdrop-blur-sm z-[2000] flex flex-col items-center justify-center text-white';
+            loadingOverlay.innerHTML = '<div class="text-6xl mb-4 animate-spin">⏳</div><div class="text-2xl font-black tracking-widest uppercase">Création du PDF...</div><div class="text-sm font-bold text-blue-200 mt-2">Veuillez patienter (cela peut prendre quelques secondes)</div>';
+            document.body.appendChild(loadingOverlay);
 
             setTimeout(async () => {
                 try {
@@ -1856,8 +1859,9 @@
                     console.error(e);
                     alert("Erreur lors de la génération de l'export.");
                 } finally {
-                    btn.innerText = originalText;
-                    btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    // Masquer l'écran de chargement à la fin
+                    const overlay = document.getElementById('pdfLoadingOverlay');
+                    if (overlay) overlay.remove();
                 }
             }, 100);
         }
