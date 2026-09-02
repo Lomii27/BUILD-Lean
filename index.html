@@ -18,11 +18,19 @@
         body { touch-action: manipulation; }
         .pic-container { position: relative; overflow: auto; max-height: 65vh; border: 2px solid #e2e8f0; background: #f8fafc; min-height: 400px; touch-action: none; }
         
-        #drawingOverlay, #globalDrawingOverlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; }
+        #drawingOverlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; }
         
         .status-menu { position: absolute; z-index: 100; background: white; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); border: 1px solid #e2e8f0; min-width: 200px; }
         .tab-btn { border-bottom: 3px solid transparent; transition: all 0.2s; padding: 12px 10px; font-size: 10px; font-weight: 800; color: #64748b; }
         .tab-btn.active { border-bottom-color: #004587; color: #004587; }
+        
+        /* Navigation Sidebar / Bottom Nav Styles */
+        .nav-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.75rem; color: #94a3b8; font-weight: 700; transition: all 0.2s; cursor: pointer; }
+        .nav-item:hover { background-color: rgba(255,255,255,0.1); color: white; }
+        .nav-item.active { background-color: white; color: #004587; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        
+        .nav-item-mobile { display: flex; flex-direction: column; align-items: center; gap: 0.25rem; padding: 0.5rem; color: #94a3b8; font-size: 0.65rem; font-weight: 800; flex: 1; transition: all 0.2s; }
+        .nav-item-mobile.active { color: #004587; }
         
         .color-dot { width: 30px; height: 30px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; transition: transform 0.1s; }
         .color-dot.selected { border-color: #000; transform: scale(1.2); }
@@ -60,6 +68,10 @@
         .del-alexandre { background-color: #fee2e2; border-color: #ef4444; color: #991b1b; }
         .del-benne { background-color: #1e293b; border-color: #0f172a; color: white; }
         .del-autre { background-color: #f1f5f9; border-color: #94a3b8; color: #334155; }
+        
+        /* Cacher la scrollbar sur la sidebar */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 <body class="bg-slate-50 font-sans text-slate-900 overflow-hidden" id="mainBody">
@@ -67,7 +79,7 @@
     <!-- ÉCRAN DE VERROUILLAGE -->
     <div id="loginScreen" class="fixed inset-0 bg-[#004587] z-[1000] flex flex-col items-center justify-center p-4 transition-opacity duration-500">
         <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-sm text-center">
-            <h1 class="text-2xl font-black text-[#004587] mb-2 uppercase tracking-wide">BUILD Lean</h1>
+            <h1 class="text-3xl font-black text-[#004587] mb-2 uppercase tracking-wide">BUILD Lean</h1>
             <p class="text-sm text-slate-500 mb-6 font-medium">Veuillez saisir le code d'accès pour accéder au chantier.</p>
             
             <input type="password" id="accessCodeInput" placeholder="Code d'accès" class="w-full border-2 border-slate-200 rounded-xl p-4 text-center text-lg tracking-widest font-bold outline-none focus:border-[#004587] mb-4">
@@ -78,236 +90,301 @@
         </div>
     </div>
 
-    <!-- CONTENU DE L'APPLICATION (Caché par défaut) -->
-    <div id="appContainer" class="max-w-[1600px] mx-auto p-2 md:p-4 opacity-0 pointer-events-none transition-opacity duration-500">
-        <!-- Header -->
-        <header class="flex flex-col md:flex-row justify-between items-center mb-4 bg-white p-4 rounded-xl shadow-sm border-b-4 border-[#004587] gap-3">
-            <div class="flex items-center gap-4">
-                <img src="Logo%202.png" alt="Logo BUILD-Lean" class="h-12 md:h-14 w-auto" onerror="this.style.display='none'"> 
-                <div class="flex items-center bg-slate-100 rounded-lg p-1 border border-slate-200" id="weekSelectorContainer">
-                    <select id="weekSelector" onchange="switchWeek(this.value)" class="bg-transparent text-sm font-bold text-[#004587] outline-none pl-2 pr-4 cursor-pointer"></select>
-                    <button onclick="openWeekModal()" class="bg-white text-slate-600 px-3 py-1 rounded shadow-sm text-[10px] font-black uppercase hover:bg-slate-200 ml-2">+ Nvlle Semaine</button>
+    <!-- CONTENEUR PRINCIPAL DE L'APPLICATION (Sidebar + Main) -->
+    <div id="appContainer" class="flex h-screen w-full opacity-0 pointer-events-none transition-opacity duration-500 overflow-hidden bg-slate-50">
+        
+        <!-- SIDEBAR (Desktop) -->
+        <aside class="hidden md:flex flex-col w-64 bg-[#004587] shadow-xl z-20 shrink-0">
+            <div class="p-6 pb-2 border-b border-white/10 mb-4 flex items-center justify-center bg-white">
+                <img src="Logo%202.png" alt="Logo BUILD-Lean" class="h-16 w-auto" onerror="this.style.display='none'">
+            </div>
+            
+            <nav class="flex-1 px-4 space-y-2 overflow-y-auto no-scrollbar">
+                <div class="text-xs font-black text-white/50 uppercase tracking-widest px-2 mb-2 mt-4">Menu Principal</div>
+                
+                <div onclick="switchMainView('accueil')" id="nav-desktop-accueil" class="nav-item active">
+                    <span class="text-xl">🏠</span> <span>Accueil & KPIs</span>
+                </div>
+                <div onclick="switchMainView('lps')" id="nav-desktop-lps" class="nav-item">
+                    <span class="text-xl">🏗️</span> <span>Suivi Hebdo (LPS)</span>
+                </div>
+                <div onclick="switchMainView('livraisons')" id="nav-desktop-livraisons" class="nav-item">
+                    <span class="text-xl">🚚</span> <span>Planning Livraisons</span>
+                </div>
+                <div onclick="switchMainView('resteafaire')" id="nav-desktop-resteafaire" class="nav-item">
+                    <span class="text-xl">📋</span> <span>Reste à faire</span>
+                </div>
+                
+                <div class="text-xs font-black text-white/50 uppercase tracking-widest px-2 mb-2 mt-8">Outils</div>
+                <div onclick="openExportModal()" class="nav-item bg-white/5 hover:bg-white/20 border border-white/10">
+                    <span class="text-xl">📑</span> <span>Exporter PDF</span>
+                </div>
+            </nav>
+            
+            <div class="p-4 mt-auto border-t border-white/10">
+                <div id="cloudStatusDesktop" class="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-white/50">
+                    <div class="w-2 h-2 rounded-full bg-slate-400" id="cloudDotDesktop"></div>
+                    <span id="cloudTextDesktop">Local uniquement</span>
                 </div>
             </div>
-            <div class="flex gap-2 w-full md:w-auto items-center">
-                <!-- Statut de synchronisation Cloud -->
-                <div id="cloudStatus" class="hidden md:flex items-center gap-2 mr-4 text-[10px] font-black uppercase tracking-widest text-slate-400">
-                    <div class="w-2 h-2 rounded-full bg-slate-400" id="cloudDot"></div>
-                    <span id="cloudText">Local uniquement</span>
-                </div>
-                <button id="btnExport" onclick="openExportModal()" class="bg-blue-700 text-white px-5 py-3 rounded-lg text-xs font-bold uppercase shadow-lg hover:bg-blue-800 transition">Exporter Rapport PDF</button>
-            </div>
-        </header>
+        </aside>
 
-        <!-- Bascule de Vues Principales -->
-        <div class="flex gap-2 mb-4 bg-white p-1.5 rounded-xl shadow-sm border border-slate-200 overflow-x-auto">
-            <button onclick="switchMainView('lps')" id="btnViewLPS" class="flex-none px-6 py-3 bg-[#004587] text-white rounded-lg font-black uppercase text-xs shadow-md transition">Suivi Hebdo (LPS)</button>
-            <button onclick="switchMainView('global')" id="btnViewGlobal" class="flex-none px-6 py-3 bg-white text-slate-500 hover:bg-slate-50 rounded-lg font-bold uppercase text-xs border border-slate-200 transition">Planning Global (Macro)</button>
-            <button onclick="switchMainView('livraisons')" id="btnViewLivraisons" class="flex-none px-6 py-3 bg-white text-slate-500 hover:bg-slate-50 rounded-lg font-bold uppercase text-xs border border-slate-200 transition">Planning Livraisons</button>
-            <button onclick="switchMainView('resteafaire')" id="btnViewReste" class="flex-none px-6 py-3 bg-white text-slate-500 hover:bg-slate-50 rounded-lg font-bold uppercase text-xs border border-slate-200 transition">Reste à faire</button>
-        </div>
-
-        <!-- ================================================================= -->
-        <!-- VUE 1 : SUIVI HEBDO (LPS) -->
-        <!-- ================================================================= -->
-        <div id="view-lps" class="grid grid-cols-1 lg:grid-cols-4 gap-4">
-            <div class="lg:col-span-3 space-y-4">
-                <div class="bg-white p-1 rounded-xl shadow-sm border border-slate-200 relative">
-                    <div class="absolute top-4 left-4 z-50">
-                        <input type="file" id="picUpload" accept="image/*,application/pdf" class="hidden">
-                        <button onclick="document.getElementById('picUpload').click()" class="bg-slate-800 text-white px-3 py-2 rounded-lg text-[10px] font-bold uppercase hover:bg-slate-700 shadow-md">📁 Importer PIC (Plan)</button>
-                    </div>
-
-                    <div id="modeBanner" class="hidden absolute top-0 left-0 w-full bg-indigo-600 text-white text-[10px] font-black text-center py-2 z-50 rounded-t-lg shadow-md uppercase tracking-wider">
-                        <span id="modeBannerText">DESSINEZ LE NOUVEAU CONTOUR DE LA ZONE</span>
-                        <button onclick="resetDrawingMode()" class="ml-4 underline opacity-80 hover:opacity-100 italic">Annuler (Echap)</button>
-                    </div>
-
-                    <div id="canvasWrapper" class="pic-container rounded-lg">
-                        <img id="picImage" src="" alt="" class="hidden" draggable="false">
-                        <svg id="drawingOverlay"></svg>
-                        <div id="emptyState" class="absolute inset-0 flex flex-col items-center justify-center text-slate-400 bg-slate-50/50 pointer-events-none">
-                            <p class="text-sm font-bold uppercase tracking-widest" id="statusMessage">Aucun plan PIC chargé</p>
-                        </div>
-                    </div>
+        <!-- ZONE DE CONTENU PRINCIPALE -->
+        <main class="flex-1 flex flex-col h-screen relative pb-16 md:pb-0 overflow-hidden">
+            
+            <!-- HEADER GLOBAL -->
+            <header class="bg-white p-4 shadow-sm border-b border-slate-200 flex justify-between items-center z-10 shrink-0">
+                <div class="flex items-center gap-3">
+                    <img src="Logo%202.png" alt="Logo" class="h-8 md:hidden block" onerror="this.style.display='none'">
                     
-                    <div id="statusMenu" class="status-menu hidden flex flex-col overflow-hidden">
-                        <div class="bg-slate-100 border-b flex justify-between items-center px-3 py-1">
-                            <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Options</span>
-                            <button onclick="closeStatusMenu()" class="text-slate-400 hover:text-red-600 font-black text-lg leading-none">&times;</button>
-                        </div>
-                        <div class="p-2 border-b bg-slate-50 flex justify-between gap-2">
-                            <button onclick="editTaskInfo()" class="flex-1 text-[9px] uppercase font-black text-slate-600 bg-white border p-2 rounded shadow-sm hover:bg-slate-100">Infos ✏️</button>
-                            <button onclick="setDrawingMode('redraw')" class="flex-1 text-[9px] uppercase font-black text-slate-600 bg-white border p-2 rounded shadow-sm hover:bg-slate-100">Tracé 🔄</button>
-                        </div>
-                        <button onclick="openProgressModal()" class="text-left px-5 py-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-800 font-black text-xs border-b">Définir Avancement (%) 📏</button>
-                        <button onclick="setStatus('done')" class="text-left px-5 py-3 hover:bg-green-50 text-green-700 font-bold text-sm border-b">Réalisée ✅</button>
-                        <button onclick="setStatus('ongoing')" class="text-left px-5 py-3 hover:bg-blue-50 text-blue-700 font-bold text-sm border-b">En cours 🏗️</button>
-                        <button onclick="openDelayModal()" class="text-left px-5 py-3 hover:bg-red-50 text-red-700 font-bold text-sm border-b">Reportée ⚠️</button>
-                        <button onclick="deleteActiveTask()" class="text-center py-2 text-slate-400 text-[9px] uppercase font-bold hover:bg-slate-100">Supprimer</button>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                    <div class="flex overflow-x-auto border-b bg-slate-50 no-scrollbar">
-                        <button onclick="switchTab('all')" class="tab-btn active shrink-0" id="tab-all">TOUTES (<span id="count-all">0</span>)</button>
-                        <button onclick="switchTab('done')" class="tab-btn shrink-0" id="tab-done">FAIT (<span id="count-done">0</span>)</button>
-                        <button onclick="switchTab('ongoing')" class="tab-btn shrink-0" id="tab-ongoing">COURS (<span id="count-ongoing">0</span>)</button>
-                        <button onclick="switchTab('none')" class="tab-btn shrink-0" id="tab-none">À FAIRE (<span id="count-none">0</span>)</button>
-                        <button onclick="switchTab('delayed')" class="tab-btn shrink-0" id="tab-delayed">REPORT (<span id="count-delayed">0</span>)</button>
-                    </div>
-                    <div class="max-h-[300px] overflow-auto">
-                        <table class="w-full text-left text-[11px]">
-                            <thead class="bg-slate-100 text-slate-500 font-bold uppercase text-[9px] sticky top-0 z-10">
-                                <tr>
-                                    <th class="p-3">Zone / Tâche</th>
-                                    <th class="p-3">Équipe</th>
-                                    <th class="p-3 text-center">Prog.</th>
-                                    <th class="p-3 text-right">Statut / Causes</th>
-                                </tr>
-                            </thead>
-                            <tbody id="taskTableBody" class="divide-y divide-slate-100"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 text-center flex flex-col items-center h-fit sticky top-4">
-                <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">PPC Hebdo</h3>
-                <div class="relative h-44 w-44 mb-6">
-                    <canvas id="ppcChart"></canvas>
-                    <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                        <span id="ppcPercentage" class="text-4xl font-black text-[#004587]">0%</span>
+                    <div class="flex items-center bg-slate-100 rounded-lg p-1 border border-slate-200" id="weekSelectorContainer">
+                        <select id="weekSelector" onchange="switchWeek(this.value)" class="bg-transparent text-sm md:text-base font-black text-[#004587] outline-none pl-2 pr-4 cursor-pointer"></select>
+                        <button onclick="openWeekModal()" class="bg-white text-slate-600 px-3 py-1 rounded shadow-sm text-[10px] font-black uppercase hover:bg-slate-200 ml-2">+ Nvlle Semaine</button>
                     </div>
                 </div>
                 
-                <div class="w-full space-y-4 text-left" id="statBars">
-                    <!-- Généré dynamiquement -->
+                <div class="flex items-center gap-4">
+                    <!-- Pastille Cloud Mobile -->
+                    <div id="cloudStatusMobile" class="md:hidden flex items-center justify-center bg-slate-100 p-2 rounded-full border border-slate-200">
+                        <div class="w-3 h-3 rounded-full bg-slate-400" id="cloudDotMobile"></div>
+                    </div>
+                    <button onclick="openExportModal()" class="md:hidden bg-blue-700 text-white p-2 rounded-lg text-sm shadow-md"><span class="text-lg leading-none">📑</span></button>
                 </div>
-            </div>
-        </div>
+            </header>
 
-        <!-- ================================================================= -->
-        <!-- VUE 2 : PLANNING GLOBAL (MACRO) -->
-        <!-- ================================================================= -->
-        <div id="view-global" class="grid grid-cols-1 lg:grid-cols-4 gap-4 hidden">
-            <div class="lg:col-span-3 space-y-4">
-                <div class="bg-white p-1 rounded-xl shadow-sm border border-slate-200 relative">
-                    <div class="absolute top-4 left-4 z-50">
-                        <input type="file" id="globalPicUpload" accept="image/*,application/pdf" class="hidden">
-                        <button onclick="document.getElementById('globalPicUpload').click()" class="bg-slate-800 text-white px-3 py-2 rounded-lg text-[10px] font-bold uppercase hover:bg-slate-700 shadow-md">📁 Importer Planning Global</button>
-                    </div>
-
-                    <div id="globalCanvasWrapper" class="pic-container rounded-lg">
-                        <img id="globalPicImage" src="" alt="" class="hidden" draggable="false">
-                        <svg id="globalDrawingOverlay"></svg>
-                        <div id="globalEmptyState" class="absolute inset-0 flex flex-col items-center justify-center text-slate-400 bg-slate-50/50 pointer-events-none">
-                            <p class="text-sm font-bold uppercase tracking-widest" id="globalStatusMessage">Aucun Planning Global chargé</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                    <div class="p-3 bg-slate-50 border-b">
-                        <h3 class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Jalons & Phases Macro</h3>
-                    </div>
-                    <div class="max-h-[300px] overflow-auto">
-                        <table class="w-full text-left text-[11px]">
-                            <thead class="bg-slate-100 text-slate-500 font-bold uppercase text-[9px] sticky top-0 z-10">
-                                <tr>
-                                    <th class="p-3">Phase / Jalon Global</th>
-                                    <th class="p-3">Statut Actuel</th>
-                                    <th class="p-3">Impact LPS / Observations</th>
-                                </tr>
-                            </thead>
-                            <tbody id="globalTaskTableBody" class="divide-y divide-slate-100"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 h-fit sticky top-4">
-                <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Indicateur Macro</h3>
-                <p class="text-xs text-slate-600 mb-6 font-medium">Tracez des zones sur les barres de votre planning global pour lier les retards hebdomadaires à la livraison finale.</p>
+            <!-- VUES SCROLLABLES -->
+            <div id="viewsContainer" class="flex-1 overflow-y-auto p-2 md:p-6 bg-slate-50">
                 
-                <div class="space-y-4">
-                    <div class="p-3 border rounded-lg bg-green-50 border-green-200 flex justify-between items-center">
-                        <span class="text-xs font-bold text-green-700">En avance / Respecté</span>
-                        <span id="globalCountOk" class="text-lg font-black text-green-700">0</span>
-                    </div>
-                    <div class="p-3 border rounded-lg bg-red-50 border-red-200 flex justify-between items-center">
-                        <span class="text-xs font-bold text-red-700">En retard / Impacté</span>
-                        <span id="globalCountDelayed" class="text-lg font-black text-red-700">0</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ================================================================= -->
-        <!-- VUE 3 : PLANNING LIVRAISONS -->
-        <!-- ================================================================= -->
-        <div id="view-livraisons" class="hidden">
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                <div class="del-header-top">
-                    PLANNING DE LIVRAISONS<br>
-                    <span class="text-xs font-normal" id="livraisonsDateRange">Semaine en cours</span>
-                </div>
-                
-                <div class="overflow-x-auto">
-                    <table class="del-table">
-                        <thead>
-                            <tr>
-                                <th class="w-20 bg-slate-600 border-slate-700 text-white text-xs">Heures</th>
-                                <th colspan="3" class="del-header-day">Lundi</th>
-                                <th colspan="3" class="del-header-day">Mardi</th>
-                                <th colspan="3" class="del-header-day">Mercredi</th>
-                                <th colspan="3" class="del-header-day">Jeudi</th>
-                                <th colspan="3" class="del-header-day">Vendredi</th>
-                            </tr>
-                            <tr>
-                                <th class="bg-slate-100 border-slate-300"></th>
-                                <th class="del-header-zone w-[100px]">Rampe</th><th class="del-header-zone w-[100px]">Centre</th><th class="del-header-zone w-[100px]">Galieni</th>
-                                <th class="del-header-zone w-[100px]">Rampe</th><th class="del-header-zone w-[100px]">Centre</th><th class="del-header-zone w-[100px]">Galieni</th>
-                                <th class="del-header-zone w-[100px]">Rampe</th><th class="del-header-zone w-[100px]">Centre</th><th class="del-header-zone w-[100px]">Galieni</th>
-                                <th class="del-header-zone w-[100px]">Rampe</th><th class="del-header-zone w-[100px]">Centre</th><th class="del-header-zone w-[100px]">Galieni</th>
-                                <th class="del-header-zone w-[100px]">Rampe</th><th class="del-header-zone w-[100px]">Centre</th><th class="del-header-zone w-[100px]">Galieni</th>
-                            </tr>
-                        </thead>
-                        <tbody id="livraisonsTableBody"></tbody>
-                    </table>
-                </div>
-
-                <div class="p-6 bg-white border-t flex flex-wrap gap-6 items-center">
-                    <div class="flex items-center gap-2"><div class="w-6 h-4 del-victor border"></div> <span class="text-xs font-bold uppercase">Victor</span></div>
-                    <div class="flex items-center gap-2"><div class="w-6 h-4 del-othmane border"></div> <span class="text-xs font-bold uppercase">Othmane / Camilo</span></div>
-                    <div class="flex items-center gap-2"><div class="w-6 h-4 del-alexandre border"></div> <span class="text-xs font-bold uppercase">Alexandre</span></div>
-                    <div class="flex items-center gap-2"><div class="w-6 h-4 del-benne border"></div> <span class="text-xs font-bold uppercase">Benne / Autre</span></div>
-                    <div class="ml-auto text-xs italic text-slate-500">Cliquez sur une case vide pour ajouter une livraison.</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ================================================================= -->
-        <!-- VUE 4 : RESTE À FAIRE -->
-        <!-- ================================================================= -->
-        <div id="view-resteafaire" class="hidden">
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                <div class="flex justify-between items-center mb-6 border-b border-slate-200 pb-4">
+                <!-- ================================================================= -->
+                <!-- VUE 0 : ACCUEIL / DASHBOARD -->
+                <!-- ================================================================= -->
+                <div id="view-accueil" class="space-y-6 max-w-6xl mx-auto">
                     <div>
-                        <h2 class="text-lg font-black text-[#004587] uppercase tracking-wider">Reste à faire (Levée de réserves)</h2>
-                        <p class="text-xs text-slate-500 font-medium">Liste des tâches résiduelles ou points bloquants par niveau.</p>
+                        <h2 class="text-2xl md:text-3xl font-black text-[#004587] uppercase tracking-tight">Tableau de bord</h2>
+                        <p class="text-slate-500 font-medium text-sm">Données clés de la semaine sélectionnée (<span id="dashWeekName" class="font-bold">...</span>)</p>
+                    </div>
+
+                    <!-- Ligne de KPIs -->
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                        <!-- KPI 1 : PPC -->
+                        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-center items-center text-center">
+                            <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Indice de Perf. (PPC)</div>
+                            <div id="dashPpc" class="text-4xl md:text-5xl font-black text-[#004587]">0%</div>
+                            <div class="text-[9px] text-slate-400 mt-2">Tâches réalisées / Tâches prévues</div>
+                        </div>
+
+                        <!-- KPI 2 : Tâches LPS -->
+                        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                            <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Bilan LPS</div>
+                            <div class="flex justify-between items-end mb-2">
+                                <span class="text-xs font-bold text-green-600">Réalisées</span>
+                                <span id="dashLpsDone" class="text-lg font-black text-green-600">0</span>
+                            </div>
+                            <div class="flex justify-between items-end mb-2">
+                                <span class="text-xs font-bold text-blue-600">En cours</span>
+                                <span id="dashLpsOngoing" class="text-lg font-black text-blue-600">0</span>
+                            </div>
+                            <div class="flex justify-between items-end border-t pt-2 mt-2">
+                                <span class="text-xs font-bold text-red-500">Reportées</span>
+                                <span id="dashLpsDelayed" class="text-lg font-black text-red-500">0</span>
+                            </div>
+                        </div>
+
+                        <!-- KPI 3 : Livraisons -->
+                        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-center items-center text-center">
+                            <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Livraisons de la semaine</div>
+                            <div id="dashLivraisons" class="text-4xl md:text-5xl font-black text-amber-500">0</div>
+                            <div class="text-[9px] text-slate-400 mt-2">Créneaux réservés</div>
+                        </div>
+
+                        <!-- KPI 4 : Reste à faire -->
+                        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-center items-center text-center">
+                            <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Réserves Ouvertes (RAF)</div>
+                            <div id="dashRaf" class="text-4xl md:text-5xl font-black text-slate-700">0</div>
+                            <div class="text-[9px] text-slate-400 mt-2">Total tous niveaux confondus</div>
+                        </div>
+                    </div>
+
+                    <!-- Section Explications/Raccourcis -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
+                        <div class="bg-[#004587] text-white p-6 rounded-2xl shadow-md relative overflow-hidden">
+                            <div class="absolute -right-10 -bottom-10 opacity-10 text-9xl">🏗️</div>
+                            <h3 class="text-lg font-black uppercase tracking-wide mb-2 relative z-10">Suivi Hebdo (LPS)</h3>
+                            <p class="text-sm text-blue-100 font-medium mb-4 relative z-10">Importez votre plan d'installation de chantier (PIC), dessinez les zones d'intervention et suivez l'avancement en temps réel.</p>
+                            <button onclick="switchMainView('lps')" class="bg-white text-[#004587] px-4 py-2 rounded-lg text-xs font-black uppercase shadow hover:bg-blue-50 transition relative z-10">Aller au LPS</button>
+                        </div>
+                        <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
+                            <h3 class="text-lg font-black text-slate-800 uppercase tracking-wide mb-2">Génération de Rapports</h3>
+                            <p class="text-sm text-slate-500 font-medium mb-4">Exportez à tout moment l'ensemble de vos données, indicateurs et plans annotés en un seul fichier PDF propre et partageable.</p>
+                            <button onclick="openExportModal()" class="bg-blue-700 text-white px-4 py-2 rounded-lg text-xs font-black uppercase shadow hover:bg-blue-800 transition">Créer un PDF</button>
+                        </div>
                     </div>
                 </div>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-                    <div id="raf-container-SS1"></div>
-                    <div id="raf-container-RDC"></div>
-                    <div id="raf-container-R+1"></div>
-                    <div id="raf-container-Toiture"></div>
-                    <div id="raf-container-Cheneau"></div>
+
+                <!-- ================================================================= -->
+                <!-- VUE 1 : SUIVI HEBDO (LPS) -->
+                <!-- ================================================================= -->
+                <div id="view-lps" class="hidden grid grid-cols-1 lg:grid-cols-4 gap-4">
+                    <div class="lg:col-span-3 space-y-4">
+                        <div class="bg-white p-1 rounded-xl shadow-sm border border-slate-200 relative">
+                            <div class="absolute top-4 left-4 z-50">
+                                <input type="file" id="picUpload" accept="image/*,application/pdf" class="hidden">
+                                <button onclick="document.getElementById('picUpload').click()" class="bg-slate-800 text-white px-3 py-2 rounded-lg text-[10px] font-bold uppercase hover:bg-slate-700 shadow-md">📁 Importer PIC (Plan)</button>
+                            </div>
+
+                            <div id="modeBanner" class="hidden absolute top-0 left-0 w-full bg-indigo-600 text-white text-[10px] font-black text-center py-2 z-50 rounded-t-lg shadow-md uppercase tracking-wider">
+                                <span id="modeBannerText">DESSINEZ LE NOUVEAU CONTOUR DE LA ZONE</span>
+                                <button onclick="resetDrawingMode()" class="ml-4 underline opacity-80 hover:opacity-100 italic">Annuler (Echap)</button>
+                            </div>
+
+                            <div id="canvasWrapper" class="pic-container rounded-lg">
+                                <img id="picImage" src="" alt="" class="hidden" draggable="false">
+                                <svg id="drawingOverlay"></svg>
+                                <div id="emptyState" class="absolute inset-0 flex flex-col items-center justify-center text-slate-400 bg-slate-50/50 pointer-events-none">
+                                    <p class="text-sm font-bold uppercase tracking-widest" id="statusMessage">Aucun plan PIC chargé</p>
+                                </div>
+                            </div>
+                            
+                            <div id="statusMenu" class="status-menu hidden flex flex-col overflow-hidden">
+                                <div class="bg-slate-100 border-b flex justify-between items-center px-3 py-1">
+                                    <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Options</span>
+                                    <button onclick="closeStatusMenu()" class="text-slate-400 hover:text-red-600 font-black text-lg leading-none">&times;</button>
+                                </div>
+                                <div class="p-2 border-b bg-slate-50 flex justify-between gap-2">
+                                    <button onclick="editTaskInfo()" class="flex-1 text-[9px] uppercase font-black text-slate-600 bg-white border p-2 rounded shadow-sm hover:bg-slate-100">Infos ✏️</button>
+                                    <button onclick="setDrawingMode('redraw')" class="flex-1 text-[9px] uppercase font-black text-slate-600 bg-white border p-2 rounded shadow-sm hover:bg-slate-100">Tracé 🔄</button>
+                                </div>
+                                <button onclick="openProgressModal()" class="text-left px-5 py-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-800 font-black text-xs border-b">Définir Avancement (%) 📏</button>
+                                <button onclick="setStatus('done')" class="text-left px-5 py-3 hover:bg-green-50 text-green-700 font-bold text-sm border-b">Réalisée ✅</button>
+                                <button onclick="setStatus('ongoing')" class="text-left px-5 py-3 hover:bg-blue-50 text-blue-700 font-bold text-sm border-b">En cours 🏗️</button>
+                                <button onclick="openDelayModal()" class="text-left px-5 py-3 hover:bg-red-50 text-red-700 font-bold text-sm border-b">Reportée ⚠️</button>
+                                <button onclick="deleteActiveTask()" class="text-center py-2 text-slate-400 text-[9px] uppercase font-bold hover:bg-slate-100">Supprimer</button>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                            <div class="flex overflow-x-auto border-b bg-slate-50 no-scrollbar">
+                                <button onclick="switchTab('all')" class="tab-btn active shrink-0" id="tab-all">TOUTES (<span id="count-all">0</span>)</button>
+                                <button onclick="switchTab('done')" class="tab-btn shrink-0" id="tab-done">FAIT (<span id="count-done">0</span>)</button>
+                                <button onclick="switchTab('ongoing')" class="tab-btn shrink-0" id="tab-ongoing">COURS (<span id="count-ongoing">0</span>)</button>
+                                <button onclick="switchTab('none')" class="tab-btn shrink-0" id="tab-none">À FAIRE (<span id="count-none">0</span>)</button>
+                                <button onclick="switchTab('delayed')" class="tab-btn shrink-0" id="tab-delayed">REPORT (<span id="count-delayed">0</span>)</button>
+                            </div>
+                            <div class="max-h-[300px] overflow-auto">
+                                <table class="w-full text-left text-[11px]">
+                                    <thead class="bg-slate-100 text-slate-500 font-bold uppercase text-[9px] sticky top-0 z-10">
+                                        <tr>
+                                            <th class="p-3">Zone / Tâche</th>
+                                            <th class="p-3">Équipe</th>
+                                            <th class="p-3 text-center">Prog.</th>
+                                            <th class="p-3 text-right">Statut / Causes</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="taskTableBody" class="divide-y divide-slate-100"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 text-center flex flex-col items-center h-fit sticky top-4">
+                        <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">PPC Hebdo</h3>
+                        <div class="relative h-44 w-44 mb-6">
+                            <canvas id="ppcChart"></canvas>
+                            <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                                <span id="ppcPercentage" class="text-4xl font-black text-[#004587]">0%</span>
+                            </div>
+                        </div>
+                        
+                        <div class="w-full space-y-4 text-left" id="statBars">
+                            <!-- Généré dynamiquement -->
+                        </div>
+                    </div>
                 </div>
+
+                <!-- ================================================================= -->
+                <!-- VUE 2 : PLANNING LIVRAISONS -->
+                <!-- ================================================================= -->
+                <div id="view-livraisons" class="hidden">
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                        <div class="del-header-top">
+                            PLANNING DE LIVRAISONS<br>
+                            <span class="text-xs font-normal" id="livraisonsDateRange">Semaine en cours</span>
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="del-table">
+                                <thead>
+                                    <tr>
+                                        <th class="w-20 bg-slate-600 border-slate-700 text-white text-xs">Heures</th>
+                                        <th colspan="3" class="del-header-day">Lundi</th>
+                                        <th colspan="3" class="del-header-day">Mardi</th>
+                                        <th colspan="3" class="del-header-day">Mercredi</th>
+                                        <th colspan="3" class="del-header-day">Jeudi</th>
+                                        <th colspan="3" class="del-header-day">Vendredi</th>
+                                    </tr>
+                                    <tr>
+                                        <th class="bg-slate-100 border-slate-300"></th>
+                                        <th class="del-header-zone w-[100px]">Rampe</th><th class="del-header-zone w-[100px]">Centre</th><th class="del-header-zone w-[100px]">Galieni</th>
+                                        <th class="del-header-zone w-[100px]">Rampe</th><th class="del-header-zone w-[100px]">Centre</th><th class="del-header-zone w-[100px]">Galieni</th>
+                                        <th class="del-header-zone w-[100px]">Rampe</th><th class="del-header-zone w-[100px]">Centre</th><th class="del-header-zone w-[100px]">Galieni</th>
+                                        <th class="del-header-zone w-[100px]">Rampe</th><th class="del-header-zone w-[100px]">Centre</th><th class="del-header-zone w-[100px]">Galieni</th>
+                                        <th class="del-header-zone w-[100px]">Rampe</th><th class="del-header-zone w-[100px]">Centre</th><th class="del-header-zone w-[100px]">Galieni</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="livraisonsTableBody"></tbody>
+                            </table>
+                        </div>
+
+                        <div class="p-6 bg-white border-t flex flex-wrap gap-6 items-center">
+                            <div class="flex items-center gap-2"><div class="w-6 h-4 del-victor border"></div> <span class="text-xs font-bold uppercase">Victor</span></div>
+                            <div class="flex items-center gap-2"><div class="w-6 h-4 del-othmane border"></div> <span class="text-xs font-bold uppercase">Othmane / Camilo</span></div>
+                            <div class="flex items-center gap-2"><div class="w-6 h-4 del-alexandre border"></div> <span class="text-xs font-bold uppercase">Alexandre</span></div>
+                            <div class="flex items-center gap-2"><div class="w-6 h-4 del-benne border"></div> <span class="text-xs font-bold uppercase">Benne / Autre</span></div>
+                            <div class="ml-auto text-xs italic text-slate-500">Cliquez sur une case vide pour ajouter une livraison.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ================================================================= -->
+                <!-- VUE 3 : RESTE À FAIRE -->
+                <!-- ================================================================= -->
+                <div id="view-resteafaire" class="hidden">
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                        <div class="flex justify-between items-center mb-6 border-b border-slate-200 pb-4">
+                            <div>
+                                <h2 class="text-lg md:text-xl font-black text-[#004587] uppercase tracking-wider">Reste à faire (Levée de réserves)</h2>
+                                <p class="text-xs md:text-sm text-slate-500 font-medium">Liste des tâches résiduelles ou points bloquants par niveau.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-6">
+                            <div id="raf-container-SS1"></div>
+                            <div id="raf-container-RDC"></div>
+                            <div id="raf-container-R+1"></div>
+                            <div id="raf-container-Toiture"></div>
+                            <div id="raf-container-Cheneau"></div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
-        </div>
+        </main>
+        
+        <!-- BOTTOM NAV (Mobile Uniquement) -->
+        <nav class="md:hidden fixed bottom-0 w-full bg-white border-t border-slate-200 flex justify-around p-2 z-50 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+            <button onclick="switchMainView('accueil')" id="nav-mobile-accueil" class="nav-item-mobile active">
+                <span class="text-xl">🏠</span> <span>Accueil</span>
+            </button>
+            <button onclick="switchMainView('lps')" id="nav-mobile-lps" class="nav-item-mobile">
+                <span class="text-xl">🏗️</span> <span>LPS</span>
+            </button>
+            <button onclick="switchMainView('livraisons')" id="nav-mobile-livraisons" class="nav-item-mobile">
+                <span class="text-xl">🚚</span> <span>Livraisons</span>
+            </button>
+            <button onclick="switchMainView('resteafaire')" id="nav-mobile-resteafaire" class="nav-item-mobile">
+                <span class="text-xl">📋</span> <span>Reste à F.</span>
+            </button>
+        </nav>
 
     </div>
 
@@ -472,31 +549,6 @@
         </div>
     </div>
 
-    <div id="globalTaskModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center z-[200] p-4">
-        <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl border-t-8 border-[#004587]">
-            <h3 id="globalModalTitle" class="text-lg font-black mb-4 uppercase italic text-[#004587]">Détails Jalon Global</h3>
-            
-            <label class="block text-[10px] font-black text-slate-400 uppercase mb-1">Désignation de la Phase / Jalon</label>
-            <input type="text" id="globalTaskName" placeholder="Ex: Gros Oeuvre Bâtiment A" class="w-full border-2 border-slate-100 rounded-xl p-3 mb-4 text-sm outline-none focus:border-[#004587] font-bold">
-            
-            <label class="block text-[10px] font-black text-slate-400 uppercase mb-2">Statut Actuel</label>
-            <div class="flex gap-2 mb-4">
-                <button id="btnGlobalOk" onclick="setGlobalStatusTemp('ok')" class="flex-1 py-2 rounded-lg border-2 border-green-500 text-green-700 font-bold bg-white opacity-50 hover:opacity-100 transition">Respecté ✅</button>
-                <button id="btnGlobalDelay" onclick="setGlobalStatusTemp('delayed')" class="flex-1 py-2 rounded-lg border-2 border-red-500 text-red-700 font-bold bg-white opacity-50 hover:opacity-100 transition">Impacté ⚠️</button>
-            </div>
-
-            <label class="block text-[10px] font-black text-slate-400 uppercase mb-1">Impact LPS / Observations</label>
-            <textarea id="globalTaskComment" placeholder="Lien avec les retards hebdomadaires..." class="w-full border-2 border-slate-100 rounded-xl p-3 mb-5 text-sm outline-none focus:border-[#004587] h-24 resize-none"></textarea>
-            
-            <div class="flex gap-3">
-                <button onclick="closeGlobalModal()" class="flex-1 py-3 font-bold text-slate-400 hover:text-slate-600">ANNULER</button>
-                <button onclick="confirmGlobalTask()" class="flex-1 py-3 bg-[#004587] text-white rounded-xl font-bold shadow-lg" id="globalModalBtn">ENREGISTRER</button>
-            </div>
-            
-            <button onclick="deleteGlobalTask()" id="btnDeleteGlobal" class="w-full mt-3 py-2 text-red-500 text-xs font-bold hover:underline hidden">Supprimer ce jalon</button>
-        </div>
-    </div>
-
     <div id="deliveryModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden flex items-center justify-center z-[200] p-4">
         <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl border-t-8 border-[#1e3a8a]">
             <h3 class="text-lg font-black mb-4 uppercase italic text-[#1e3a8a]">Planifier Livraison</h3>
@@ -579,11 +631,9 @@
             const errorText = document.getElementById('loginError');
             
             if (input === APP_PASSWORD) {
-                // Mot de passe correct
                 localStorage.setItem('build_lean_access', 'granted');
                 unlockApp();
             } else {
-                // Mot de passe incorrect
                 errorText.classList.remove('hidden');
                 document.getElementById('accessCodeInput').classList.add('border-red-500');
                 setTimeout(() => { document.getElementById('accessCodeInput').classList.remove('border-red-500'); }, 1000);
@@ -600,13 +650,16 @@
                 appContainer.style.opacity = '1';
                 appContainer.style.pointerEvents = 'auto';
                 
-                // Lancement de l'application seulement après déverrouillage
                 initApp();
             }, 500);
         }
 
+        document.getElementById('accessCodeInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') checkAccess();
+        });
+
         // ==========================================
-        // 2. INITIALISATION PRINCIPALE
+        // 2. INITIALISATION PRINCIPALE & CLOUD
         // ==========================================
         const pdfjsLib = window['pdfjs-dist/build/pdf'];
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
@@ -615,6 +668,7 @@
         let db = null;
         let docRef = null;
 
+        // VOS CLES FIREBASE ICI !
         let firebaseConfig = {
           apiKey: "AIzaSyBdGD-oEwyQ60r4ajKOrUaBWmaHUf9O2R4",
           authDomain: "build--lean.firebaseapp.com",
@@ -627,7 +681,7 @@
         try { if (typeof __firebase_config !== 'undefined') firebaseConfig = JSON.parse(__firebase_config); } catch(e) {}
 
         let appData = null;
-        let tasks = []; let globalTasks = []; let deliveries = []; let rafTasks = [];
+        let tasks = []; let deliveries = []; let rafTasks = [];
         const rafLevels = ['SS1', 'RDC', 'R+1', 'Toiture', 'Cheneau'];
         let rafFilters = { 'SS1': 'TOUS', 'RDC': 'TOUS', 'R+1': 'TOUS', 'Toiture': 'TOUS', 'Cheneau': 'TOUS' };
         const RAF_LOTS = ["Gros œuvre - CMC", "Électricité - NEA", "Plomb/CVC - VARIANCE CLIM", "Architectural", "VRD - VALENTIN", "Charpente bois - ARBONIS", "Couverture - ECOBAT77", "Étanchéité - SNA", "Serrurerie - VF METAL", "Serrurerie - FERALLIER", "Cloisons/Plafond - EGIPP", "Peinture - GPS", "Sprinklage - UXELLO", "Revêtements sols et murs - VINET", "Menuiseries ext. - AVA", "Finitions - PROALLIANCE", "Autre"];
@@ -635,42 +689,29 @@
         let ppcChart = null, isDrawing = false, currentPath = [];
         let activeTaskId = null, selectedColor = '#3b82f6', currentFilter = 'all', drawingMode = 'new', editingTaskId = null;
         let tempPolyline = null;
-        let currentMainView = 'lps';
+        let currentMainView = 'accueil'; // Vue par défaut
+        
         const timeSlots = ['8h - 8h45', '9h - 9h45', '10h - 10h45', '11h - 11h45', '12h - 12h45', '13h - 13h45', '14h - 14h45', '15h - 15h45', '16h - 16h45'];
         const days = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'];
         const zones = ['Rampe', 'Centre', 'Galieni'];
         let editingDeliveryId = null;
 
         const wrapperLps = document.getElementById('canvasWrapper'), picImageLps = document.getElementById('picImage'), svgOverlayLps = document.getElementById('drawingOverlay');
-        const wrapperGlobal = document.getElementById('globalCanvasWrapper'), picImageGlobal = document.getElementById('globalPicImage'), svgOverlayGlobal = document.getElementById('globalDrawingOverlay');
-
-        // Gestion de l'appui sur "Entrée" pour le mot de passe
-        document.getElementById('accessCodeInput').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') checkAccess();
-        });
 
         window.onload = () => {
-            // Vérification de l'accès mémorisé
             if (localStorage.getItem('build_lean_access') === 'granted') {
                 unlockApp();
             }
             
-            // Préparation Graphique et Images (Ne nécessite pas les données)
+            // Préparation Graphique (Ne nécessite pas les données)
             ppcChart = new Chart(document.getElementById('ppcChart').getContext('2d'), {
                 type: 'doughnut', data: { datasets: [{ data: [0, 0, 0], backgroundColor: ['#10b981', '#3b82f6', '#ef4444'], borderWidth: 0 }] },
                 options: { cutout: '80%', plugins: { tooltip: { enabled: false } } }
             });
-            const savedGlobalImg = localStorage.getItem('build_lean_global_img');
-            if (savedGlobalImg) {
-                picImageGlobal.src = savedGlobalImg;
-                picImageGlobal.classList.remove('hidden');
-                document.getElementById('globalEmptyState').classList.add('hidden');
-                picImageGlobal.onload = () => { svgOverlayGlobal.setAttribute('width', picImageGlobal.width); svgOverlayGlobal.setAttribute('height', picImageGlobal.height); };
-            }
         };
 
         function initApp() {
-            // Toujours initialiser en local en premier pour s'assurer que appData n'est jamais null
+            // Toujours initialiser en local en premier
             const localRawData = localStorage.getItem('build_lean_data');
             
             if (localRawData) {
@@ -691,10 +732,7 @@
                     const appIdStr = typeof __app_id !== 'undefined' ? __app_id : 'build-lps-production';
                     docRef = db.collection('artifacts').doc(appIdStr).collection('public').doc('appData');
                     useFirebase = true;
-                    
-                    document.getElementById('cloudStatus').classList.remove('hidden');
-                    document.getElementById('cloudDot').classList.replace('bg-slate-400', 'bg-yellow-500');
-                    document.getElementById('cloudText').innerText = 'Connexion Cloud...';
+                    setCloudUIStatus('connecting');
                 }
             } catch(e) { 
                 console.log("Firebase fallback to local"); 
@@ -722,10 +760,7 @@
                     updateLocalVariables();
                     triggerRender();
                     renderWeekSelector();
-                    
-                    document.getElementById('cloudDot').classList.remove('bg-yellow-500', 'bg-red-500');
-                    document.getElementById('cloudDot').classList.add('bg-green-500');
-                    document.getElementById('cloudText').innerText = 'Cloud Connecté';
+                    setCloudUIStatus('connected');
                     
                     docRef.onSnapshot(snap => {
                        if (snap.exists) {
@@ -743,34 +778,33 @@
                     });
 
                 }).catch(error => {
-                    console.warn("Connexion cloud impossible, passage en mode local :", error.message);
+                    console.warn("Connexion cloud impossible :", error.message);
                     useFirebase = false;
-                    document.getElementById('cloudDot').classList.remove('bg-yellow-500', 'bg-green-500');
-                    document.getElementById('cloudDot').classList.add('bg-red-500');
-                    document.getElementById('cloudText').innerText = 'Mode Local (Cloud déconnecté)';
+                    setCloudUIStatus('disconnected');
                 });
             }
         }
 
-        function initDefaultData() {
-            appData = { weeks: { "Semaine Initiale": [] }, currentWeek: "Semaine Initiale", global: { tasks: [] }, deliveries: {}, resteAFaire: [] };
+        function setCloudUIStatus(status) {
+            const dots = [document.getElementById('cloudDotDesktop'), document.getElementById('cloudDotMobile')];
+            const text = document.getElementById('cloudTextDesktop');
+            dots.forEach(d => { if(d) d.className = "w-2 h-2 md:w-3 md:h-3 rounded-full " + (status === 'connected' ? 'bg-green-500' : (status === 'connecting' ? 'bg-yellow-500' : 'bg-red-500')); });
+            if(text) text.innerText = status === 'connected' ? 'Cloud Connecté' : (status === 'connecting' ? 'Connexion...' : 'Mode Local (Cloud déconnecté)');
         }
 
+        function initDefaultData() { appData = { weeks: { "Semaine Initiale": [] }, currentWeek: "Semaine Initiale", deliveries: {}, resteAFaire: [] }; }
+
         function updateLocalVariables() {
-            if (!appData.global) appData.global = { tasks: [] };
             if (!appData.deliveries) appData.deliveries = {};
             if (!appData.resteAFaire) appData.resteAFaire = [];
             tasks = appData.weeks[appData.currentWeek] || [];
-            globalTasks = appData.global.tasks || [];
             deliveries = appData.deliveries[appData.currentWeek] || [];
             rafTasks = appData.resteAFaire || [];
         }
 
         function saveData() { 
             if (!appData) initDefaultData(); 
-            
             appData.weeks[appData.currentWeek] = tasks;
-            appData.global.tasks = globalTasks;
             appData.deliveries[appData.currentWeek] = deliveries;
             appData.resteAFaire = rafTasks;
             
@@ -782,35 +816,64 @@
             } else {
                 localStorage.setItem('build_lean_data', JSON.stringify(appData)); 
             }
-            
             triggerRender();
         }
 
         function triggerRender() {
+            renderDashboard();
             if(currentMainView === 'lps') renderUI();
-            else if(currentMainView === 'global') renderGlobalUI();
             else if(currentMainView === 'livraisons') renderLivraisonsUI();
-            else renderRafUI();
+            else if(currentMainView === 'resteafaire') renderRafUI();
         }
 
         function switchMainView(view) {
             currentMainView = view;
+            
+            // Masquer/Afficher les conteneurs
+            document.getElementById('view-accueil').classList.toggle('hidden', view !== 'accueil');
             document.getElementById('view-lps').classList.toggle('hidden', view !== 'lps');
-            document.getElementById('view-global').classList.toggle('hidden', view !== 'global');
             document.getElementById('view-livraisons').classList.toggle('hidden', view !== 'livraisons');
             document.getElementById('view-resteafaire').classList.toggle('hidden', view !== 'resteafaire');
             
-            const btnLps = document.getElementById('btnViewLPS'), btnGlobal = document.getElementById('btnViewGlobal'), btnLivraisons = document.getElementById('btnViewLivraisons'), btnReste = document.getElementById('btnViewReste');
-            const activeClass = "flex-none px-6 py-3 bg-[#004587] text-white rounded-lg font-black uppercase text-xs shadow-md transition";
-            const inactiveClass = "flex-none px-6 py-3 bg-white text-slate-500 hover:bg-slate-50 rounded-lg font-bold uppercase text-xs border border-slate-200 transition";
+            // Gérer les liens actifs Desktop
+            ['accueil', 'lps', 'livraisons', 'resteafaire'].forEach(v => {
+                const elD = document.getElementById(`nav-desktop-${v}`);
+                if(elD) {
+                    if(v === view) elD.classList.add('active'); 
+                    else elD.classList.remove('active');
+                }
+                const elM = document.getElementById(`nav-mobile-${v}`);
+                if(elM) {
+                    if(v === view) elM.classList.add('active'); 
+                    else elM.classList.remove('active');
+                }
+            });
             
-            btnLps.className = view === 'lps' ? activeClass : inactiveClass;
-            btnGlobal.className = view === 'global' ? activeClass : inactiveClass;
-            btnLivraisons.className = view === 'livraisons' ? activeClass : inactiveClass;
-            btnReste.className = view === 'resteafaire' ? activeClass : inactiveClass;
-            
-            document.getElementById('weekSelectorContainer').classList.toggle('hidden', view === 'global' || view === 'resteafaire');
             triggerRender();
+        }
+
+        function renderDashboard() {
+            if(!appData) return;
+            document.getElementById('dashWeekName').innerText = appData.currentWeek;
+            
+            const doneTasks = tasks.filter(t => t.status === 'done').length;
+            const ongoingTasks = tasks.filter(t => t.status === 'ongoing').length;
+            const delayedTasks = tasks.filter(t => t.status === 'delayed').length;
+            const totalTasks = tasks.length;
+            
+            const ppc = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;
+            const ppcEl = document.getElementById('dashPpc');
+            ppcEl.innerText = ppc + '%';
+            if(ppc >= 80) ppcEl.className = "text-4xl md:text-5xl font-black text-green-600";
+            else if(ppc >= 50) ppcEl.className = "text-4xl md:text-5xl font-black text-amber-500";
+            else ppcEl.className = "text-4xl md:text-5xl font-black text-red-600";
+
+            document.getElementById('dashLpsDone').innerText = doneTasks;
+            document.getElementById('dashLpsOngoing').innerText = ongoingTasks;
+            document.getElementById('dashLpsDelayed').innerText = delayedTasks;
+            
+            document.getElementById('dashLivraisons').innerText = deliveries.length;
+            document.getElementById('dashRaf').innerText = rafTasks.filter(t => !t.done).length;
         }
 
         function renderWeekSelector() {
@@ -866,45 +929,42 @@
             return { x: clientX - r.left + wrapper.scrollLeft, y: clientY - r.top + wrapper.scrollTop };
         }
 
-        const handleStartDraw = (e, isGlobal) => {
-            const img = isGlobal ? picImageGlobal : picImageLps;
-            const overlay = isGlobal ? svgOverlayGlobal : svgOverlayLps;
+        const handleStartDraw = (e) => {
+            const img = picImageLps;
+            const overlay = svgOverlayLps;
             if (!img.src || (e.target.closest('polygon') && drawingMode === 'new')) return;
             
             isDrawing = true;
-            if(!isGlobal) closeStatusMenu();
+            closeStatusMenu();
             
-            const coords = getCoords(e, isGlobal ? wrapperGlobal : wrapperLps);
+            const coords = getCoords(e, wrapperLps);
             currentPath = [{x: coords.x, y: coords.y}];
             
             tempPolyline = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
-            tempPolyline.setAttribute("fill", isGlobal ? "rgba(220, 38, 38, 0.2)" : "rgba(0, 69, 135, 0.2)");
-            tempPolyline.setAttribute("stroke", isGlobal ? "#dc2626" : "#004587");
+            tempPolyline.setAttribute("fill", "rgba(0, 69, 135, 0.2)");
+            tempPolyline.setAttribute("stroke", "#004587");
             tempPolyline.setAttribute("stroke-width", "3");
             tempPolyline.setAttribute("stroke-dasharray", "5,5");
             overlay.appendChild(tempPolyline);
         };
 
-        const handleMoveDraw = (e, isGlobal) => {
+        const handleMoveDraw = (e) => {
             if (!isDrawing) return;
-            const coords = getCoords(e, isGlobal ? wrapperGlobal : wrapperLps);
+            const coords = getCoords(e, wrapperLps);
             currentPath.push({x: coords.x, y: coords.y});
             tempPolyline.setAttribute("points", currentPath.map(p => `${p.x},${p.y}`).join(" "));
         };
 
-        const handleEndDraw = (isGlobal) => {
+        const handleEndDraw = () => {
             if(isDrawing && currentPath.length > 3) {
                 if (drawingMode === 'new') {
-                    if (isGlobal) openGlobalModal(null);
-                    else {
-                        document.getElementById('modalTitle').innerText = "Nouvelle Zone";
-                        document.getElementById('modalBtn').innerText = "CRÉER";
-                        document.getElementById('newTaskName').value = "";
-                        document.getElementById('newTaskOwner').value = "";
-                        document.getElementById('newTaskDeadline').value = "";
-                        document.getElementById('createModal').classList.remove('hidden');
-                    }
-                } else if (drawingMode === 'redraw' && !isGlobal) {
+                    document.getElementById('modalTitle').innerText = "Nouvelle Zone";
+                    document.getElementById('modalBtn').innerText = "CRÉER";
+                    document.getElementById('newTaskName').value = "";
+                    document.getElementById('newTaskOwner').value = "";
+                    document.getElementById('newTaskDeadline').value = "";
+                    document.getElementById('createModal').classList.remove('hidden');
+                } else if (drawingMode === 'redraw') {
                     const t = tasks.find(x => x.id === activeTaskId);
                     if (t) { t.path = [...currentPath]; t.progress = 0; }
                     saveData(); resetDrawingMode();
@@ -914,15 +974,13 @@
             if(tempPolyline) { tempPolyline.remove(); tempPolyline = null; }
         };
 
-        wrapperLps.addEventListener('mousedown', (e) => { if(currentMainView==='lps') handleStartDraw(e, false); });
-        wrapperLps.addEventListener('touchstart', (e) => { if (currentMainView==='lps' && (drawingMode !== 'new' || e.target.tagName !== 'polygon')) e.preventDefault(); if(currentMainView==='lps') handleStartDraw(e, false); }, { passive: false });
-        wrapperGlobal.addEventListener('mousedown', (e) => { if(currentMainView==='global') handleStartDraw(e, true); });
-        wrapperGlobal.addEventListener('touchstart', (e) => { if(currentMainView==='global' && e.target.tagName !== 'polygon') e.preventDefault(); if(currentMainView==='global') handleStartDraw(e, true); }, { passive: false });
+        wrapperLps.addEventListener('mousedown', (e) => { if(currentMainView==='lps') handleStartDraw(e); });
+        wrapperLps.addEventListener('touchstart', (e) => { if (currentMainView==='lps' && (drawingMode !== 'new' || e.target.tagName !== 'polygon')) e.preventDefault(); if(currentMainView==='lps') handleStartDraw(e); }, { passive: false });
 
-        window.addEventListener('mousemove', (e) => { if (!isDrawing) return; if(currentMainView === 'lps') handleMoveDraw(e, false); else if(currentMainView === 'global') handleMoveDraw(e, true); });
-        window.addEventListener('touchmove', (e) => { if (!isDrawing) return; e.preventDefault(); if(currentMainView === 'lps') handleMoveDraw(e, false); else if(currentMainView === 'global') handleMoveDraw(e, true); }, { passive: false });
-        window.addEventListener('mouseup', () => { if(isDrawing) handleEndDraw(currentMainView === 'global'); });
-        window.addEventListener('touchend', () => { if(isDrawing) handleEndDraw(currentMainView === 'global'); });
+        window.addEventListener('mousemove', (e) => { if (!isDrawing) return; if(currentMainView === 'lps') handleMoveDraw(e); });
+        window.addEventListener('touchmove', (e) => { if (!isDrawing) return; e.preventDefault(); if(currentMainView === 'lps') handleMoveDraw(e); }, { passive: false });
+        window.addEventListener('mouseup', () => { if(isDrawing) handleEndDraw(); });
+        window.addEventListener('touchend', () => { if(isDrawing) handleEndDraw(); });
 
         function setDrawingMode(m) { 
             drawingMode = m; 
@@ -941,7 +999,6 @@
         function closeModals() { 
             document.getElementById('createModal').classList.add('hidden'); 
             document.getElementById('delayModal').classList.add('hidden'); 
-            document.getElementById('globalTaskModal').classList.add('hidden');
             document.getElementById('exportModal').classList.add('hidden');
         }
         function closeStatusMenu() { document.getElementById('statusMenu').classList.add('hidden'); activeTaskId = null; }
@@ -1117,112 +1174,6 @@
             closeStatusMenu(); 
         }
 
-        let tempGlobalStatus = 'ok';
-
-        function renderGlobalUI() {
-            svgOverlayGlobal.innerHTML = '';
-            const table = document.getElementById('globalTaskTableBody');
-            table.innerHTML = '';
-            let countOk = 0, countDelayed = 0;
-
-            globalTasks.forEach(task => {
-                if(task.status === 'ok') countOk++; else countDelayed++;
-
-                if(task.path && task.path.length > 0) {
-                    const poly = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
-                    poly.setAttribute("points", task.path.map(p => `${p.x},${p.y}`).join(" "));
-                    
-                    const isOk = task.status === 'ok';
-                    poly.setAttribute("fill", isOk ? "rgba(34, 197, 94, 0.3)" : "rgba(239, 68, 68, 0.3)");
-                    poly.setAttribute("stroke", isOk ? "#16a34a" : "#ef4444");
-                    poly.setAttribute("stroke-width", "3");
-                    if(!isOk) poly.setAttribute("stroke-dasharray", "8,4");
-                    poly.style.pointerEvents = "all";
-                    poly.style.cursor = "pointer";
-
-                    const handleSelect = (e) => { e.preventDefault(); e.stopPropagation(); openGlobalModal(task.id); };
-                    poly.onmousedown = handleSelect; poly.ontouchstart = handleSelect;
-                    svgOverlayGlobal.appendChild(poly);
-
-                    const bbox = getBoundingBox(task.path);
-                    const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-                    text.setAttribute("x", bbox.cx); text.setAttribute("y", bbox.cy); text.setAttribute("text-anchor", "middle"); text.setAttribute("dominant-baseline", "middle");
-                    text.setAttribute("fill", "#000"); text.setAttribute("font-size", "12px"); text.setAttribute("font-weight", "900"); text.setAttribute("pointer-events", "none");
-                    text.style.textShadow = "1px 1px 3px white, -1px -1px 3px white";
-                    text.innerHTML = task.name;
-                    svgOverlayGlobal.appendChild(text);
-                }
-
-                const row = document.createElement('tr');
-                row.className = "border-b border-slate-50 hover:bg-slate-50 cursor-pointer";
-                row.onclick = () => openGlobalModal(task.id);
-                
-                const statusLabel = task.status === 'ok' ? '<span class="px-2 py-1 bg-green-100 text-green-700 rounded text-[9px] font-black uppercase">Respecté</span>' : '<span class="px-2 py-1 bg-red-100 text-red-700 rounded text-[9px] font-black uppercase">Impacté</span>';
-                
-                row.innerHTML = `<td class="p-3 font-bold text-[#004587]">${task.name}</td><td class="p-3">${statusLabel}</td><td class="p-3 text-[10px] italic text-slate-500">${task.comment || '-'}</td>`;
-                table.appendChild(row);
-            });
-
-            document.getElementById('globalCountOk').innerText = countOk;
-            document.getElementById('globalCountDelayed').innerText = countDelayed;
-        }
-
-        function openGlobalModal(taskId) {
-            editingTaskId = taskId;
-            document.getElementById('globalTaskName').value = "";
-            document.getElementById('globalTaskComment').value = "";
-            setGlobalStatusTemp('ok');
-            document.getElementById('btnDeleteGlobal').classList.add('hidden');
-
-            if(taskId) {
-                const t = globalTasks.find(x => x.id === taskId);
-                if(t) {
-                    document.getElementById('globalModalTitle').innerText = "Modifier Jalon Global";
-                    document.getElementById('globalTaskName').value = t.name;
-                    document.getElementById('globalTaskComment').value = t.comment || "";
-                    setGlobalStatusTemp(t.status);
-                    document.getElementById('btnDeleteGlobal').classList.remove('hidden');
-                }
-            } else {
-                document.getElementById('globalModalTitle').innerText = "Nouveau Jalon Global";
-            }
-            document.getElementById('globalTaskModal').classList.remove('hidden');
-        }
-
-        function setGlobalStatusTemp(s) {
-            tempGlobalStatus = s;
-            const btnOk = document.getElementById('btnGlobalOk');
-            const btnDelay = document.getElementById('btnGlobalDelay');
-            btnOk.className = "flex-1 py-2 rounded-lg border-2 font-bold transition " + (s === 'ok' ? "border-green-500 text-white bg-green-500 opacity-100" : "border-slate-200 text-slate-400 bg-slate-50 opacity-50 hover:opacity-100");
-            btnDelay.className = "flex-1 py-2 rounded-lg border-2 font-bold transition " + (s === 'delayed' ? "border-red-500 text-white bg-red-500 opacity-100" : "border-slate-200 text-slate-400 bg-slate-50 opacity-50 hover:opacity-100");
-        }
-
-        function confirmGlobalTask() {
-            const name = document.getElementById('globalTaskName').value;
-            const comment = document.getElementById('globalTaskComment').value;
-            if(!name) return;
-
-            if(editingTaskId) {
-                const t = globalTasks.find(x => x.id === editingTaskId);
-                if(t) { t.name = name; t.status = tempGlobalStatus; t.comment = comment; }
-            } else {
-                globalTasks.push({ id: Date.now(), name, status: tempGlobalStatus, comment, path: [...currentPath] });
-            }
-            closeGlobalModal(); saveData();
-        }
-
-        function deleteGlobalTask() {
-            if(editingTaskId && confirm("Supprimer ce jalon global ?")) {
-                globalTasks = globalTasks.filter(x => x.id !== editingTaskId);
-                closeGlobalModal(); saveData();
-            }
-        }
-
-        function closeGlobalModal() {
-            document.getElementById('globalTaskModal').classList.add('hidden');
-            editingTaskId = null;
-        }
-
         function renderLivraisonsUI() {
             const tbody = document.getElementById('livraisonsTableBody');
             tbody.innerHTML = '';
@@ -1339,7 +1290,7 @@
                                 ${filterOptionsHTML}
                             </select>
                         </div>
-                        <div class="flex-1 overflow-y-auto p-3 space-y-2">
+                        <div class="flex-1 overflow-y-auto p-3 space-y-2 no-scrollbar">
                 `;
                 
                 if (filteredTasks.length === 0) {
@@ -1353,8 +1304,8 @@
                                     ${t.lot ? `<span class="text-[9px] font-black uppercase text-slate-400 tracking-wider mb-0.5">${t.lot}</span>` : ''}
                                     <span class="text-xs break-words ${t.done ? 'line-through text-slate-400' : 'text-slate-700 font-bold'}">${t.text}</span>
                                 </div>
-                                <button onclick="editRafTask('${t.id}')" class="text-blue-400 hover:text-blue-600 opacity-0 group-hover:opacity-100 transition flex-none" title="Modifier">✏️</button>
-                                <button onclick="deleteRafTask('${t.id}')" class="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition flex-none" title="Supprimer">✖</button>
+                                <button onclick="editRafTask('${t.id}')" class="text-blue-400 hover:text-blue-600 md:opacity-0 md:group-hover:opacity-100 transition flex-none" title="Modifier">✏️</button>
+                                <button onclick="deleteRafTask('${t.id}')" class="text-slate-300 hover:text-red-500 md:opacity-0 md:group-hover:opacity-100 transition flex-none" title="Supprimer">✖</button>
                             </div>
                         `;
                     });
@@ -1362,7 +1313,7 @@
                 
                 html += `
                         </div>
-                        <div class="p-3 bg-white border-t border-slate-200">
+                        <div class="p-3 bg-white border-t border-slate-200 shrink-0">
                             <form onsubmit="event.preventDefault(); addRafTask('${level}')" class="flex flex-col gap-2">
                                 <div class="flex gap-2">
                                     <select id="raf-lot-${level}" class="w-1/3 border border-slate-200 rounded p-2 text-[10px] font-bold outline-none focus:border-[#004587] bg-slate-50 text-slate-600 truncate">
@@ -1396,10 +1347,7 @@
             
             rafTasks.push({ 
                 id: Date.now().toString() + Math.random().toString(36).substr(2, 5), 
-                level, 
-                lot, 
-                text, 
-                done: false 
+                level, lot, text, done: false 
             });
             
             input.value = '';
@@ -1459,21 +1407,13 @@
                     imgEl.src = canvas.toDataURL();
                 } else { imgEl.src = ev.target.result; }
                 imgEl.classList.remove('hidden');
-                
-                if(isGlobal) {
-                    document.getElementById('globalEmptyState').classList.add('hidden');
-                    try { localStorage.setItem('build_lean_global_img', imgEl.src); } catch(e) {}
-                } else {
-                    document.getElementById('emptyState').classList.add('hidden');
-                }
-
+                document.getElementById('emptyState').classList.add('hidden');
                 imgEl.onload = () => { overlayEl.setAttribute('width', imgEl.width); overlayEl.setAttribute('height', imgEl.height); };
             };
             if(file) file.type === 'application/pdf' ? reader.readAsArrayBuffer(file) : reader.readAsDataURL(file);
         }
 
         document.getElementById('picUpload').onchange = (e) => handleImageUpload(e, picImageLps, svgOverlayLps, false);
-        document.getElementById('globalPicUpload').onchange = (e) => handleImageUpload(e, picImageGlobal, svgOverlayGlobal, true);
 
         function openExportModal() { document.getElementById('exportModal').classList.remove('hidden'); }
         function closeExportModal() { document.getElementById('exportModal').classList.add('hidden'); }
@@ -1512,6 +1452,11 @@
                         
                         if (addMap) {
                             document.getElementById('statusMenu').classList.add('hidden');
+                            
+                            // Afficher temporairement la vue LPS pour capture
+                            const prevView = currentMainView;
+                            document.getElementById('view-lps').classList.remove('hidden');
+                            
                             const mapCanvas = await html2canvas(wrapperLps, { scale: 2 });
                             const mapImg = document.createElement('img'); 
                             mapImg.src = mapCanvas.toDataURL('image/jpeg', 0.8); 
@@ -1519,6 +1464,9 @@
                             mapImg.style.height = 'auto'; 
                             mapImg.style.borderRadius = '8px';
                             document.getElementById('tempMapHolder').appendChild(mapImg);
+                            
+                            // Restaurer la vue
+                            if(prevView !== 'lps') document.getElementById('view-lps').classList.add('hidden');
                         }
 
                         const canvas = await html2canvas(document.getElementById('reportTemplate'), { scale: 2, useCORS: true });
