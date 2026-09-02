@@ -416,8 +416,15 @@
         <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl border-t-8 border-indigo-500">
             <h3 class="text-lg font-black mb-2 uppercase text-indigo-600">Avancement (%)</h3>
             <p class="text-xs text-slate-500 mb-4">Mettez 100% pour passer la tâche en réalisée.</p>
-            <!-- Correction Bug Clavier Mobile : input type number propre -->
+            
             <input type="number" id="progressInput" min="0" max="100" placeholder="Ex: 50" class="w-full border-2 border-slate-100 rounded-xl p-3 mb-4 text-lg outline-none focus:border-indigo-500 font-bold text-center">
+            
+            <div class="flex gap-2 mb-4">
+                <button onclick="document.getElementById('progressInput').value = 25" class="flex-1 bg-slate-100 p-2 rounded text-xs font-bold text-slate-600 hover:bg-slate-200">25%</button>
+                <button onclick="document.getElementById('progressInput').value = 50" class="flex-1 bg-slate-100 p-2 rounded text-xs font-bold text-slate-600 hover:bg-slate-200">50%</button>
+                <button onclick="document.getElementById('progressInput').value = 75" class="flex-1 bg-slate-100 p-2 rounded text-xs font-bold text-slate-600 hover:bg-slate-200">75%</button>
+            </div>
+
             <div class="flex gap-3">
                 <button onclick="document.getElementById('progressModal').classList.add('hidden')" class="flex-1 py-3 font-bold text-slate-400 hover:text-slate-600">ANNULER</button>
                 <button onclick="confirmProgress()" class="flex-1 py-3 bg-indigo-600 text-white rounded-xl font-bold shadow-md">METTRE A JOUR</button>
@@ -645,13 +652,14 @@
         // ==========================================
         // 1. GESTION DE L'ACCÈS / MOT DE PASSE
         // ==========================================
-        const APP_PASSWORD = "NOGENT26";
+        const APP_PASSWORD = "NOGENT26"; // <-- NOUVEAU MOT DE PASSE
 
         function checkAccess() {
             const input = document.getElementById('accessCodeInput').value;
             const errorText = document.getElementById('loginError');
             
             if (input === APP_PASSWORD) {
+                // On sauvegarde le mot de passe actuel pour forcer la reconnexion s'il change
                 localStorage.setItem('build_lean_access_code', APP_PASSWORD);
                 unlockApp();
             } else {
@@ -689,6 +697,7 @@
         let db = null;
         let docRef = null;
 
+        // VOS CLES FIREBASE ICI !
         let firebaseConfig = {
           apiKey: "AIzaSyBdGD-oEwyQ60r4ajKOrUaBWmaHUf9O2R4",
           authDomain: "build--lean.firebaseapp.com",
@@ -720,14 +729,16 @@
         const wrapperLps = document.getElementById('canvasWrapper'), picImageLps = document.getElementById('picImage'), svgOverlayLps = document.getElementById('drawingOverlay');
 
         window.onload = () => {
+            // Vérifie que le mot de passe sauvegardé est bien le NOUVEAU mot de passe
             if (localStorage.getItem('build_lean_access_code') === APP_PASSWORD) {
                 unlockApp();
             } else {
+                // Si ce n'est pas le bon, on s'assure d'afficher l'écran de login
                 document.getElementById('loginScreen').style.display = 'flex';
                 document.getElementById('loginScreen').style.opacity = '1';
             }
             
-            // Le graphique contient 4 portions : Validé(Vert), En cours(Bleu), Reporté(Rouge), À Faire(Gris)
+            // Préparation Graphique (Ne nécessite pas les données)
             ppcChart = new Chart(document.getElementById('ppcChart').getContext('2d'), {
                 type: 'doughnut', data: { datasets: [{ data: [0, 0, 0, 0], backgroundColor: ['#10b981', '#3b82f6', '#ef4444', '#cbd5e1'], borderWidth: 0 }] },
                 options: { cutout: '80%', plugins: { tooltip: { enabled: false } } }
@@ -735,6 +746,7 @@
         };
 
         function initApp() {
+            // Toujours initialiser en local en premier
             const localRawData = localStorage.getItem('build_lean_data');
             
             if (localRawData) {
@@ -852,11 +864,13 @@
         function switchMainView(view) {
             currentMainView = view;
             
+            // Masquer/Afficher les conteneurs
             document.getElementById('view-accueil').classList.toggle('hidden', view !== 'accueil');
             document.getElementById('view-lps').classList.toggle('hidden', view !== 'lps');
             document.getElementById('view-livraisons').classList.toggle('hidden', view !== 'livraisons');
             document.getElementById('view-resteafaire').classList.toggle('hidden', view !== 'resteafaire');
             
+            // Gérer les liens actifs Desktop
             ['accueil', 'lps', 'livraisons', 'resteafaire'].forEach(v => {
                 const elD = document.getElementById(`nav-desktop-${v}`);
                 if(elD) {
@@ -921,6 +935,7 @@
             deliveries = appData.deliveries[weekName] || [];
             document.getElementById('livraisonsDateRange').innerText = weekName;
             
+            // Re-hide image explicitly when switching weeks (pas de stockage automatique)
             picImageLps.src = "";
             picImageLps.classList.add('hidden');
             document.getElementById('emptyState').classList.remove('hidden');
@@ -951,6 +966,7 @@
             tasks = appData.weeks[name];
             deliveries = [];
             
+            // L'image n'est pas copiée vers la nouvelle semaine
             picImageLps.src = "";
             picImageLps.classList.add('hidden');
             document.getElementById('emptyState').classList.remove('hidden');
@@ -1025,7 +1041,7 @@
                 const radius = Math.sqrt(dx*dx + dy*dy);
                 
                 currentPath = [];
-                const steps = 32; 
+                const steps = 32; // Nombre de points pour dessiner un cercle fluide
                 for(let i=0; i<steps; i++) {
                     const angle = (i / steps) * Math.PI * 2;
                     currentPath.push({
@@ -1099,56 +1115,51 @@
             svgOverlayLps.innerHTML = ''; 
             const table = document.getElementById('taskTableBody');
             table.innerHTML = '';
-            
-            // Calcul des compteurs
             const c = { done: 0, ongoing: 0, delayed: 0, none: 0, total: tasks.length };
             
             tasks.forEach(task => {
-                c[task.status]++; // On incrémente le compteur global de chaque statut
+                c[task.status]++;
                 
-                // Si la tâche correspond au filtre sélectionné en bas ("FAIT", "COURS", "TOUTES", etc.)
+                // Vérifier si la tâche correspond au filtre sélectionné par l'utilisateur
                 if (currentFilter === 'all' || task.status === currentFilter) {
                     
-                    // On dessine le polygone UNIQUEMENT s'il correspond au filtre
+                    // Si elle a un tracé, on l'affiche sur le plan
                     if(task.path && task.path.length > 0) {
                         const poly = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
                         poly.setAttribute("points", task.path.map(p => `${p.x},${p.y}`).join(" "));
-                        poly.style.pointerEvents = drawingMode === 'new' ? "all" : "none";
-                        poly.style.cursor = "pointer";
-
-                        // Application stricte des couleurs de cadres
-                        if (task.status === 'done') { 
-                            // Vert si Validé
-                            poly.setAttribute("stroke", "#10b981"); 
-                            poly.setAttribute("fill", "rgba(16, 185, 129, 0.4)"); 
-                            poly.setAttribute("stroke-width", "3");
-                        } 
-                        else if (task.status === 'ongoing') { 
-                            // Bleu pointillé si En cours
+                        
+                        // Application des couleurs strictes
+                        if (task.status === 'ongoing') { 
                             poly.setAttribute("stroke", "#3b82f6"); 
                             poly.setAttribute("stroke-width", "4"); 
                             poly.setAttribute("stroke-dasharray", "6,6"); 
                             poly.setAttribute("fill", "rgba(59, 130, 246, 0.3)");
                         } 
                         else if (task.status === 'delayed') { 
-                            // Rouge clignotant si Reporté
                             poly.setAttribute("stroke", "#ef4444"); 
                             poly.setAttribute("stroke-width", "4"); 
                             poly.classList.add('pulse-red-svg'); 
                             poly.setAttribute("fill", "rgba(239, 68, 68, 0.3)");
                         } 
+                        else if (task.status === 'done') { 
+                            poly.setAttribute("stroke", "#10b981"); 
+                            poly.setAttribute("fill", "rgba(16, 185, 129, 0.4)"); 
+                            poly.setAttribute("stroke-width", "3");
+                        } 
                         else {
-                            // Couleur du métier si non validé / À faire
+                            // "À faire" garde la couleur par défaut
                             poly.setAttribute("stroke", task.color);
                             poly.setAttribute("fill", task.color + "44");
                             poly.setAttribute("stroke-width", "2");
                         }
+                        
+                        poly.style.pointerEvents = drawingMode === 'new' ? "all" : "none";
+                        poly.style.cursor = "pointer";
 
                         const handleSelect = (e) => { e.preventDefault(); e.stopPropagation(); if(drawingMode === 'new') showMenu(e, task.id); };
                         poly.onmousedown = handleSelect; poly.ontouchstart = handleSelect;
                         svgOverlayLps.appendChild(poly);
 
-                        // Affichage du nom et du % sur le plan
                         const bbox = getBoundingBox(task.path);
                         const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
                         text.setAttribute("x", bbox.cx); text.setAttribute("y", bbox.cy); text.setAttribute("text-anchor", "middle");
@@ -1161,17 +1172,26 @@
 
                     // Ajout dans le tableau
                     const row = document.createElement('tr');
-                    let detail = (task.status === 'delayed' && task.causes) ? `<br><span class="text-red-500 text-[9px] font-bold">• ${task.causes.join(', ')}</span>` : '';
+                    
+                    // Gestion de l'affichage des causes en rouge
+                    let detail = '';
+                    if (task.status === 'delayed' && task.causes && task.causes.length > 0) {
+                        detail = `<br><span class="text-red-500 text-[9px] font-bold">• ${task.causes.join(', ')}</span>`;
+                    }
+                    if (task.status === 'delayed' && task.comment) {
+                        detail += `<br><span class="text-red-500 text-[9px] italic">↳ ${task.comment}</span>`;
+                    }
+                    
                     let deadlineStr = task.deadline ? `<br><span class="text-blue-600 text-[9px]">Échéance: ${new Date(task.deadline).toLocaleDateString('fr-FR')}</span>` : '';
                     let statusLabel = task.status === 'done' ? 'Fait' : (task.status === 'ongoing' ? 'Cours' : (task.status === 'delayed' ? 'Report' : 'À faire'));
+                    
                     row.innerHTML = `<td class="p-3 font-bold">${task.name}${deadlineStr}${detail}</td><td class="p-3 text-slate-500">${task.owner}</td><td class="p-3 text-center font-bold">${task.progress || 0}%</td><td class="p-3 text-right uppercase text-[9px] font-black">${statusLabel}</td>`;
                     table.appendChild(row);
                 }
             });
             
-            updateStats(c); // On met à jour les KPI visuels
+            updateStats(c);
             
-            // Mise à jour des compteurs sur les onglets de filtrage
             ['all', 'done', 'ongoing', 'none', 'delayed'].forEach(k => {
                 const el = document.getElementById(`count-${k}`);
                 if (el) el.innerText = k==='all' ? c.total : c[k];
@@ -1179,40 +1199,29 @@
         }
 
         function updateStats(c) {
-            // Le PPC mathématique = Nombre de validés / Nombre total planifié
             const ppc = c.total > 0 ? Math.round((c.done / c.total) * 100) : 0;
-            const detailsText = `${c.done} tâche${c.done > 1 ? 's' : ''} réalisée${c.done > 1 ? 's' : ''} sur ${c.total} planifiée${c.total > 1 ? 's' : ''}`;
+            document.getElementById('ppcPercentage').innerText = ppc + '%';
             
-            // MAJ sur la vue LPS
-            const lpsPpc = document.getElementById('ppcPercentage');
-            if (lpsPpc) {
-                lpsPpc.innerText = ppc + '%';
-                lpsPpc.className = "text-4xl font-black " + (ppc >= 80 ? "text-green-600" : (ppc >= 50 ? "text-amber-500" : "text-red-600"));
-                const lpsDetails = document.getElementById('lpsPpcDetails');
-                if(lpsDetails) lpsDetails.innerText = detailsText;
+            // Le graphique montre désormais bien les 4 couleurs
+            if (ppcChart) { ppcChart.data.datasets[0].data = [c.done, c.ongoing, c.delayed, c.none]; ppcChart.update(); }
+
+            // Mise à jour de la phrase explicative
+            const lpsDetails = document.getElementById('lpsPpcDetails');
+            if(lpsDetails) {
+                lpsDetails.innerText = `${c.done} tâche${c.done > 1 ? 's' : ''} réalisée${c.done > 1 ? 's' : ''} sur ${c.total} planifiée${c.total > 1 ? 's' : ''}`;
             }
 
-            // MAJ du graphique Doughnut
-            if (ppcChart) { 
-                // Ordre : Done(Vert), Ongoing(Bleu), Delayed(Rouge), None(Gris)
-                ppcChart.data.datasets[0].data = [c.done, c.ongoing, c.delayed, c.none]; 
-                ppcChart.update(); 
-            }
-
-            // MAJ des barres de stats en dessous du graphique
             const barsContainer = document.getElementById('statBars');
-            if (barsContainer) {
-                barsContainer.innerHTML = '';
-                [['RÉALISÉES', 'done', '#10b981'], ['EN COURS', 'ongoing', '#3b82f6'], ['À FAIRE', 'none', '#94a3b8'], ['REPORTÉES', 'delayed', '#ef4444']].forEach(item => {
-                    const val = c.total > 0 ? Math.round((c[item[1]] / c.total) * 100) : 0;
-                    barsContainer.innerHTML += `
-                        <div>
-                            <div class="flex justify-between text-[9px] font-black mb-1"><span>${item[0]}</span><span>${val}%</span></div>
-                            <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden"><div class="h-full transition-all duration-700" style="width:${val}%; background-color:${item[2]}"></div></div>
-                        </div>
-                    `;
-                });
-            }
+            barsContainer.innerHTML = '';
+            [['RÉALISÉES', 'done', '#10b981'], ['EN COURS', 'ongoing', '#3b82f6'], ['À FAIRE', 'none', '#94a3b8'], ['REPORTÉES', 'delayed', '#ef4444']].forEach(item => {
+                const val = c.total > 0 ? Math.round((c[item[1]] / c.total) * 100) : 0;
+                barsContainer.innerHTML += `
+                    <div>
+                        <div class="flex justify-between text-[9px] font-black mb-1"><span>${item[0]}</span><span>${val}%</span></div>
+                        <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden"><div class="h-full transition-all duration-700" style="width:${val}%; background-color:${item[2]}"></div></div>
+                    </div>
+                `;
+            });
         }
 
         function showMenu(e, id) {
@@ -1257,8 +1266,7 @@
                 if (s === 'done') t.progress = 100; 
                 else if (s === 'none') t.progress = 0; 
             }
-            closeStatusMenu(); 
-            saveData();
+            closeStatusMenu(); saveData();
         }
 
         function openDelayModal() { 
@@ -1295,10 +1303,10 @@
         function deleteActiveTask() { tasks = tasks.filter(x => x.id !== activeTaskId); closeStatusMenu(); saveData(); }
         
         function switchTab(t) { 
-            currentFilter = t; // 'all', 'done', 'ongoing', 'none', 'delayed'
+            currentFilter = t; 
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); 
             document.getElementById('tab-' + t).classList.add('active'); 
-            renderUI(); // Rafraichit la liste et le plan
+            renderUI(); 
         }
         
         function selectColor(c, el) { selectedColor = c; document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('selected')); el.classList.add('selected'); }
