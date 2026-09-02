@@ -226,11 +226,20 @@
                 <!-- ================================================================= -->
                 <div id="view-lps" class="hidden grid grid-cols-1 lg:grid-cols-4 gap-4">
                     <div class="lg:col-span-3 space-y-4">
+                        
+                        <!-- NOUVELLE BARRE DE NIVEAUX LPS -->
+                        <div class="flex bg-white rounded-xl shadow-sm border border-slate-200 overflow-x-auto no-scrollbar">
+                            <button onclick="switchLpsLevel('SS1')" id="btn-lvl-SS1" class="flex-1 py-3 px-2 md:px-4 text-[10px] md:text-xs font-black uppercase text-slate-400 hover:bg-slate-50 transition border-b-4 border-transparent">SS1</button>
+                            <button onclick="switchLpsLevel('RDC')" id="btn-lvl-RDC" class="flex-1 py-3 px-2 md:px-4 text-[10px] md:text-xs font-black uppercase text-[#004587] hover:bg-slate-50 transition border-b-4 border-[#004587] bg-blue-50/30">RDC</button>
+                            <button onclick="switchLpsLevel('Mezzanine')" id="btn-lvl-Mezzanine" class="flex-1 py-3 px-2 md:px-4 text-[10px] md:text-xs font-black uppercase text-slate-400 hover:bg-slate-50 transition border-b-4 border-transparent">Mezzanine</button>
+                            <button onclick="switchLpsLevel('Toiture')" id="btn-lvl-Toiture" class="flex-1 py-3 px-2 md:px-4 text-[10px] md:text-xs font-black uppercase text-slate-400 hover:bg-slate-50 transition border-b-4 border-transparent">Toiture</button>
+                        </div>
+
                         <div class="bg-white p-1 rounded-xl shadow-sm border border-slate-200 relative">
                             
                             <div class="absolute top-4 left-4 z-50 flex gap-2 flex-wrap">
                                 <input type="file" id="picUpload" accept="image/*,application/pdf" class="hidden">
-                                <button onclick="document.getElementById('picUpload').click()" class="bg-slate-800 text-white px-3 py-2 rounded-lg text-[10px] font-bold uppercase hover:bg-slate-700 shadow-md">📁 Importer PIC</button>
+                                <button onclick="document.getElementById('picUpload').click()" class="bg-slate-800 text-white px-3 py-2 rounded-lg text-[10px] font-bold uppercase hover:bg-slate-700 shadow-md">📁 Importer Plan</button>
                                 
                                 <!-- BARRE D'OUTILS DE FORMES -->
                                 <div class="flex bg-white rounded-lg shadow-md border border-slate-200 overflow-hidden">
@@ -249,7 +258,7 @@
                                 <img id="picImage" src="" alt="" class="hidden" draggable="false">
                                 <svg id="drawingOverlay"></svg>
                                 <div id="emptyState" class="absolute inset-0 flex flex-col items-center justify-center text-slate-400 bg-slate-50/50 pointer-events-none">
-                                    <p class="text-sm font-bold uppercase tracking-widest" id="statusMessage">Aucun plan PIC chargé</p>
+                                    <p class="text-sm font-bold uppercase tracking-widest" id="statusMessage">Aucun plan chargé pour ce niveau</p>
                                 </div>
                             </div>
                             
@@ -272,7 +281,7 @@
 
                         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                             <div class="flex overflow-x-auto border-b bg-slate-50 no-scrollbar">
-                                <button onclick="switchTab('all')" class="tab-btn active shrink-0" id="tab-all">TOUTES (<span id="count-all">0</span>)</button>
+                                <button onclick="switchTab('all')" class="tab-btn active shrink-0" id="tab-all">TOUTES CE NIVEAU (<span id="count-all">0</span>)</button>
                                 <button onclick="switchTab('done')" class="tab-btn shrink-0" id="tab-done">FAIT (<span id="count-done">0</span>)</button>
                                 <button onclick="switchTab('ongoing')" class="tab-btn shrink-0" id="tab-ongoing">COURS (<span id="count-ongoing">0</span>)</button>
                                 <button onclick="switchTab('none')" class="tab-btn shrink-0" id="tab-none">À FAIRE (<span id="count-none">0</span>)</button>
@@ -295,7 +304,7 @@
                     </div>
 
                     <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 text-center flex flex-col items-center h-fit sticky top-4">
-                        <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">PPC Hebdo</h3>
+                        <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">PPC Hebdo Global</h3>
                         <div class="relative h-44 w-44 mb-2">
                             <canvas id="ppcChart"></canvas>
                             <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
@@ -712,15 +721,21 @@
 
         let appData = null;
         let tasks = []; let deliveries = []; let rafTasks = [];
+        
+        // Gestion des Niveaux
         const rafLevels = ['SS1', 'RDC', 'R+1', 'Toiture', 'Cheneau'];
+        const lpsLevelsList = ['SS1', 'RDC', 'Mezzanine', 'Toiture'];
+        let currentLpsLevel = 'RDC';
+        let sessionImages = {}; // Cache pour conserver les images en mémoire RAM
+        
         let rafFilters = { 'SS1': 'TOUS', 'RDC': 'TOUS', 'R+1': 'TOUS', 'Toiture': 'TOUS', 'Cheneau': 'TOUS' };
         const RAF_LOTS = ["Gros œuvre - CMC", "Électricité - NEA", "Plomb/CVC - VARIANCE CLIM", "Architectural", "VRD - VALENTIN", "Charpente bois - ARBONIS", "Couverture - ECOBAT77", "Étanchéité - SNA", "Serrurerie - VF METAL", "Serrurerie - FERALLIER", "Cloisons/Plafond - EGIPP", "Peinture - GPS", "Sprinklage - UXELLO", "Revêtements sols et murs - VINET", "Menuiseries ext. - AVA", "Finitions - PROALLIANCE", "Autre"];
         
         let ppcChart = null, isDrawing = false, currentPath = [];
-        let currentShapeTool = 'freehand'; // Outil de forme actuel
+        let currentShapeTool = 'freehand'; 
         let activeTaskId = null, selectedColor = '#3b82f6', currentFilter = 'all', drawingMode = 'new', editingTaskId = null;
         let tempPolyline = null;
-        let currentMainView = 'accueil'; // Vue par défaut
+        let currentMainView = 'accueil'; 
         
         const timeSlots = ['8h - 8h45', '9h - 9h45', '10h - 10h45', '11h - 11h45', '12h - 12h45', '13h - 13h45', '14h - 14h45', '15h - 15h45', '16h - 16h45'];
         const days = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'];
@@ -730,16 +745,13 @@
         const wrapperLps = document.getElementById('canvasWrapper'), picImageLps = document.getElementById('picImage'), svgOverlayLps = document.getElementById('drawingOverlay');
 
         window.onload = () => {
-            // Vérifie que le mot de passe sauvegardé est bien le NOUVEAU mot de passe
             if (localStorage.getItem('build_lean_access_code') === APP_PASSWORD) {
                 unlockApp();
             } else {
-                // Si ce n'est pas le bon, on s'assure d'afficher l'écran de login
                 document.getElementById('loginScreen').style.display = 'flex';
                 document.getElementById('loginScreen').style.opacity = '1';
             }
             
-            // Préparation Graphique (Ne nécessite pas les données)
             ppcChart = new Chart(document.getElementById('ppcChart').getContext('2d'), {
                 type: 'doughnut', data: { datasets: [{ data: [0, 0, 0, 0], backgroundColor: ['#10b981', '#3b82f6', '#ef4444', '#cbd5e1'], borderWidth: 0 }] },
                 options: { cutout: '80%', plugins: { tooltip: { enabled: false } } }
@@ -747,7 +759,6 @@
         };
 
         function initApp() {
-            // Toujours initialiser en local en premier
             const localRawData = localStorage.getItem('build_lean_data');
             
             if (localRawData) {
@@ -758,6 +769,7 @@
             }
             
             updateLocalVariables();
+            switchLpsLevel(currentLpsLevel); // Charge le plan du RDC par défaut
             triggerRender();
             renderWeekSelector();
 
@@ -794,6 +806,7 @@
                     }
                     
                     updateLocalVariables();
+                    switchLpsLevel(currentLpsLevel);
                     triggerRender();
                     renderWeekSelector();
                     setCloudUIStatus('connected');
@@ -807,6 +820,7 @@
                                appData = incomingData;
                                localStorage.setItem('build_lean_data', JSON.stringify(appData));
                                updateLocalVariables();
+                               switchLpsLevel(currentLpsLevel);
                                triggerRender();
                                renderWeekSelector();
                            }
@@ -865,13 +879,11 @@
         function switchMainView(view) {
             currentMainView = view;
             
-            // Masquer/Afficher les conteneurs
             document.getElementById('view-accueil').classList.toggle('hidden', view !== 'accueil');
             document.getElementById('view-lps').classList.toggle('hidden', view !== 'lps');
             document.getElementById('view-livraisons').classList.toggle('hidden', view !== 'livraisons');
             document.getElementById('view-resteafaire').classList.toggle('hidden', view !== 'resteafaire');
             
-            // Gérer les liens actifs Desktop
             ['accueil', 'lps', 'livraisons', 'resteafaire'].forEach(v => {
                 const elD = document.getElementById(`nav-desktop-${v}`);
                 if(elD) {
@@ -885,7 +897,48 @@
                 }
             });
             
+            if(view === 'lps') switchLpsLevel(currentLpsLevel);
             triggerRender();
+        }
+
+        // ==========================================
+        // GESTION DES NIVEAUX LPS
+        // ==========================================
+        function switchLpsLevel(level) {
+            currentLpsLevel = level;
+            
+            // Mise à jour de l'UI des onglets
+            lpsLevelsList.forEach(l => {
+                const btn = document.getElementById(`btn-lvl-${l}`);
+                if (!btn) return;
+                if (l === level) {
+                    btn.className = "flex-1 py-3 px-2 md:px-4 text-[10px] md:text-xs font-black uppercase text-[#004587] hover:bg-slate-50 transition border-b-4 border-[#004587] bg-blue-50/30";
+                } else {
+                    btn.className = "flex-1 py-3 px-2 md:px-4 text-[10px] md:text-xs font-black uppercase text-slate-400 hover:bg-slate-50 transition border-b-4 border-transparent";
+                }
+            });
+
+            if (!appData) return;
+            
+            // Restauration de l'image mise en cache dans la RAM pour ce niveau
+            const imgKey = appData.currentWeek + '_' + currentLpsLevel;
+            if (sessionImages[imgKey]) {
+                picImageLps.src = sessionImages[imgKey];
+                picImageLps.classList.remove('hidden');
+                document.getElementById('emptyState').classList.add('hidden');
+                setTimeout(() => {
+                    svgOverlayLps.setAttribute('width', picImageLps.width); 
+                    svgOverlayLps.setAttribute('height', picImageLps.height);
+                }, 50);
+            } else {
+                picImageLps.src = "";
+                picImageLps.classList.add('hidden');
+                document.getElementById('emptyState').classList.remove('hidden');
+                svgOverlayLps.setAttribute('width', '100%'); 
+                svgOverlayLps.setAttribute('height', '100%');
+            }
+
+            if(currentMainView === 'lps') renderUI();
         }
 
         function renderDashboard() {
@@ -936,13 +989,7 @@
             deliveries = appData.deliveries[weekName] || [];
             document.getElementById('livraisonsDateRange').innerText = weekName;
             
-            // Re-hide image explicitly when switching weeks (pas de stockage automatique)
-            picImageLps.src = "";
-            picImageLps.classList.add('hidden');
-            document.getElementById('emptyState').classList.remove('hidden');
-            svgOverlayLps.setAttribute('width', '100%'); 
-            svgOverlayLps.setAttribute('height', '100%');
-            
+            switchLpsLevel(currentLpsLevel);
             saveData();
         }
 
@@ -967,19 +1014,12 @@
             tasks = appData.weeks[name];
             deliveries = [];
             
-            // L'image n'est pas copiée vers la nouvelle semaine
-            picImageLps.src = "";
-            picImageLps.classList.add('hidden');
-            document.getElementById('emptyState').classList.remove('hidden');
-            svgOverlayLps.setAttribute('width', '100%'); 
-            svgOverlayLps.setAttribute('height', '100%');
-
+            switchLpsLevel(currentLpsLevel);
             renderWeekSelector();
             saveData();
             document.getElementById('weekModal').classList.add('hidden');
         }
 
-        // --- GESTION DES OUTILS DE FORME ---
         function setShapeTool(tool) {
             currentShapeTool = tool;
             ['freehand', 'rectangle', 'circle'].forEach(t => {
@@ -992,7 +1032,6 @@
             });
         }
 
-        // --- MOTEUR DE DESSIN ---
         function getCoords(e, wrapper) {
             const r = wrapper.getBoundingClientRect();
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -1042,7 +1081,7 @@
                 const radius = Math.sqrt(dx*dx + dy*dy);
                 
                 currentPath = [];
-                const steps = 32; // Nombre de points pour dessiner un cercle fluide
+                const steps = 32; 
                 for(let i=0; i<steps; i++) {
                     const angle = (i / steps) * Math.PI * 2;
                     currentPath.push({
@@ -1116,106 +1155,112 @@
             svgOverlayLps.innerHTML = ''; 
             const table = document.getElementById('taskTableBody');
             table.innerHTML = '';
-            const c = { done: 0, ongoing: 0, delayed: 0, none: 0, total: tasks.length };
+            
+            // Statistiques pour TOUTE la semaine (Graphiques de droite)
+            const cGlobal = { done: 0, ongoing: 0, delayed: 0, none: 0, total: tasks.length };
+            
+            // Statistiques uniquement pour le NIVEAU actuel (Onglets du tableau)
+            const cLevel = { done: 0, ongoing: 0, delayed: 0, none: 0, total: 0 };
             
             tasks.forEach(task => {
-                c[task.status]++;
+                cGlobal[task.status]++;
                 
-                // Vérifier si la tâche correspond au filtre sélectionné par l'utilisateur
-                if (currentFilter === 'all' || task.status === currentFilter) {
+                // Pour assurer la rétrocompatibilité, les vieilles tâches n'ayant pas de 'level' sont affectées au RDC
+                const taskLevel = task.level || 'RDC';
+                
+                // On ne gère l'affichage (Tableau + Plan) QUE si la tâche est sur le niveau actuel
+                if (taskLevel === currentLpsLevel) {
+                    cLevel.total++;
+                    cLevel[task.status]++;
                     
-                    // Si elle a un tracé, on l'affiche sur le plan
-                    if(task.path && task.path.length > 0) {
-                        const poly = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
-                        poly.setAttribute("points", task.path.map(p => `${p.x},${p.y}`).join(" "));
+                    if (currentFilter === 'all' || task.status === currentFilter) {
                         
-                        // Application des couleurs strictes
-                        if (task.status === 'ongoing') { 
-                            poly.setAttribute("stroke", "#3b82f6"); 
-                            poly.setAttribute("stroke-width", "4"); 
-                            poly.setAttribute("stroke-dasharray", "6,6"); 
-                            poly.setAttribute("fill", "rgba(59, 130, 246, 0.3)");
-                        } 
-                        else if (task.status === 'delayed') { 
-                            poly.setAttribute("stroke", "#ef4444"); 
-                            poly.setAttribute("stroke-width", "4"); 
-                            poly.classList.add('pulse-red-svg'); 
-                            poly.setAttribute("fill", "rgba(239, 68, 68, 0.3)");
-                        } 
-                        else if (task.status === 'done') { 
-                            poly.setAttribute("stroke", "#10b981"); 
-                            poly.setAttribute("fill", "rgba(16, 185, 129, 0.4)"); 
-                            poly.setAttribute("stroke-width", "3");
-                        } 
-                        else {
-                            // "À faire" garde la couleur par défaut
-                            poly.setAttribute("stroke", task.color);
-                            poly.setAttribute("fill", task.color + "44");
-                            poly.setAttribute("stroke-width", "2");
+                        if(task.path && task.path.length > 0) {
+                            const poly = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+                            poly.setAttribute("points", task.path.map(p => `${p.x},${p.y}`).join(" "));
+                            
+                            if (task.status === 'ongoing') { 
+                                poly.setAttribute("stroke", "#3b82f6"); 
+                                poly.setAttribute("stroke-width", "4"); 
+                                poly.setAttribute("stroke-dasharray", "6,6"); 
+                                poly.setAttribute("fill", "rgba(59, 130, 246, 0.3)");
+                            } 
+                            else if (task.status === 'delayed') { 
+                                poly.setAttribute("stroke", "#ef4444"); 
+                                poly.setAttribute("stroke-width", "4"); 
+                                poly.classList.add('pulse-red-svg'); 
+                                poly.setAttribute("fill", "rgba(239, 68, 68, 0.3)");
+                            } 
+                            else if (task.status === 'done') { 
+                                poly.setAttribute("stroke", "#10b981"); 
+                                poly.setAttribute("fill", "rgba(16, 185, 129, 0.4)"); 
+                                poly.setAttribute("stroke-width", "3");
+                            } 
+                            else {
+                                poly.setAttribute("stroke", task.color);
+                                poly.setAttribute("fill", task.color + "44");
+                                poly.setAttribute("stroke-width", "2");
+                            }
+                            
+                            poly.style.pointerEvents = drawingMode === 'new' ? "all" : "none";
+                            poly.style.cursor = "pointer";
+
+                            const handleSelect = (e) => { e.preventDefault(); e.stopPropagation(); if(drawingMode === 'new') showMenu(e, task.id); };
+                            poly.onmousedown = handleSelect; poly.ontouchstart = handleSelect;
+                            svgOverlayLps.appendChild(poly);
+
+                            const bbox = getBoundingBox(task.path);
+                            const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                            text.setAttribute("x", bbox.cx); text.setAttribute("y", bbox.cy); text.setAttribute("text-anchor", "middle");
+                            text.setAttribute("dominant-baseline", "middle"); text.setAttribute("fill", "#000"); text.setAttribute("font-size", "11px");
+                            text.setAttribute("font-weight", "900"); text.setAttribute("pointer-events", "none");
+                            text.style.textShadow = "1px 1px 3px white, -1px -1px 3px white";
+                            text.innerHTML = `<tspan x="${bbox.cx}" dy="-0.6em">${task.name}</tspan><tspan x="${bbox.cx}" dy="1.2em">${task.progress || 0}%</tspan>`;
+                            svgOverlayLps.appendChild(text);
+                        }
+
+                        const row = document.createElement('tr');
+                        let detail = '';
+                        if (task.status === 'delayed' && task.causes && task.causes.length > 0) {
+                            detail = `<br><span class="text-red-500 text-[9px] font-bold">• ${task.causes.join(', ')}</span>`;
+                        }
+                        if (task.status === 'delayed' && task.comment) {
+                            detail += `<br><span class="text-red-500 text-[9px] italic">↳ ${task.comment}</span>`;
                         }
                         
-                        poly.style.pointerEvents = drawingMode === 'new' ? "all" : "none";
-                        poly.style.cursor = "pointer";
-
-                        const handleSelect = (e) => { e.preventDefault(); e.stopPropagation(); if(drawingMode === 'new') showMenu(e, task.id); };
-                        poly.onmousedown = handleSelect; poly.ontouchstart = handleSelect;
-                        svgOverlayLps.appendChild(poly);
-
-                        const bbox = getBoundingBox(task.path);
-                        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-                        text.setAttribute("x", bbox.cx); text.setAttribute("y", bbox.cy); text.setAttribute("text-anchor", "middle");
-                        text.setAttribute("dominant-baseline", "middle"); text.setAttribute("fill", "#000"); text.setAttribute("font-size", "11px");
-                        text.setAttribute("font-weight", "900"); text.setAttribute("pointer-events", "none");
-                        text.style.textShadow = "1px 1px 3px white, -1px -1px 3px white";
-                        text.innerHTML = `<tspan x="${bbox.cx}" dy="-0.6em">${task.name}</tspan><tspan x="${bbox.cx}" dy="1.2em">${task.progress || 0}%</tspan>`;
-                        svgOverlayLps.appendChild(text);
+                        let deadlineStr = task.deadline ? `<br><span class="text-blue-600 text-[9px]">Échéance: ${new Date(task.deadline).toLocaleDateString('fr-FR')}</span>` : '';
+                        let statusLabel = task.status === 'done' ? 'Fait' : (task.status === 'ongoing' ? 'Cours' : (task.status === 'delayed' ? 'Report' : 'À faire'));
+                        
+                        row.innerHTML = `<td class="p-3 font-bold">${task.name}${deadlineStr}${detail}</td><td class="p-3 text-slate-500">${task.owner}</td><td class="p-3 text-center font-bold">${task.progress || 0}%</td><td class="p-3 text-right uppercase text-[9px] font-black">${statusLabel}</td>`;
+                        table.appendChild(row);
                     }
-
-                    // Ajout dans le tableau
-                    const row = document.createElement('tr');
-                    
-                    // Gestion de l'affichage des causes en rouge
-                    let detail = '';
-                    if (task.status === 'delayed' && task.causes && task.causes.length > 0) {
-                        detail = `<br><span class="text-red-500 text-[9px] font-bold">• ${task.causes.join(', ')}</span>`;
-                    }
-                    if (task.status === 'delayed' && task.comment) {
-                        detail += `<br><span class="text-red-500 text-[9px] italic">↳ ${task.comment}</span>`;
-                    }
-                    
-                    let deadlineStr = task.deadline ? `<br><span class="text-blue-600 text-[9px]">Échéance: ${new Date(task.deadline).toLocaleDateString('fr-FR')}</span>` : '';
-                    let statusLabel = task.status === 'done' ? 'Fait' : (task.status === 'ongoing' ? 'Cours' : (task.status === 'delayed' ? 'Report' : 'À faire'));
-                    
-                    row.innerHTML = `<td class="p-3 font-bold">${task.name}${deadlineStr}${detail}</td><td class="p-3 text-slate-500">${task.owner}</td><td class="p-3 text-center font-bold">${task.progress || 0}%</td><td class="p-3 text-right uppercase text-[9px] font-black">${statusLabel}</td>`;
-                    table.appendChild(row);
                 }
             });
             
-            updateStats(c);
+            updateStats(cGlobal);
             
+            // Mise à jour des compteurs des onglets pour CE NIVEAU uniquement
             ['all', 'done', 'ongoing', 'none', 'delayed'].forEach(k => {
                 const el = document.getElementById(`count-${k}`);
-                if (el) el.innerText = k==='all' ? c.total : c[k];
+                if (el) el.innerText = k==='all' ? cLevel.total : cLevel[k];
             });
         }
 
-        function updateStats(c) {
-            const ppc = c.total > 0 ? Math.round((c.done / c.total) * 100) : 0;
+        function updateStats(cGlobal) {
+            const ppc = cGlobal.total > 0 ? Math.round((cGlobal.done / cGlobal.total) * 100) : 0;
             document.getElementById('ppcPercentage').innerText = ppc + '%';
             
-            // Le graphique montre désormais bien les 4 couleurs
-            if (ppcChart) { ppcChart.data.datasets[0].data = [c.done, c.ongoing, c.delayed, c.none]; ppcChart.update(); }
+            if (ppcChart) { ppcChart.data.datasets[0].data = [cGlobal.done, cGlobal.ongoing, cGlobal.delayed, cGlobal.none]; ppcChart.update(); }
 
-            // Mise à jour de la phrase explicative
             const lpsDetails = document.getElementById('lpsPpcDetails');
             if(lpsDetails) {
-                lpsDetails.innerText = `${c.done} tâche${c.done > 1 ? 's' : ''} réalisée${c.done > 1 ? 's' : ''} sur ${c.total} planifiée${c.total > 1 ? 's' : ''}`;
+                lpsDetails.innerText = `${cGlobal.done} tâche${cGlobal.done > 1 ? 's' : ''} réalisée${cGlobal.done > 1 ? 's' : ''} sur ${cGlobal.total} planifiée${cGlobal.total > 1 ? 's' : ''}`;
             }
 
             const barsContainer = document.getElementById('statBars');
             barsContainer.innerHTML = '';
             [['RÉALISÉES', 'done', '#10b981'], ['EN COURS', 'ongoing', '#3b82f6'], ['À FAIRE', 'none', '#94a3b8'], ['REPORTÉES', 'delayed', '#ef4444']].forEach(item => {
-                const val = c.total > 0 ? Math.round((c[item[1]] / c.total) * 100) : 0;
+                const val = cGlobal.total > 0 ? Math.round((cGlobal[item[1]] / cGlobal.total) * 100) : 0;
                 barsContainer.innerHTML += `
                     <div>
                         <div class="flex justify-between text-[9px] font-black mb-1"><span>${item[0]}</span><span>${val}%</span></div>
@@ -1296,7 +1341,17 @@
                 t.name = name; t.owner = document.getElementById('newTaskOwner').value; t.deadline = deadline; t.color = selectedColor;
                 editingTaskId = null;
             } else {
-                tasks.push({ id: Date.now(), name, owner: document.getElementById('newTaskOwner').value, deadline: deadline, color: selectedColor, path: [...currentPath], status: 'none', progress: 0 });
+                tasks.push({ 
+                    id: Date.now(), 
+                    name, 
+                    owner: document.getElementById('newTaskOwner').value, 
+                    deadline: deadline, 
+                    color: selectedColor, 
+                    path: [...currentPath], 
+                    status: 'none', 
+                    progress: 0,
+                    level: currentLpsLevel // La tâche est rattachée au niveau actif
+                });
             }
             saveData(); closeModals();
         }
@@ -1557,15 +1612,19 @@
             const reader = new FileReader();
             
             reader.onload = async (ev) => {
+                let dataUrl = "";
                 if (file.type === 'application/pdf') {
                     const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(ev.target.result) }).promise;
                     const page = await pdf.getPage(1); const vp = page.getViewport({ scale: 2 });
                     const canvas = document.createElement('canvas'); canvas.height = vp.height; canvas.width = vp.width;
                     await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
-                    picImageLps.src = canvas.toDataURL();
+                    dataUrl = canvas.toDataURL();
                 } else { 
-                    picImageLps.src = ev.target.result;
+                    dataUrl = ev.target.result;
                 }
+                
+                picImageLps.src = dataUrl;
+                sessionImages[appData.currentWeek + '_' + currentLpsLevel] = dataUrl; // Sauvegarde en mémoire pour le niveau actuel
                 
                 picImageLps.classList.remove('hidden');
                 document.getElementById('emptyState').classList.add('hidden');
@@ -1622,6 +1681,7 @@
                             const prevView = currentMainView;
                             document.getElementById('view-lps').classList.remove('hidden');
                             
+                            // Capture de la carte du niveau actif
                             const mapCanvas = await html2canvas(wrapperLps, { scale: 2 });
                             const mapImg = document.createElement('img'); 
                             mapImg.src = mapCanvas.toDataURL('image/jpeg', 0.8); 
@@ -1654,42 +1714,51 @@
                         
                         let lpsContent = `
                             <div style="background: #f8fafc; padding: 15px; border-radius: 12px; text-align: center; margin-bottom: 25px; border: 1px solid #f1f5f9;">
-                                <p style="font-size: 14px; color: #64748b; font-weight: 800; margin: 0; text-transform: uppercase; letter-spacing: 1px;">Indice de Performance (PPC)</p>
+                                <p style="font-size: 14px; color: #64748b; font-weight: 800; margin: 0; text-transform: uppercase; letter-spacing: 1px;">Indice de Performance Hebdo (PPC)</p>
                                 <h2 style="font-size: 32px; font-weight: 900; color: #004587; margin: 5px 0 0 0;">${ppc}%</h2>
+                                <p style="font-size: 10px; color: #64748b; margin-top: 5px;">${done.length} tâche(s) réalisée(s) sur ${tasks.length} planifiée(s) globalement</p>
                             </div>
                         `;
                         
-                        const categories = [
-                            { title: "✅ TÂCHES RÉUSSIES", color: "#10b981", data: tasks.filter(t => t.status === 'done'), showCauses: false },
-                            { title: "🏗️ TÂCHES EN COURS", color: "#3b82f6", data: tasks.filter(t => t.status === 'ongoing'), showCauses: false },
-                            { title: "⚠️ TÂCHES REPORTÉES", color: "#ef4444", data: tasks.filter(t => t.status === 'delayed'), showCauses: true }
-                        ];
+                        // Séparation des tâches par niveaux pour le rapport
+                        lpsLevelsList.forEach(lvl => {
+                            const lvlTasks = tasks.filter(t => (t.level || 'RDC') === lvl);
+                            if (lvlTasks.length === 0) return; // Si pas de tâche pour ce niveau, on l'ignore dans le rapport
+                            
+                            lpsContent += `<h3 style="font-size: 16px; font-weight: 900; color: #0f172a; border-bottom: 2px solid #cbd5e1; padding-bottom: 5px; margin-top: 20px; margin-bottom: 10px;">NIVEAU : ${lvl}</h3>`;
+                            
+                            const categories = [
+                                { title: "✅ TÂCHES RÉUSSIES", color: "#10b981", data: lvlTasks.filter(t => t.status === 'done'), showCauses: false },
+                                { title: "🏗️ TÂCHES EN COURS", color: "#3b82f6", data: lvlTasks.filter(t => t.status === 'ongoing'), showCauses: false },
+                                { title: "⚠️ TÂCHES REPORTÉES", color: "#ef4444", data: lvlTasks.filter(t => t.status === 'delayed'), showCauses: true }
+                            ];
 
-                        categories.forEach(cat => {
-                            if (cat.data.length > 0) {
-                                lpsContent += `
-                                <div style="margin-bottom: 20px;">
-                                    <h3 style="color: ${cat.color}; font-size: 14px; font-weight: bold; border-bottom: 2px solid ${cat.color}; padding-bottom: 3px; margin-bottom: 8px;">${cat.title}</h3>
-                                    <table style="width: 100%; border-collapse: collapse; font-size: 10px;">
-                                        <tr style="background: #f8fafc; text-align: left;">
-                                            <th style="padding: 6px; border: 1px solid #e2e8f0; width:30%;">Tâche</th>
-                                            <th style="padding: 6px; border: 1px solid #e2e8f0; width:20%;">Équipe</th>
-                                            <th style="padding: 6px; border: 1px solid #e2e8f0; text-align: center; width:10%;">%</th>
-                                            <th style="padding: 6px; border: 1px solid #e2e8f0;">${cat.showCauses ? 'Causes / Observations' : 'Statut'}</th>
-                                        </tr>
-                                        ${cat.data.map(t => `
-                                            <tr>
-                                                <td style="padding: 6px; border: 1px solid #e2e8f0; font-weight: bold;">${t.name}<br><i style="font-size:8px;color:#64748b">Échéance: ${t.deadline || '-'}</i></td>
-                                                <td style="padding: 6px; border: 1px solid #e2e8f0;">${t.owner}</td>
-                                                <td style="padding: 6px; border: 1px solid #e2e8f0; text-align: center;">${t.progress}%</td>
-                                                <td style="padding: 6px; border: 1px solid #e2e8f0;">
-                                                    ${cat.showCauses ? (t.causes || []).join(' • ') + (t.comment ? ' <br><small>' + t.comment + '</small>' : '') : 'OK'}
-                                                </td>
+                            categories.forEach(cat => {
+                                if (cat.data.length > 0) {
+                                    lpsContent += `
+                                    <div style="margin-bottom: 15px;">
+                                        <h4 style="color: ${cat.color}; font-size: 12px; font-weight: bold; margin-bottom: 6px;">${cat.title}</h4>
+                                        <table style="width: 100%; border-collapse: collapse; font-size: 10px;">
+                                            <tr style="background: #f8fafc; text-align: left;">
+                                                <th style="padding: 4px; border: 1px solid #e2e8f0; width:30%;">Tâche</th>
+                                                <th style="padding: 4px; border: 1px solid #e2e8f0; width:20%;">Équipe</th>
+                                                <th style="padding: 4px; border: 1px solid #e2e8f0; text-align: center; width:10%;">%</th>
+                                                <th style="padding: 4px; border: 1px solid #e2e8f0;">${cat.showCauses ? 'Causes / Observations' : 'Statut'}</th>
                                             </tr>
-                                        `).join('')}
-                                    </table>
-                                </div>`;
-                            }
+                                            ${cat.data.map(t => `
+                                                <tr>
+                                                    <td style="padding: 4px; border: 1px solid #e2e8f0; font-weight: bold;">${t.name}<br><i style="font-size:8px;color:#64748b">Échéance: ${t.deadline || '-'}</i></td>
+                                                    <td style="padding: 4px; border: 1px solid #e2e8f0;">${t.owner}</td>
+                                                    <td style="padding: 4px; border: 1px solid #e2e8f0; text-align: center;">${t.progress}%</td>
+                                                    <td style="padding: 4px; border: 1px solid #e2e8f0;">
+                                                        ${cat.showCauses ? (t.causes || []).join(' • ') + (t.comment ? ' <br><small>' + t.comment + '</small>' : '') : 'OK'}
+                                                    </td>
+                                                </tr>
+                                            `).join('')}
+                                        </table>
+                                    </div>`;
+                                }
+                            });
                         });
                         
                         await addSection('Rapport Suivi LPS', lpsContent, true);
